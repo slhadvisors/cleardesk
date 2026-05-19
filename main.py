@@ -176,6 +176,6 @@ async def test_message(msg: Message):
     response = await process_with_claude(msg.customer_number, msg.message, msg.org_id)
     return response
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Vercel serverless handler
+from mangum import Mangum
+handler = Mangum(app)
