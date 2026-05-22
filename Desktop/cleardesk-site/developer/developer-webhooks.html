@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webhooks - Developer Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../supabase-config.js"></script>
+  <script src="../auth.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <nav class="bg-gray-800 border-b border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back</a>
+          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
+          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
+          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
+          <a href="webhooks.html" class="text-purple-400 font-medium">Webhooks</a>
+          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h2 class="text-3xl font-bold mb-2">Webhook Integration</h2>
+    <p class="text-gray-400 mb-8">Configure webhooks to sync data with external CRMs and services.</p>
+
+    <!-- Add New Webhook -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Add New Webhook</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Webhook Name</label>
+          <input type="text" id="webhook-name" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="HubSpot Contact Sync">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Endpoint URL</label>
+          <input type="url" id="webhook-url" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="https://api.hubspot.com/...">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Event Trigger</label>
+          <select id="webhook-event" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+            <option value="contact.created">Contact Created</option>
+            <option value="contact.updated">Contact Updated</option>
+            <option value="call.completed">Call Completed</option>
+            <option value="sms.sent">SMS Sent</option>
+            <option value="campaign.finished">Campaign Finished</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Authentication</label>
+          <select id="webhook-auth" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 mb-2">
+            <option value="none">None</option>
+            <option value="bearer">Bearer Token</option>
+            <option value="api-key">API Key</option>
+            <option value="oauth">OAuth 2.0</option>
+          </select>
+          <input type="password" id="webhook-auth-value" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="Token/Key">
+        </div>
+
+        <div>
+          <label class="flex items-center">
+            <input type="checkbox" id="webhook-active" class="mr-2" checked>
+            <span class="text-sm">Active</span>
+          </label>
+        </div>
+      </div>
+
+      <button onclick="addWebhook()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+        Add Webhook
+      </button>
+    </div>
+
+    <!-- Existing Webhooks -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">Active Webhooks</h3>
+      <div id="webhooks-list" class="space-y-3">
+        <p class="text-gray-400 text-sm">No webhooks configured yet.</p>
+      </div>
+    </div>
+
+    <!-- CRM Quick Setup -->
+    <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">CRM Quick Setup</h3>
+      <p class="text-gray-400 text-sm mb-4">Pre-configured integrations for popular CRM systems.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button onclick="setupHubSpot()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
+          <h4 class="font-medium mb-1">HubSpot</h4>
+          <p class="text-sm text-gray-400">Contact & deal sync</p>
+        </button>
+
+        <button onclick="setupSalesforce()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
+          <h4 class="font-medium mb-1">Salesforce</h4>
+          <p class="text-sm text-gray-400">Lead & opportunity sync</p>
+        </button>
+
+        <button onclick="setupZoho()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
+          <h4 class="font-medium mb-1">Zoho CRM</h4>
+          <p class="text-sm text-gray-400">Contact sync</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let webhooks = [];
+
+    async function initWebhooks() {
+      currentUser = await requireRole(['DEVELOPER'], '../index.html');
+      if (!currentUser) return;
+      await loadWebhooks();
+    }
+
+    async function loadWebhooks() {
+      // Load from database
+      renderWebhooks();
+    }
+
+    function renderWebhooks() {
+      const list = document.getElementById('webhooks-list');
+      if (webhooks.length === 0) {
+        list.innerHTML = '<p class="text-gray-400 text-sm">No webhooks configured yet.</p>';
+        return;
+      }
+
+      list.innerHTML = webhooks.map(wh => `
+        <div class="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
+          <div>
+            <h4 class="font-medium">${wh.name}</h4>
+            <p class="text-sm text-gray-400">${wh.url}</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">${wh.active ? 'Active' : 'Inactive'}</span>
+            <button onclick="deleteWebhook('${wh.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function addWebhook() {
+      const webhook = {
+        id: Date.now().toString(),
+        name: document.getElementById('webhook-name').value,
+        url: document.getElementById('webhook-url').value,
+        event: document.getElementById('webhook-event').value,
+        auth: document.getElementById('webhook-auth').value,
+        authValue: document.getElementById('webhook-auth-value').value,
+        active: document.getElementById('webhook-active').checked
+      };
+
+      webhooks.push(webhook);
+      renderWebhooks();
+
+      // Clear form
+      document.getElementById('webhook-name').value = '';
+      document.getElementById('webhook-url').value = '';
+      document.getElementById('webhook-auth-value').value = '';
+
+      alert('Webhook added!');
+    }
+
+    async function deleteWebhook(id) {
+      if (confirm('Delete this webhook?')) {
+        webhooks = webhooks.filter(w => w.id !== id);
+        renderWebhooks();
+      }
+    }
+
+    function setupHubSpot() {
+      alert('HubSpot OAuth flow would start here');
+    }
+
+    function setupSalesforce() {
+      alert('Salesforce OAuth flow would start here');
+    }
+
+    function setupZoho() {
+      alert('Zoho OAuth flow would start here');
+    }
+
+    document.addEventListener('DOMContentLoaded', initWebhooks);
+  </script>
+</body>
+</html>

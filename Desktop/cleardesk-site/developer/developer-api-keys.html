@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Keys - Developer Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../supabase-config.js"></script>
+  <script src="../auth.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <nav class="bg-gray-800 border-b border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back</a>
+          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
+          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
+          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
+          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
+          <a href="api-keys.html" class="text-purple-400 font-medium">API Keys</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h2 class="text-3xl font-bold mb-2">API Key Management</h2>
+    <p class="text-gray-400 mb-8">Generate and manage API keys for external integrations.</p>
+
+    <!-- Warning -->
+    <div class="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4 mb-6">
+      <p class="text-yellow-300 text-sm">⚠️ Keep your API keys secure. Never share them publicly or commit to version control.</p>
+    </div>
+
+    <!-- Generate New Key -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Generate New API Key</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Key Name</label>
+          <input type="text" id="key-name" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="Production Server">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Permissions</label>
+          <div class="space-y-2">
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2" value="campaigns.read">
+              <span class="text-sm">Read Campaigns</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2" value="campaigns.write">
+              <span class="text-sm">Write Campaigns</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2" value="contacts.read">
+              <span class="text-sm">Read Contacts</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2" value="contacts.write">
+              <span class="text-sm">Write Contacts</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2" value="logs.read">
+              <span class="text-sm">Read Logs</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Expiration</label>
+          <select id="key-expiration" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+            <option value="never">Never</option>
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="365">1 year</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="generateKey()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+        Generate API Key
+      </button>
+    </div>
+
+    <!-- Active Keys -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">Active API Keys</h3>
+      <div id="keys-list" class="space-y-3">
+        <p class="text-gray-400 text-sm">No API keys generated yet.</p>
+      </div>
+    </div>
+
+    <!-- API Documentation -->
+    <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">API Documentation</h3>
+      <p class="text-gray-400 text-sm mb-4">Example API usage with your keys:</p>
+      
+      <pre class="bg-gray-900 p-4 rounded text-sm overflow-x-auto"><code class="text-green-400">curl -X GET https://api.cleardesk.com/v1/campaigns \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"</code></pre>
+
+      <div class="mt-4">
+        <a href="#" class="text-purple-400 hover:text-purple-300 text-sm">View Full API Documentation →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Generated Modal -->
+  <div id="key-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">API Key Generated</h3>
+      <p class="text-gray-400 text-sm mb-4">Copy this key now. You won't be able to see it again!</p>
+      
+      <div class="bg-gray-900 p-4 rounded mb-4">
+        <code id="generated-key" class="text-green-400 break-all"></code>
+      </div>
+
+      <div class="flex space-x-3">
+        <button onclick="copyKey()" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+          Copy to Clipboard
+        </button>
+        <button onclick="closeModal()" class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let apiKeys = [];
+
+    async function initAPIKeys() {
+      currentUser = await requireRole(['DEVELOPER'], '../index.html');
+      if (!currentUser) return;
+      await loadKeys();
+    }
+
+    async function loadKeys() {
+      renderKeys();
+    }
+
+    function renderKeys() {
+      const list = document.getElementById('keys-list');
+      if (apiKeys.length === 0) {
+        list.innerHTML = '<p class="text-gray-400 text-sm">No API keys generated yet.</p>';
+        return;
+      }
+
+      list.innerHTML = apiKeys.map(key => `
+        <div class="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
+          <div>
+            <h4 class="font-medium">${key.name}</h4>
+            <p class="text-sm text-gray-400">Created ${key.created} • ${key.lastUsed ? 'Last used ' + key.lastUsed : 'Never used'}</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Active</span>
+            <button onclick="revokeKey('${key.id}')" class="text-red-400 hover:text-red-300">Revoke</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function generateKey() {
+      const name = document.getElementById('key-name').value;
+      if (!name) {
+        alert('Please enter a key name');
+        return;
+      }
+
+      const key = 'sk_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      apiKeys.push({
+        id: Date.now().toString(),
+        name: name,
+        key: key,
+        created: 'Just now',
+        lastUsed: null
+      });
+
+      document.getElementById('generated-key').textContent = key;
+      document.getElementById('key-modal').classList.remove('hidden');
+      
+      renderKeys();
+      document.getElementById('key-name').value = '';
+    }
+
+    async function revokeKey(id) {
+      if (confirm('Revoke this API key? This cannot be undone.')) {
+        apiKeys = apiKeys.filter(k => k.id !== id);
+        renderKeys();
+      }
+    }
+
+    function copyKey() {
+      const key = document.getElementById('generated-key').textContent;
+      navigator.clipboard.writeText(key);
+      alert('API key copied to clipboard!');
+    }
+
+    function closeModal() {
+      document.getElementById('key-modal').classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', initAPIKeys);
+  </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk - Settings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
+<style>
+body {
+    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
+}
+.glass-nav {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(32px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+.tab-active {
+    border-bottom: 2px solid #4d41df;
+    color: #4d41df;
+}
+</style>
+</head>
+<body>
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
+          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
+        </div>
+        <span class="text-xl font-semibold">ClearDesk</span>
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
+        <a href="team-management.html" class="text-sm hover:text-[#4d41df]">Teams</a>
+        <a href="agent-detail.html" class="text-sm hover:text-[#4d41df]">Agents</a>
+        <a href="campaigns.html" class="text-sm hover:text-[#4d41df]">Campaigns</a>
+        <a href="contacts.html" class="text-sm hover:text-[#4d41df]">Contacts</a>
+        <a href="call-logs.html" class="text-sm hover:text-[#4d41df]">Calls</a>
+        <a href="sms-logs.html" class="text-sm hover:text-[#4d41df]">SMS</a>
+        <a href="settings.html" class="text-sm text-[#4d41df] font-semibold">Settings</a>
+        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="pt-24 pb-12 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">Settings</h1>
+      <p class="text-lg text-gray-600">Configure AI agents and integrations</p>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="glass-card rounded-xl overflow-hidden">
+      <div class="flex border-b border-gray-200">
+        <button onclick="switchTab('agents')" id="tab-agents" class="tab-active px-6 py-4 font-semibold">AI Agents</button>
+        <button onclick="switchTab('integrations')" id="tab-integrations" class="px-6 py-4 font-semibold text-gray-600">Integrations</button>
+        <button onclick="switchTab('account')" id="tab-account" class="px-6 py-4 font-semibold text-gray-600">Account</button>
+      </div>
+      
+      <!-- AI Agents Tab -->
+      <div id="content-agents" class="p-8">
+        <div class="space-y-8">
+          <!-- Reminder Agent -->
+          <div class="border-b pb-8">
+            <h3 class="text-xl font-semibold mb-4">🔔 Reminder Agent</h3>
+            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for automated tax filing reminders.</p>
+            
+            <label class="block mb-2 text-sm font-medium">System Prompt</label>
+            <textarea id="prompt-reminder" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block mb-2 text-sm font-medium">Voice ID</label>
+                <select id="voice-reminder" class="w-full p-3 border rounded-lg">
+                  <option value="">Select a voice...</option>
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="onyx">Onyx</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
+                </select>
+              </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
+                <input type="number" id="temp-reminder" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Warm Lead Agent -->
+          <div class="border-b pb-8">
+            <h3 class="text-xl font-semibold mb-4">🔥 Warm Lead Agent</h3>
+            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for warm lead pitching with live transfer capability.</p>
+            
+            <label class="block mb-2 text-sm font-medium">System Prompt</label>
+            <textarea id="prompt-warm_lead" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block mb-2 text-sm font-medium">Voice ID</label>
+                <select id="voice-warm_lead" class="w-full p-3 border rounded-lg">
+                  <option value="">Select a voice...</option>
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="onyx">Onyx</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
+                </select>
+              </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
+                <input type="number" id="temp-warm_lead" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Cold Lead Agent -->
+          <div class="pb-8">
+            <h3 class="text-xl font-semibold mb-4">❄️ Cold Lead Agent</h3>
+            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for cold lead marketing outreach.</p>
+            
+            <label class="block mb-2 text-sm font-medium">System Prompt</label>
+            <textarea id="prompt-cold_lead" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block mb-2 text-sm font-medium">Voice ID</label>
+                <select id="voice-cold_lead" class="w-full p-3 border rounded-lg">
+                  <option value="">Select a voice...</option>
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="onyx">Onyx</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
+                </select>
+              </div>
+              <div>
+                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
+                <input type="number" id="temp-cold_lead" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
+              </div>
+            </div>
+          </div>
+          
+          <button onclick="saveAgentSettings()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf]">
+            Save AI Agent Settings
+          </button>
+        </div>
+      </div>
+      
+      <!-- Integrations Tab -->
+      <div id="content-integrations" class="p-8 hidden">
+        <div class="space-y-8">
+          <!-- Warning Banner -->
+          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+            <span class="material-symbols-outlined text-yellow-600">warning</span>
+            <div class="text-sm">
+              <p class="font-semibold text-yellow-800 mb-1">Integration Setup Required</p>
+              <p class="text-yellow-700">To enable voice calls and SMS messaging, you need to configure API credentials for your chosen providers.</p>
+            </div>
+          </div>
+          
+          <!-- Voice Provider -->
+          <div class="border-b pb-8">
+            <h3 class="text-xl font-semibold mb-4">📞 Voice Provider</h3>
+            <p class="text-sm text-gray-600 mb-4">Configure your voice calling provider for AI agent calls.</p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block mb-2 text-sm font-medium">Provider</label>
+                <select id="voice-provider" class="w-full p-3 border rounded-lg">
+                  <option value="">Select provider...</option>
+                  <option value="twilio">Twilio</option>
+                  <option value="vonage">Vonage</option>
+                  <option value="plivo">Plivo</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">Account SID</label>
+                <input type="text" id="voice-account-sid" placeholder="Enter your account SID" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">API Key</label>
+                <input type="text" id="voice-api-key" placeholder="Enter your API key" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">API Secret</label>
+                <input type="password" id="voice-api-secret" placeholder="Enter your API secret" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">Phone Number</label>
+                <input type="tel" id="voice-phone" placeholder="+1 (555) 123-4567" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <input type="checkbox" id="voice-active" class="w-5 h-5"/>
+                <label for="voice-active" class="text-sm font-medium">Enable voice calling</label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- SMS Provider -->
+          <div class="pb-8">
+            <h3 class="text-xl font-semibold mb-4">💬 SMS Provider</h3>
+            <p class="text-sm text-gray-600 mb-4">Configure your SMS messaging provider for text campaigns.</p>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block mb-2 text-sm font-medium">Provider</label>
+                <select id="sms-provider" class="w-full p-3 border rounded-lg">
+                  <option value="">Select provider...</option>
+                  <option value="twilio">Twilio</option>
+                  <option value="vonage">Vonage</option>
+                  <option value="plivo">Plivo</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">Account SID / ID</label>
+                <input type="text" id="sms-account-sid" placeholder="Enter your account SID" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">API Key</label>
+                <input type="text" id="sms-api-key" placeholder="Enter your API key" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">API Secret</label>
+                <input type="password" id="sms-api-secret" placeholder="Enter your API secret" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div>
+                <label class="block mb-2 text-sm font-medium">Phone Number</label>
+                <input type="tel" id="sms-phone" placeholder="+1 (555) 123-4567" class="w-full p-3 border rounded-lg"/>
+              </div>
+              
+              <div class="flex items-center gap-3">
+                <input type="checkbox" id="sms-active" class="w-5 h-5"/>
+                <label for="sms-active" class="text-sm font-medium">Enable SMS messaging</label>
+              </div>
+            </div>
+          </div>
+          
+          <button onclick="saveIntegrations()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf]">
+            Save Integration Settings
+          </button>
+        </div>
+      </div>
+      
+      <!-- Account Tab -->
+      <div id="content-account" class="p-8 hidden">
+        <div class="space-y-6">
+          <div>
+            <label class="block mb-2 text-sm font-medium">Email</label>
+            <input type="email" id="account-email" readonly class="w-full p-3 border rounded-lg bg-gray-50" />
+          </div>
+          <div>
+            <label class="block mb-2 text-sm font-medium">User ID</label>
+            <input type="text" id="account-id" readonly class="w-full p-3 border rounded-lg bg-gray-50 font-mono text-sm" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script>
+let currentUser = null;
+
+function switchTab(tab) {
+  // Update tab buttons
+  document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+    btn.classList.remove('tab-active', 'text-[#4d41df]');
+    btn.classList.add('text-gray-600');
+  });
+  document.getElementById(`tab-${tab}`).classList.add('tab-active', 'text-[#4d41df]');
+  document.getElementById(`tab-${tab}`).classList.remove('text-gray-600');
+  
+  // Update content
+  document.querySelectorAll('[id^="content-"]').forEach(content => {
+    content.classList.add('hidden');
+  });
+  document.getElementById(`content-${tab}`).classList.remove('hidden');
+}
+
+async function loadAgentSettings() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('agent_configs')
+      .select('*')
+      .eq('user_id', currentUser.id);
+    
+    if (error) throw error;
+    
+    data.forEach(config => {
+      document.getElementById(`prompt-${config.agent_type}`).value = config.system_prompt || '';
+      document.getElementById(`voice-${config.agent_type}`).value = config.voice_id || '';
+      document.getElementById(`temp-${config.agent_type}`).value = config.temperature || 0.7;
+    });
+  } catch (error) {
+    console.error('Error loading settings:', error);
+  }
+}
+
+async function saveAgentSettings() {
+  const types = ['reminder', 'warm_lead', 'cold_lead'];
+  
+  try {
+    for (const type of types) {
+      const prompt = document.getElementById(`prompt-${type}`).value;
+      const voice = document.getElementById(`voice-${type}`).value;
+      const temp = parseFloat(document.getElementById(`temp-${type}`).value);
+      
+      const { error } = await supabaseClient
+        .from('agent_configs')
+        .upsert({
+          agent_type: type,
+          system_prompt: prompt,
+          voice_id: voice,
+          temperature: temp,
+          user_id: currentUser.id
+        }, {
+          onConflict: 'user_id,agent_type'
+        });
+      
+      if (error) throw error;
+    }
+    
+    alert('✅ Settings saved successfully!');
+  } catch (error) {
+    console.error('Error saving:', error);
+    alert('❌ Error saving settings: ' + error.message);
+  }
+}
+
+async function loadIntegrations() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('integration_configs')
+      .select('*')
+      .eq('user_id', currentUser.id);
+    
+    if (error) throw error;
+    
+    if (data) {
+      const voice = data.find(c => c.provider_type === 'voice');
+      const sms = data.find(c => c.provider_type === 'sms');
+      
+      if (voice) {
+        document.getElementById('voice-provider').value = voice.provider_name || '';
+        document.getElementById('voice-account-sid').value = voice.account_sid || '';
+        document.getElementById('voice-api-key').value = voice.api_key || '';
+        document.getElementById('voice-api-secret').value = voice.api_secret || '';
+        document.getElementById('voice-phone').value = voice.phone_number || '';
+        document.getElementById('voice-active').checked = voice.is_active || false;
+      }
+      
+      if (sms) {
+        document.getElementById('sms-provider').value = sms.provider_name || '';
+        document.getElementById('sms-account-sid').value = sms.account_sid || '';
+        document.getElementById('sms-api-key').value = sms.api_key || '';
+        document.getElementById('sms-api-secret').value = sms.api_secret || '';
+        document.getElementById('sms-phone').value = sms.phone_number || '';
+        document.getElementById('sms-active').checked = sms.is_active || false;
+      }
+    }
+  } catch (error) {
+    console.error('Error loading integrations:', error);
+  }
+}
+
+async function saveIntegrations() {
+  try {
+    // Save voice provider
+    const voiceData = {
+      user_id: currentUser.id,
+      provider_type: 'voice',
+      provider_name: document.getElementById('voice-provider').value,
+      account_sid: document.getElementById('voice-account-sid').value,
+      api_key: document.getElementById('voice-api-key').value,
+      api_secret: document.getElementById('voice-api-secret').value,
+      phone_number: document.getElementById('voice-phone').value,
+      is_active: document.getElementById('voice-active').checked
+    };
+    
+    const { error: voiceError } = await supabaseClient
+      .from('integration_configs')
+      .upsert(voiceData, {
+        onConflict: 'user_id,provider_type'
+      });
+    
+    if (voiceError) throw voiceError;
+    
+    // Save SMS provider
+    const smsData = {
+      user_id: currentUser.id,
+      provider_type: 'sms',
+      provider_name: document.getElementById('sms-provider').value,
+      account_sid: document.getElementById('sms-account-sid').value,
+      api_key: document.getElementById('sms-api-key').value,
+      api_secret: document.getElementById('sms-api-secret').value,
+      phone_number: document.getElementById('sms-phone').value,
+      is_active: document.getElementById('sms-active').checked
+    };
+    
+    const { error: smsError } = await supabaseClient
+      .from('integration_configs')
+      .upsert(smsData, {
+        onConflict: 'user_id,provider_type'
+      });
+    
+    if (smsError) throw smsError;
+    
+    alert('✅ Integration settings saved successfully!');
+  } catch (error) {
+    console.error('Error saving integrations:', error);
+    alert('❌ Error saving integrations: ' + error.message);
+  }
+}
+
+(async () => {
+  const session = await getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  currentUser = session.user;
+  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
+  document.getElementById('account-email').value = session.user.email;
+  document.getElementById('account-id').value = session.user.id;
+  
+  await loadAgentSettings();
+  await loadIntegrations();
+})();
+</script>
+</body>
+</html>

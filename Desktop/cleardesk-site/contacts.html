@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk - Contacts</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
+<style>
+body {
+    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
+}
+.glass-nav {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(32px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+</style>
+</head>
+<body>
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
+          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olerror code: 504-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
+        </div>
+        <span class="text-xl font-semibold">ClearDesk</span>
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
+        <a href="campaigns.html" class="text-sm hover:text-[#4d41df]">Campaigns</a>
+        <a href="contacts.html" class="text-sm text-[#4d41df] font-semibold">Contacts</a>
+        <a href="settings.html" class="text-sm hover:text-[#4d41df]">Settings</a>
+        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="pt-24 pb-12 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-4xl font-bold mb-2">Contacts</h1>
+        <p class="text-lg text-gray-600">Manage your contact database</p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="showUploadModal()" class="px-6 py-3 bg-white border-2 border-[#4d41df] text-[#4d41df] rounded-lg font-semibold hover:bg-gray-50 flex items-center gap-2">
+          <span class="material-symbols-outlined">upload</span>
+          <span>Upload CSV</span>
+        </button>
+        <button onclick="showAddModal()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf] flex items-center gap-2">
+          <span class="material-symbols-outlined">add</span>
+          <span>Add Contact</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="glass-card rounded-xl p-6 mb-6">
+      <div class="flex gap-4">
+        <input type="text" id="search" placeholder="Search contacts..." class="flex-1 p-3 border rounded-lg" onkeyup="filterContacts()"/>
+        <select id="filter-status" class="p-3 border rounded-lg" onchange="filterContacts()">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+    
+    <div id="contacts-container" class="space-y-3">
+      <div class="glass-card rounded-xl p-6 animate-pulse">
+        <div class="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
+        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Upload CSV Modal -->
+<div id="upload-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4">
+    <h2 class="text-2xl font-bold mb-6">Upload Contacts CSV</h2>
+    
+    <div class="mb-4">
+      <p class="text-sm text-gray-600 mb-4">CSV format: name, phone, email, company</p>
+      <input type="file" id="csv-file" accept=".csv" class="w-full p-3 border rounded-lg"/>
+    </div>
+    
+    <div class="flex gap-3">
+      <button onclick="uploadCSV()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Upload</button>
+      <button onclick="hideUploadModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Contact Modal -->
+<div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4">
+    <h2 class="text-2xl font-bold mb-6">Add Contact</h2>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block mb-2 text-sm font-medium">Name</label>
+        <input type="text" id="contact-name" placeholder="John Doe" class="w-full p-3 border rounded-lg"/>
+      </div>
+      <div>
+        <label class="block mb-2 text-sm font-medium">Phone</label>
+        <input type="tel" id="contact-phone" placeholder="+1 555 123 4567" class="w-full p-3 border rounded-lg"/>
+      </div>
+      <div>
+        <label class="block mb-2 text-sm font-medium">Email</label>
+        <input type="email" id="contact-email" placeholder="john@example.com" class="w-full p-3 border rounded-lg"/>
+      </div>
+      <div>
+        <label class="block mb-2 text-sm font-medium">Company</label>
+        <input type="text" id="contact-company" placeholder="Acme Corp" class="w-full p-3 border rounded-lg"/>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 mt-6">
+      <button onclick="addContact()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Add</button>
+      <button onclick="hideAddModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script>
+let currentUser = null;
+let allContacts = [];
+
+function showUploadModal() {
+  document.getElementById('upload-modal').classList.remove('hidden');
+}
+
+function hideUploadModal() {
+  document.getElementById('upload-modal').classList.add('hidden');
+  document.getElementById('csv-file').value = '';
+}
+
+function showAddModal() {
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+function hideAddModal() {
+  document.getElementById('add-modal').classList.add('hidden');
+  document.getElementById('contact-name').value = '';
+  document.getElementById('contact-phone').value = '';
+  document.getElementById('contact-email').value = '';
+  document.getElementById('contact-company').value = '';
+}
+
+async function uploadCSV() {
+  const file = document.getElementById('csv-file').files[0];
+  if (!file) {
+    alert('Please select a file');
+    return;
+  }
+  
+  const text = await file.text();
+  const lines = text.split('\n').filter(l => l.trim());
+  
+  // Skip header if present
+  const start = lines[0].toLowerCase().includes('name') ? 1 : 0;
+  
+  const contacts = [];
+  for (let i = start; i < lines.length; i++) {
+    const [name, phone, email, company] = lines[i].split(',').map(s => s.trim());
+    if (name && phone) {
+      contacts.push({
+        user_id: currentUser.id,
+        name,
+        phone,
+        email: email || null,
+        company: company || null
+      });
+    }
+  }
+  
+  try {
+    const { error } = await supabaseClient
+      .from('contacts')
+      .insert(contacts);
+    
+    if (error) throw error;
+    
+    hideUploadModal();
+    await loadContacts();
+    alert(`✅ Uploaded ${contacts.length} contacts`);
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error uploading: ' + error.message);
+  }
+}
+
+async function addContact() {
+  const name = document.getElementById('contact-name').value;
+  const phone = document.getElementById('contact-phone').value;
+  const email = document.getElementById('contact-email').value;
+  const company = document.getElementById('contact-company').value;
+  
+  if (!name || !phone) {
+    alert('Name and phone are required');
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient
+      .from('contacts')
+      .insert({
+        user_id: currentUser.id,
+        name,
+        phone,
+        email: email || null,
+        company: company || null
+      });
+    
+    if (error) throw error;
+    
+    hideAddModal();
+    await loadContacts();
+    alert('✅ Contact added!');
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error: ' + error.message);
+  }
+}
+
+async function loadContacts() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('contacts')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    allContacts = data || [];
+    renderContacts(allContacts);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+function filterContacts() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  
+  let filtered = allContacts;
+  
+  if (search) {
+    filtered = filtered.filter(c => 
+      c.name.toLowerCase().includes(search) ||
+      c.phone.includes(search) ||
+      (c.email && c.email.toLowerCase().includes(search)) ||
+      (c.company && c.company.toLowerCase().includes(search))
+    );
+  }
+  
+  if (status !== 'all') {
+    filtered = filtered.filter(c => c.status === status);
+  }
+  
+  renderContacts(filtered);
+}
+
+function renderContacts(contacts) {
+  const container = document.getElementById('contacts-container');
+  
+  if (contacts.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card rounded-xl p-6 text-center">
+        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">contacts</span>
+        <h3 class="text-xl font-semibold mb-2">No contacts yet</h3>
+        <p class="text-gray-600">Add contacts or upload a CSV to get started</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = contacts.map(contact => `
+    <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-[#4d41df] flex items-center justify-center text-white font-semibold text-lg">
+          ${contact.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h3 class="font-semibold">${contact.name}</h3>
+          <p class="text-sm text-gray-600">${contact.phone}</p>
+          ${contact.email ? `<p class="text-sm text-gray-500">${contact.email}</p>` : ''}
+          ${contact.company ? `<p class="text-sm text-gray-500">${contact.company}</p>` : ''}
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-full text-xs font-semibold ${contact.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
+          ${contact.status}
+        </span>
+        <button onclick="deleteContact('${contact.id}')" class="p-2 hover:bg-red-50 rounded-lg">
+          <span class="material-symbols-outlined text-red-600">delete</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteContact(id) {
+  if (!confirm('Delete this contact?')) return;
+  
+  try {
+    const { error } = await supabaseClient
+      .from('contacts')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    await loadContacts();
+    alert('✅ Contact deleted');
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error: ' + error.message);
+  }
+}
+
+(async () => {
+  const session = await getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  currentUser = session.user;
+  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
+  
+  await loadContacts();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "cleardesk",
+  "version": "1.0.0",
+  "description": "ClearDesk Automation Platform",
+  "dependencies": {
+    "twilio": "^5.0.0",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}

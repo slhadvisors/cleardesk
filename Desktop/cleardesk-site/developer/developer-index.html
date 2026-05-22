@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Portal - ClearDesk</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../supabase-config.js"></script>
+  <script src="../auth.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Navigation -->
+  <nav class="bg-gray-800 border-b border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back to Dashboard</a>
+          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="index.html" class="text-purple-400 font-medium">Overview</a>
+          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
+          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
+          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
+          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Welcome Section -->
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold mb-2">Developer Portal</h2>
+      <p class="text-gray-400">Configure AI models, manage credits, and integrate with external systems.</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-gray-400 text-sm">Active Models</span>
+          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold" id="active-models">-</p>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-gray-400 text-sm">Credits Used</span>
+          <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold" id="credits-used">-</p>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-gray-400 text-sm">API Calls (30d)</span>
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold" id="api-calls">-</p>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-gray-400 text-sm">Active Webhooks</span>
+          <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold" id="active-webhooks">-</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h3 class="text-lg font-semibold mb-4">Model Configuration</h3>
+        <p class="text-gray-400 text-sm mb-4">Configure AI models, voices, and localization settings for your agents.</p>
+        <a href="models.html" class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium">
+          Configure Models →
+        </a>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h3 class="text-lg font-semibold mb-4">Credit Management</h3>
+        <p class="text-gray-400 text-sm mb-4">Set credit ceilings, monitor usage, and configure billing alerts.</p>
+        <a href="credits.html" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium">
+          Manage Credits →
+        </a>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h3 class="text-lg font-semibold mb-4">Webhook Integration</h3>
+        <p class="text-gray-400 text-sm mb-4">Configure CRM webhooks for HubSpot, Salesforce, and custom endpoints.</p>
+        <a href="webhooks.html" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium">
+          Setup Webhooks →
+        </a>
+      </div>
+
+      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h3 class="text-lg font-semibold mb-4">API Keys</h3>
+        <p class="text-gray-400 text-sm mb-4">Generate and manage API keys for external integrations and services.</p>
+        <a href="api-keys.html" class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-sm font-medium">
+          Manage Keys →
+        </a>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">System Status</h3>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">AI Model API</span>
+          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Voice Synthesis</span>
+          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Webhook Delivery</span>
+          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400">Database</span>
+          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    async function initDeveloperPortal() {
+      // Require DEVELOPER role
+      currentUser = await requireRole(['DEVELOPER'], '../index.html');
+      if (!currentUser) return;
+
+      // Load stats
+      await loadStats();
+    }
+
+    async function loadStats() {
+      // Mock stats - replace with actual API calls
+      document.getElementById('active-models').textContent = '3';
+      document.getElementById('credits-used').textContent = '0';
+      document.getElementById('api-calls').textContent = '0';
+      document.getElementById('active-webhooks').textContent = '0';
+    }
+
+    document.addEventListener('DOMContentLoaded', initDeveloperPortal);
+  </script>
+</body>
+</html>
