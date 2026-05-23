@@ -13,7 +13,7 @@ const ROLE_HIERARCHY = [ROLES.DEVELOPER, ROLES.ORG_ADMIN, ROLES.ORG_STAFF];
 // Get current authenticated user with profile data
 async function getCurrentUser() {
   try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error || !session) {
       return null;
@@ -38,7 +38,7 @@ async function getCurrentUser() {
     };
 
     if (!role || !organizationId) {
-      const { data: profile } = await supabaseClient
+      const { data: profile } = await supabase
         .from('user_profiles')
         .select('*, organizations(name, subdomain)')
         .eq('id', user.id)
@@ -112,7 +112,7 @@ async function requireMinimumRole(minimumRole, redirectUrl = '/login.html') {
 
 // Sign up new user
 async function signUp(email, password, displayName, preferredLanguage = 'ENGLISH') {
-  const { data, error } = await supabaseClient.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -131,7 +131,7 @@ async function signUp(email, password, displayName, preferredLanguage = 'ENGLISH
 
 // Sign in user
 async function signIn(email, password) {
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
@@ -142,7 +142,7 @@ async function signIn(email, password) {
 
 // Sign out user
 async function signOut() {
-  const { error } = await supabaseClient.auth.signOut();
+  const { error } = await supabase.auth.signOut();
   if (error) throw error;
   window.location.href = '/login.html';
 }
@@ -152,7 +152,7 @@ async function updateLanguage(language) {
   const user = await getCurrentUser();
   if (!user) return;
 
-  const { error } = await supabaseClient
+  const { error } = await supabase
     .from('user_profiles')
     .update({ preferred_language: language })
     .eq('id', user.id);
@@ -160,7 +160,7 @@ async function updateLanguage(language) {
   if (error) throw error;
   
   // Refresh session to update JWT claims
-  await supabaseClient.auth.refreshSession();
+  await supabase.auth.refreshSession();
 }
 
 // Get IST-based greeting
@@ -215,7 +215,7 @@ function formatRole(role) {
 
 // Check if user is authenticated
 async function isAuthenticated() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
   return !!session;
 }
 
