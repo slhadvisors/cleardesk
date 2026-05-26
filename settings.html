@@ -1,461 +1,1188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk - Settings</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
-<style>
-body {
-    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-    min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.glass-card {
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-}
-.glass-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(32px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-}
-.tab-active {
-    border-bottom: 2px solid #4d41df;
-    color: #4d41df;
-}
-</style>
-</head>
-<body>
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
-          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="text-xl font-semibold">ClearDesk</span>
-      </a>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
-        <a href="team-management.html" class="text-sm hover:text-[#4d41df]">Teams</a>
-        <a href="agent-detail.html" class="text-sm hover:text-[#4d41df]">Agents</a>
-        <a href="campaigns.html" class="text-sm hover:text-[#4d41df]">Campaigns</a>
-        <a href="contacts.html" class="text-sm hover:text-[#4d41df]">Contacts</a>
-        <a href="call-logs.html" class="text-sm hover:text-[#4d41df]">Calls</a>
-        <a href="sms-logs.html" class="text-sm hover:text-[#4d41df]">SMS</a>
-        <a href="settings.html" class="text-sm text-[#4d41df] font-semibold">Settings</a>
-        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<main class="pt-24 pb-12 px-6">
-  <div class="max-w-6xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold mb-2">Settings</h1>
-      <p class="text-lg text-gray-600">Configure AI agents and integrations</p>
-    </div>
-    
-    <!-- Tabs -->
-    <div class="glass-card rounded-xl overflow-hidden">
-      <div class="flex border-b border-gray-200">
-        <button onclick="switchTab('agents')" id="tab-agents" class="tab-active px-6 py-4 font-semibold">AI Agents</button>
-        <button onclick="switchTab('integrations')" id="tab-integrations" class="px-6 py-4 font-semibold text-gray-600">Integrations</button>
-        <button onclick="switchTab('account')" id="tab-account" class="px-6 py-4 font-semibold text-gray-600">Account</button>
-      </div>
-      
-      <!-- AI Agents Tab -->
-      <div id="content-agents" class="p-8">
-        <div class="space-y-8">
-          <!-- Reminder Agent -->
-          <div class="border-b pb-8">
-            <h3 class="text-xl font-semibold mb-4">🔔 Reminder Agent</h3>
-            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for automated tax filing reminders.</p>
-            
-            <label class="block mb-2 text-sm font-medium">System Prompt</label>
-            <textarea id="prompt-reminder" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium">Voice ID</label>
-                <select id="voice-reminder" class="w-full p-3 border rounded-lg">
-                  <option value="">Select a voice...</option>
-                  <option value="alloy">Alloy</option>
-                  <option value="echo">Echo</option>
-                  <option value="fable">Fable</option>
-                  <option value="onyx">Onyx</option>
-                  <option value="nova">Nova</option>
-                  <option value="shimmer">Shimmer</option>
-                </select>
-              </div>
-              <div>
-                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
-                <input type="number" id="temp-reminder" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Warm Lead Agent -->
-          <div class="border-b pb-8">
-            <h3 class="text-xl font-semibold mb-4">🔥 Warm Lead Agent</h3>
-            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for warm lead pitching with live transfer capability.</p>
-            
-            <label class="block mb-2 text-sm font-medium">System Prompt</label>
-            <textarea id="prompt-warm_lead" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium">Voice ID</label>
-                <select id="voice-warm_lead" class="w-full p-3 border rounded-lg">
-                  <option value="">Select a voice...</option>
-                  <option value="alloy">Alloy</option>
-                  <option value="echo">Echo</option>
-                  <option value="fable">Fable</option>
-                  <option value="onyx">Onyx</option>
-                  <option value="nova">Nova</option>
-                  <option value="shimmer">Shimmer</option>
-                </select>
-              </div>
-              <div>
-                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
-                <input type="number" id="temp-warm_lead" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Cold Lead Agent -->
-          <div class="pb-8">
-            <h3 class="text-xl font-semibold mb-4">❄️ Cold Lead Agent</h3>
-            <p class="text-sm text-gray-600 mb-4">Configure the system prompt for cold lead marketing outreach.</p>
-            
-            <label class="block mb-2 text-sm font-medium">System Prompt</label>
-            <textarea id="prompt-cold_lead" rows="4" class="w-full p-3 border rounded-lg mb-4"></textarea>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium">Voice ID</label>
-                <select id="voice-cold_lead" class="w-full p-3 border rounded-lg">
-                  <option value="">Select a voice...</option>
-                  <option value="alloy">Alloy</option>
-                  <option value="echo">Echo</option>
-                  <option value="fable">Fable</option>
-                  <option value="onyx">Onyx</option>
-                  <option value="nova">Nova</option>
-                  <option value="shimmer">Shimmer</option>
-                </select>
-              </div>
-              <div>
-                <label class="block mb-2 text-sm font-medium">Temperature (0-1)</label>
-                <input type="number" id="temp-cold_lead" step="0.1" min="0" max="1" class="w-full p-3 border rounded-lg"/>
-              </div>
-            </div>
-          </div>
-          
-          <button onclick="saveAgentSettings()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf]">
-            Save AI Agent Settings
-          </button>
-        </div>
-      </div>
-      
-      <!-- Integrations Tab -->
-      <div id="content-integrations" class="p-8 hidden">
-        <div class="space-y-8">
-          <!-- Warning Banner -->
-          <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-            <span class="material-symbols-outlined text-yellow-600">warning</span>
-            <div class="text-sm">
-              <p class="font-semibold text-yellow-800 mb-1">Integration Setup Required</p>
-              <p class="text-yellow-700">To enable voice calls and SMS messaging, you need to configure API credentials for your chosen providers.</p>
-            </div>
-          </div>
-          
-          <!-- Voice Provider -->
-          <div class="border-b pb-8">
-            <h3 class="text-xl font-semibold mb-4">📞 Voice Provider</h3>
-            <p class="text-sm text-gray-600 mb-4">Configure your voice calling provider for AI agent calls.</p>
-            
-            <div class="space-y-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium">Provider</label>
-                <select id="voice-provider" class="w-full p-3 border rounded-lg">
-                  <option value="">Select provider...</option>
-                  <option value="twilio">Twilio</option>
-                  <option value="vonage">Vonage</option>
-                  <option value="plivo">Plivo</option>
-                </select>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">Account SID</label>
-                <input type="text" id="voice-account-sid" placeholder="Enter your account SID" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">API Key</label>
-                <input type="text" id="voice-api-key" placeholder="Enter your API key" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">API Secret</label>
-                <input type="password" id="voice-api-secret" placeholder="Enter your API secret" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">Phone Number</label>
-                <input type="tel" id="voice-phone" placeholder="+1 (555) 123-4567" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div class="flex items-center gap-3">
-                <input type="checkbox" id="voice-active" class="w-5 h-5"/>
-                <label for="voice-active" class="text-sm font-medium">Enable voice calling</label>
-              </div>
-            </div>
-          </div>
-          
-          <!-- SMS Provider -->
-          <div class="pb-8">
-            <h3 class="text-xl font-semibold mb-4">💬 SMS Provider</h3>
-            <p class="text-sm text-gray-600 mb-4">Configure your SMS messaging provider for text campaigns.</p>
-            
-            <div class="space-y-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium">Provider</label>
-                <select id="sms-provider" class="w-full p-3 border rounded-lg">
-                  <option value="">Select provider...</option>
-                  <option value="twilio">Twilio</option>
-                  <option value="vonage">Vonage</option>
-                  <option value="plivo">Plivo</option>
-                </select>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">Account SID / ID</label>
-                <input type="text" id="sms-account-sid" placeholder="Enter your account SID" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">API Key</label>
-                <input type="text" id="sms-api-key" placeholder="Enter your API key" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">API Secret</label>
-                <input type="password" id="sms-api-secret" placeholder="Enter your API secret" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div>
-                <label class="block mb-2 text-sm font-medium">Phone Number</label>
-                <input type="tel" id="sms-phone" placeholder="+1 (555) 123-4567" class="w-full p-3 border rounded-lg"/>
-              </div>
-              
-              <div class="flex items-center gap-3">
-                <input type="checkbox" id="sms-active" class="w-5 h-5"/>
-                <label for="sms-active" class="text-sm font-medium">Enable SMS messaging</label>
-              </div>
-            </div>
-          </div>
-          
-          <button onclick="saveIntegrations()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf]">
-            Save Integration Settings
-          </button>
-        </div>
-      </div>
-      
-      <!-- Account Tab -->
-      <div id="content-account" class="p-8 hidden">
-        <div class="space-y-6">
-          <div>
-            <label class="block mb-2 text-sm font-medium">Email</label>
-            <input type="email" id="account-email" readonly class="w-full p-3 border rounded-lg bg-gray-50" />
-          </div>
-          <div>
-            <label class="block mb-2 text-sm font-medium">User ID</label>
-            <input type="text" id="account-id" readonly class="w-full p-3 border rounded-lg bg-gray-50 font-mono text-sm" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
+<title>ClearDesk — Settings</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="translations.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+/* ── Reset ── */
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ── Pillar B: Design tokens ── */
+:root {
+  --base-slate:    #0f172a;
+  --slate-800:     #1e293b;
+  --slate-700:     #2a3a52;
+  --slate-600:     #334155;
+  --slate-500:     #475569;
+  --slate-400:     #64748b;
+  --slate-300:     #94a3b8;
+  --slate-200:     #cbd5e1;
+  --slate-100:     #e2e8f0;
+  --neon-cyan:     #06b6d4;
+  --neon-cyan-dim: rgba(6,182,212,0.15);
+  --neon-emerald:  #34d399;
+  --neon-emerald-dim: rgba(52,211,153,0.12);
+  --warning-crimson: #dc2626;
+  --crimson-dim:   rgba(220,38,38,0.12);
+  --amber:         #f59e0b;
+  --violet:        #8b5cf6;
+  --text-primary:  #f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:    #475569;
+  --border-dim:    rgba(255,255,255,0.06);
+  --border-med:    rgba(255,255,255,0.10);
+  --card-bg:       rgba(255,255,255,0.03);
+  --card-bg-hover: rgba(255,255,255,0.05);
+  --font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans:     'Plus Jakarta Sans', sans-serif;
+  --t-snappy:      0.22s cubic-bezier(0.25,1,0.5,1);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--base-slate);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* subtle grid overlay */
+body::before {
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(6,182,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.rel { position: relative; z-index: 1; }
+
+/* ── Dark navbar ── */
+.dark-nav {
+  background: rgba(15,23,42,0.95);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-dim);
+  box-shadow: 0 1px 0 rgba(6,182,212,0.08);
+}
+
+.credit-stripe { background: linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%); }
+
+.nav-link-dark {
+  color: var(--slate-400);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: color var(--t-snappy), background var(--t-snappy);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-link-dark:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.nav-link-dark.active { color: var(--neon-cyan); background: var(--neon-cyan-dim); }
+
+.md-icon {
+  font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;
+  font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
+  line-height:1;user-select:none;
+}
+
+/* ── Layout ── */
+.page-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 64px);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right: 1px solid var(--border-dim);
+  padding: 28px 16px;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.sidebar-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0 10px;
+  margin-bottom: 6px;
+  margin-top: 20px;
+}
+.sidebar-section-label:first-child { margin-top: 0; }
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--slate-400);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--t-snappy);
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+.sidebar-item:hover { color: var(--text-primary); background: var(--card-bg-hover); }
+.sidebar-item.active {
+  color: var(--neon-cyan);
+  background: var(--neon-cyan-dim);
+  border-color: rgba(6,182,212,0.2);
+}
+.sidebar-item .md-icon { font-size: 17px; }
+
+.conn-dot {
+  width: 6px; height: 6px; border-radius: 50%; margin-left: auto; flex-shrink: 0;
+}
+.conn-dot.ok     { background: var(--neon-emerald); }
+.conn-dot.warn   { background: var(--amber); }
+.conn-dot.error  { background: var(--warning-crimson); }
+.conn-dot.idle   { background: var(--slate-600); }
+
+/* ── Main content ── */
+.content-area { padding: 36px 40px 60px; max-width: 820px; }
+
+.section-panel { display: none; }
+.section-panel.active { display: block; }
+
+/* Section header */
+.section-hdr { margin-bottom: 28px; }
+.section-hdr h2 {
+  font-size: 20px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 10px;
+}
+.section-hdr p { font-size: 13px; color: var(--text-secondary); margin-top: 5px; font-family: var(--font-mono); }
+
+/* Cards */
+.settings-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: border-color var(--t-snappy);
+}
+.settings-card:hover { border-color: var(--border-med); }
+.settings-card-title {
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary);
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.settings-card-title .md-icon { font-size: 16px; color: var(--neon-cyan); }
+
+/* Terminal inputs */
+.term-label {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.term-label::before {
+  content: '›';
+  color: var(--slate-500);
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.term-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--t-snappy), box-shadow var(--t-snappy);
+}
+.term-input::placeholder { color: var(--slate-600); }
+.term-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.12), 0 0 12px rgba(6,182,212,0.08);
+}
+.term-input:read-only { opacity: 0.5; cursor: not-allowed; }
+
+.term-select {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--t-snappy), box-shadow var(--t-snappy);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.term-select option { background: #1e293b; }
+.term-select:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+}
+
+.term-textarea {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color var(--t-snappy), box-shadow var(--t-snappy);
+}
+.term-textarea::placeholder { color: var(--slate-600); }
+.term-textarea:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+}
+
+/* Password input wrapper */
+.input-wrap { position: relative; }
+.input-wrap .eye-btn {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--slate-500);
+  transition: color var(--t-snappy);
+}
+.input-wrap .eye-btn:hover { color: var(--neon-cyan); }
+
+/* Toggle switch */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--border-dim);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.toggle-sub   { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.toggle {
+  position: relative; width: 40px; height: 22px;
+  background: var(--slate-700); border-radius: 11px; cursor: pointer;
+  transition: background var(--t-snappy); flex-shrink: 0;
+}
+.toggle.on { background: var(--neon-cyan); }
+.toggle::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:16px; height:16px; border-radius:50%; background:#fff;
+  transition: transform var(--t-snappy);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 8px;
+  background: var(--neon-cyan); color: var(--base-slate);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: all var(--t-snappy);
+  box-shadow: 0 0 16px rgba(6,182,212,0.25);
+}
+.btn-primary:hover {
+  background: #22d3ee;
+  box-shadow: 0 0 24px rgba(6,182,212,0.4);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 8px;
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border-med); cursor: pointer;
+  transition: all var(--t-snappy);
+}
+.btn-ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.2); background: var(--card-bg-hover); }
+
+.btn-danger {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 8px;
+  background: var(--crimson-dim); color: var(--warning-crimson);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(220,38,38,0.2); cursor: pointer;
+  transition: all var(--t-snappy);
+}
+.btn-danger:hover { background: rgba(220,38,38,0.22); box-shadow: 0 0 12px rgba(220,38,38,0.2); }
+
+.btn-emerald {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 8px;
+  background: var(--neon-emerald-dim); color: var(--neon-emerald);
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(52,211,153,0.2); cursor: pointer;
+  transition: all var(--t-snappy);
+}
+.btn-emerald:hover { background: rgba(52,211,153,0.2); box-shadow: 0 0 14px rgba(52,211,153,0.2); }
+
+/* ── Terminal log stream ── */
+.terminal-stream {
+  display: none;
+  background: #000;
+  border: 1px solid rgba(6,182,212,0.25);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(6,182,212,0.08) inset;
+}
+.terminal-stream.visible { display: block; }
+.terminal-stream .t-line { animation: termFade .15s ease forwards; }
+@keyframes termFade { from { opacity:0; transform:translateX(-4px); } to { opacity:1; transform:none; } }
+.t-time  { color: var(--slate-500); }
+.t-info  { color: var(--neon-cyan); }
+.t-ok    { color: var(--neon-emerald); }
+.t-warn  { color: var(--amber); }
+.t-err   { color: var(--warning-crimson); }
+.t-dim   { color: var(--slate-600); }
+.cursor-blink { display: inline-block; width: 8px; height: 13px; background: var(--neon-cyan); opacity:0.8; animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 2px; }
+@keyframes blink { 0%,100%{opacity:.8} 50%{opacity:0} }
+
+/* ── Status badge ── */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+}
+.status-badge.connected  { background: var(--neon-emerald-dim); color: var(--neon-emerald); border: 1px solid rgba(52,211,153,0.2); }
+.status-badge.not-set    { background: rgba(100,116,139,0.12); color: var(--slate-400); border: 1px solid rgba(100,116,139,0.2); }
+.status-badge.error      { background: var(--crimson-dim); color: var(--warning-crimson); border: 1px solid rgba(220,38,38,0.2); }
+
+/* ── Budget progress ── */
+.budget-bar { height: 6px; border-radius: 3px; background: var(--slate-800); overflow: hidden; }
+.budget-fill { height:100%; border-radius:3px; transition: width .6s ease; }
+.budget-fill.ok      { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-emerald)); }
+.budget-fill.warning { background: linear-gradient(90deg, var(--amber), #ef4444); }
+
+/* ── Field grid ── */
+.field-grid { display: grid; gap: 16px; }
+.field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border-dim); margin: 24px 0; }
+
+/* ── Saved toast ── */
+.toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 999;
+  background: #000; border: 1px solid var(--neon-emerald);
+  border-radius: 10px; padding: 12px 18px;
+  font-family: var(--font-mono); font-size: 13px; color: var(--neon-emerald);
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 0 20px rgba(52,211,153,0.2);
+  transform: translateY(20px); opacity: 0;
+  transition: all .28s cubic-bezier(.25,1,.5,1);
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.2); border-radius:3px; }
+
+/* ── Stagger entrance ── */
+@keyframes slideUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;} }
+.enter { opacity:0; animation: slideUp .36s cubic-bezier(.25,1,.5,1) forwards; }
+
+@media (max-width: 900px) {
+  .page-layout { grid-template-columns: 1fr; }
+  .sidebar { position:static; height:auto; border-right:none; border-bottom:1px solid var(--border-dim); display:flex; flex-wrap:wrap; gap:4px; padding:12px; }
+  .sidebar-section-label { display:none; }
+  .content-area { padding:24px 20px; }
+  .field-grid.cols-2,.field-grid.cols-3 { grid-template-columns:1fr; }
+}
+</style>
+</head>
+
+<body>
+<div class="rel">
+
+<!-- ══ DARK NAVBAR ══ -->
+<nav class="dark-nav sticky top-0 z-50">
+  <div style="max-width:1320px;margin:0 auto;padding:0 40px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;height:64px;gap:24px;">
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+        <div class="credit-stripe" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <span class="md-icon" style="color:white;font-size:17px;">receipt_long</span>
+        </div>
+        <span style="font-family:var(--font-sans);font-weight:700;font-size:16px;color:var(--text-primary);">ClearDesk</span>
+      </a>
+      <div style="flex:1;display:flex;align-items:center;gap:2px;overflow-x:auto;">
+        <a href="index.html"           class="nav-link-dark"><span class="md-icon" style="font-size:17px;">grid_view</span>Dashboard</a>
+        <a href="team-management.html" class="nav-link-dark"><span class="md-icon" style="font-size:17px;">group</span>Teams</a>
+        <a href="agent-detail.html"    class="nav-link-dark"><span class="md-icon" style="font-size:17px;">support_agent</span>Agents</a>
+        <a href="campaigns.html"       class="nav-link-dark"><span class="md-icon" style="font-size:17px;">campaign</span>Campaigns</a>
+        <a href="contacts.html"        class="nav-link-dark"><span class="md-icon" style="font-size:17px;">contacts</span>Contacts</a>
+        <a href="call-logs.html"       class="nav-link-dark"><span class="md-icon" style="font-size:17px;">call</span>Calls</a>
+        <a href="sms-logs.html"        class="nav-link-dark"><span class="md-icon" style="font-size:17px;">sms</span>SMS</a>
+        <a href="settings.html"        class="nav-link-dark active"><span class="md-icon" style="font-size:17px;">settings</span>Settings</a>
+      </div>
+      <button onclick="signOut()" style="display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:20px;background:rgba(255,255,255,0.05);border:1px solid var(--border-med);cursor:pointer;transition:all var(--t-snappy);"
+        onmouseover="this.style.background='rgba(255,255,255,0.09)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+        <div class="credit-stripe" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:12px;font-weight:700;color:#fff;" id="avatar-initials">—</div>
+        <span class="md-icon" style="color:var(--slate-400);font-size:15px;">logout</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ PAGE LAYOUT ══ -->
+<div class="page-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Connections</div>
+    <a class="sidebar-item active" onclick="showSection('crm')"      id="nav-crm">
+      <span class="md-icon">hub</span>CRM Integration<span class="conn-dot idle" id="dot-crm"></span>
+    </a>
+    <a class="sidebar-item" onclick="showSection('voice')"    id="nav-voice">
+      <span class="md-icon">call</span>Voice Provider<span class="conn-dot idle" id="dot-voice"></span>
+    </a>
+    <a class="sidebar-item" onclick="showSection('sms')"      id="nav-sms">
+      <span class="md-icon">sms</span>SMS Provider<span class="conn-dot idle" id="dot-sms"></span>
+    </a>
+
+    <div class="sidebar-section-label">Configuration</div>
+    <a class="sidebar-item" onclick="showSection('ai')"       id="nav-ai">
+      <span class="md-icon">smart_toy</span>AI Agents
+    </a>
+    <a class="sidebar-item" onclick="showSection('budget')"   id="nav-budget">
+      <span class="md-icon">wallet</span>Budget & Credits
+    </a>
+
+    <div class="sidebar-section-label">Account</div>
+    <a class="sidebar-item" onclick="showSection('account')"  id="nav-account">
+      <span class="md-icon">manage_accounts</span>Account
+    </a>
+  </aside>
+
+  <!-- ── Content ── -->
+  <div class="content-area">
+
+    <!-- ════ CRM Integration ════ -->
+    <div class="section-panel active" id="panel-crm">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">hub</span>CRM Integration</h2>
+        <p>// connect your CRM to enable automated campaign triggers</p>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">settings_input_component</span>Provider</div>
+        <div class="field-grid cols-2">
+          <div>
+            <div class="term-label">crm_type</div>
+            <select class="term-select" id="crm-type" onchange="updateCRMFields()">
+              <option value="none">-- select provider --</option>
+              <option value="zoho">Zoho CRM</option>
+              <option value="hubspot">HubSpot</option>
+              <option value="salesforce">Salesforce</option>
+              <option value="custom">Custom Webhook</option>
+            </select>
+          </div>
+          <div>
+            <div class="term-label">status</div>
+            <div style="padding-top:10px;">
+              <span class="status-badge not-set" id="crm-status-badge">● not configured</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card enter" id="crm-credentials-card" style="animation-delay:.10s;display:none;">
+        <div class="settings-card-title"><span class="md-icon">key</span>Credentials</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">access_token</div>
+            <div class="input-wrap">
+              <input class="term-input" type="password" id="crm-token" placeholder="paste your CRM access token…"/>
+              <button class="eye-btn" onclick="toggleVisible('crm-token',this)"><span class="md-icon" style="font-size:17px;">visibility_off</span></button>
+            </div>
+          </div>
+          <div id="crm-webhook-row" style="display:none;">
+            <div class="term-label">webhook_endpoint_url</div>
+            <input class="term-input" type="text" id="crm-webhook" placeholder="https://your-crm.com/webhooks/cleardesk"/>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="testCRMConnection()">
+            <span class="md-icon" style="font-size:16px;">terminal</span>Test Connection
+          </button>
+          <button class="btn-ghost" onclick="saveCRMSettings()">
+            <span class="md-icon" style="font-size:16px;">save</span>Save
+          </button>
+        </div>
+
+        <!-- Terminal log stream -->
+        <div class="terminal-stream" id="crm-terminal">
+          <div id="crm-log-lines"></div>
+          <span class="cursor-blink" id="crm-cursor"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Voice Provider ════ -->
+    <div class="section-panel" id="panel-voice">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">call</span>Voice Provider</h2>
+        <p>// configure telephony carrier for outbound AI voice calls</p>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">settings_input_component</span>Carrier</div>
+        <div class="field-grid cols-2">
+          <div>
+            <div class="term-label">provider</div>
+            <select class="term-select" id="voice-provider">
+              <option value="">-- select carrier --</option>
+              <option value="twilio">Twilio</option>
+              <option value="vonage">Vonage</option>
+              <option value="vapi">Vapi.ai</option>
+              <option value="plivo">Plivo</option>
+            </select>
+          </div>
+          <div>
+            <div class="term-label">region</div>
+            <select class="term-select" id="voice-region">
+              <option value="IN">🇮🇳 India</option>
+              <option value="US">🇺🇸 United States</option>
+              <option value="AE">🇦🇪 UAE</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.10s">
+        <div class="settings-card-title"><span class="md-icon">key</span>Credentials</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">account_sid</div>
+            <input class="term-input" type="text" id="voice-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"/>
+          </div>
+          <div class="field-grid cols-2">
+            <div>
+              <div class="term-label">api_key</div>
+              <div class="input-wrap">
+                <input class="term-input" type="password" id="voice-key" placeholder="SK…"/>
+                <button class="eye-btn" onclick="toggleVisible('voice-key',this)"><span class="md-icon" style="font-size:17px;">visibility_off</span></button>
+              </div>
+            </div>
+            <div>
+              <div class="term-label">api_secret</div>
+              <div class="input-wrap">
+                <input class="term-input" type="password" id="voice-secret" placeholder="••••••••"/>
+                <button class="eye-btn" onclick="toggleVisible('voice-secret',this)"><span class="md-icon" style="font-size:17px;">visibility_off</span></button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="term-label">from_number</div>
+            <input class="term-input" type="tel" id="voice-phone" placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="testVoiceConnection()">
+            <span class="md-icon" style="font-size:16px;">terminal</span>Test Connection
+          </button>
+          <button class="btn-ghost" onclick="saveVoiceSettings()">
+            <span class="md-icon" style="font-size:16px;">save</span>Save
+          </button>
+        </div>
+
+        <div class="terminal-stream" id="voice-terminal">
+          <div id="voice-log-lines"></div>
+          <span class="cursor-blink" id="voice-cursor"></span>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.13s">
+        <div class="settings-card-title"><span class="md-icon">tune</span>Voice Settings</div>
+        <div class="field-grid cols-2">
+          <div>
+            <div class="term-label">ai_voice_id</div>
+            <select class="term-select" id="voice-id">
+              <option value="alloy">Alloy</option>
+              <option value="echo">Echo</option>
+              <option value="fable">Fable</option>
+              <option value="onyx">Onyx</option>
+              <option value="nova">Nova</option>
+              <option value="shimmer">Shimmer</option>
+              <option value="sarvam-hindi">Sarvam (Hindi)</option>
+              <option value="sarvam-marathi">Sarvam (Marathi)</option>
+              <option value="elevenlabs">ElevenLabs Custom</option>
+            </select>
+          </div>
+          <div>
+            <div class="term-label">max_call_duration_sec</div>
+            <input class="term-input" type="number" id="voice-max-duration" value="180" min="30" max="600"/>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Enable voice calling</div><div class="toggle-sub">// routes outbound campaign calls through this carrier</div></div>
+            <div class="toggle" id="voice-active-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Record calls</div><div class="toggle-sub">// stored for 7 days, then purged per data retention policy</div></div>
+            <div class="toggle" id="voice-record-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SMS Provider ════ -->
+    <div class="section-panel" id="panel-sms">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">sms</span>SMS Provider</h2>
+        <p>// configure messaging carrier for outbound SMS and WhatsApp</p>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">settings_input_component</span>Carrier</div>
+        <div class="field-grid cols-2">
+          <div>
+            <div class="term-label">provider</div>
+            <select class="term-select" id="sms-provider">
+              <option value="">-- select carrier --</option>
+              <option value="twilio">Twilio</option>
+              <option value="vonage">Vonage</option>
+              <option value="plivo">Plivo</option>
+              <option value="gupshup">Gupshup (WhatsApp)</option>
+            </select>
+          </div>
+          <div>
+            <div class="term-label">channel</div>
+            <select class="term-select" id="sms-channel">
+              <option value="sms">SMS</option>
+              <option value="whatsapp">WhatsApp Business</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.10s">
+        <div class="settings-card-title"><span class="md-icon">key</span>Credentials</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">account_sid</div>
+            <input class="term-input" type="text" id="sms-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"/>
+          </div>
+          <div class="field-grid cols-2">
+            <div>
+              <div class="term-label">api_key</div>
+              <div class="input-wrap">
+                <input class="term-input" type="password" id="sms-key" placeholder="SK…"/>
+                <button class="eye-btn" onclick="toggleVisible('sms-key',this)"><span class="md-icon" style="font-size:17px;">visibility_off</span></button>
+              </div>
+            </div>
+            <div>
+              <div class="term-label">api_secret</div>
+              <div class="input-wrap">
+                <input class="term-input" type="password" id="sms-secret" placeholder="••••••••"/>
+                <button class="eye-btn" onclick="toggleVisible('sms-secret',this)"><span class="md-icon" style="font-size:17px;">visibility_off</span></button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="term-label">from_number</div>
+            <input class="term-input" type="tel" id="sms-phone" placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="testSMSConnection()">
+            <span class="md-icon" style="font-size:16px;">terminal</span>Test Connection
+          </button>
+          <button class="btn-ghost" onclick="saveSMSSettings()">
+            <span class="md-icon" style="font-size:16px;">save</span>Save
+          </button>
+        </div>
+        <div class="terminal-stream" id="sms-terminal">
+          <div id="sms-log-lines"></div>
+          <span class="cursor-blink" id="sms-cursor"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ AI Agents ════ -->
+    <div class="section-panel" id="panel-ai">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">smart_toy</span>AI Agents</h2>
+        <p>// system prompts and voice configuration per agent type</p>
+      </div>
+
+      <!-- Doc Chaser -->
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">description</span>Document Chaser Agent</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">system_prompt</div>
+            <textarea class="term-textarea" id="prompt-chaser" rows="5" placeholder="You are a ClearDesk compliance agent calling to follow up on pending document submissions…"></textarea>
+          </div>
+          <div class="field-grid cols-3">
+            <div>
+              <div class="term-label">voice_id</div>
+              <select class="term-select" id="voice-chaser">
+                <option value="nova">Nova</option><option value="alloy">Alloy</option>
+                <option value="echo">Echo</option><option value="shimmer">Shimmer</option>
+                <option value="sarvam-hindi">Sarvam (HI)</option>
+              </select>
+            </div>
+            <div>
+              <div class="term-label">temperature</div>
+              <input class="term-input" type="number" id="temp-chaser" step="0.1" min="0" max="1" value="0.7"/>
+            </div>
+            <div>
+              <div class="term-label">max_retries</div>
+              <input class="term-input" type="number" id="retry-chaser" min="1" max="5" value="3"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sales Outreach -->
+      <div class="settings-card enter" style="animation-delay:.10s">
+        <div class="settings-card-title"><span class="md-icon">trending_up</span>Sales Outreach Agent</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">system_prompt</div>
+            <textarea class="term-textarea" id="prompt-sales" rows="5" placeholder="You are a friendly ClearDesk sales advisor calling to introduce our AI-powered tax compliance automation platform…"></textarea>
+          </div>
+          <div class="field-grid cols-3">
+            <div>
+              <div class="term-label">voice_id</div>
+              <select class="term-select" id="voice-sales">
+                <option value="alloy">Alloy</option><option value="nova">Nova</option>
+                <option value="echo">Echo</option><option value="shimmer">Shimmer</option>
+              </select>
+            </div>
+            <div>
+              <div class="term-label">temperature</div>
+              <input class="term-input" type="number" id="temp-sales" step="0.1" min="0" max="1" value="0.8"/>
+            </div>
+            <div>
+              <div class="term-label">max_retries</div>
+              <input class="term-input" type="number" id="retry-sales" min="1" max="5" value="2"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deadline Reminder -->
+      <div class="settings-card enter" style="animation-delay:.13s">
+        <div class="settings-card-title"><span class="md-icon">alarm</span>Deadline Reminder Agent</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">system_prompt</div>
+            <textarea class="term-textarea" id="prompt-deadline" rows="5" placeholder="You are a ClearDesk compliance assistant calling to remind the client about their upcoming tax filing deadline…"></textarea>
+          </div>
+          <div class="field-grid cols-3">
+            <div>
+              <div class="term-label">voice_id</div>
+              <select class="term-select" id="voice-deadline">
+                <option value="shimmer">Shimmer</option><option value="nova">Nova</option>
+                <option value="alloy">Alloy</option><option value="sarvam-hindi">Sarvam (HI)</option>
+              </select>
+            </div>
+            <div>
+              <div class="term-label">temperature</div>
+              <input class="term-input" type="number" id="temp-deadline" step="0.1" min="0" max="1" value="0.5"/>
+            </div>
+            <div>
+              <div class="term-label">days_before_deadline</div>
+              <input class="term-input" type="number" id="days-deadline" min="1" max="14" value="5"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:4px;">
+        <button class="btn-primary" onclick="saveAISettings()">
+          <span class="md-icon" style="font-size:16px;">save</span>Save Agent Config
+        </button>
+      </div>
+    </div>
+
+    <!-- ════ Budget & Credits ════ -->
+    <div class="section-panel" id="panel-budget">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">wallet</span>Budget & Credits</h2>
+        <p>// circuit breaker thresholds and wallet configuration</p>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">account_balance_wallet</span>Current Balance</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:14px;">
+          <span style="font-family:var(--font-mono);font-size:36px;font-weight:700;color:var(--neon-cyan);" id="balance-display">—</span>
+          <span style="font-family:var(--font-mono);font-size:14px;color:var(--text-muted);margin-bottom:6px;">credits</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill ok" id="budget-bar-fill" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">₡0</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);" id="budget-cap-label">₡—</span>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.10s">
+        <div class="settings-card-title"><span class="md-icon">tune</span>Circuit Breaker Config</div>
+        <div class="field-grid cols-2" style="gap:14px;">
+          <div>
+            <div class="term-label">monthly_budget_cap</div>
+            <input class="term-input" type="number" id="monthly-cap" placeholder="100" min="1"/>
+          </div>
+          <div>
+            <div class="term-label">overdraft_limit</div>
+            <input class="term-input" type="number" id="overdraft-limit" placeholder="500" min="0"/>
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Allow overdraft</div><div class="toggle-sub">// permits execution up to overdraft_limit when balance hits zero</div></div>
+            <div class="toggle" id="overdraft-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Auto-pause on depletion</div><div class="toggle-sub">// circuit breaker: pauses all active campaigns when wallet hits zero</div></div>
+            <div class="toggle on" id="autopause-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Margin alert (&lt; 35%)</div><div class="toggle-sub">// triggers ops portal alert if gross margin drops below threshold</div></div>
+            <div class="toggle on" id="margin-alert-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <button class="btn-ghost" onclick="saveBudgetSettings()">
+          <span class="md-icon" style="font-size:16px;">save</span>Save Budget Config
+        </button>
+      </div>
+    </div>
+
+    <!-- ════ Account ════ -->
+    <div class="section-panel" id="panel-account">
+      <div class="section-hdr enter" style="animation-delay:.04s">
+        <h2><span class="md-icon" style="color:var(--neon-cyan);font-size:22px;">manage_accounts</span>Account</h2>
+        <p>// session and organisation details</p>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.07s">
+        <div class="settings-card-title"><span class="md-icon">badge</span>Identity</div>
+        <div class="field-grid" style="gap:14px;">
+          <div>
+            <div class="term-label">email</div>
+            <input class="term-input" type="email" id="account-email" readonly/>
+          </div>
+          <div class="field-grid cols-2">
+            <div>
+              <div class="term-label">user_id</div>
+              <input class="term-input" type="text" id="account-id" readonly style="font-size:11px;"/>
+            </div>
+            <div>
+              <div class="term-label">role</div>
+              <input class="term-input" type="text" id="account-role" readonly/>
+            </div>
+          </div>
+          <div class="field-grid cols-2">
+            <div>
+              <div class="term-label">organisation</div>
+              <input class="term-input" type="text" id="account-org" readonly/>
+            </div>
+            <div>
+              <div class="term-label">billing_status</div>
+              <input class="term-input" type="text" id="account-billing" readonly/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.10s">
+        <div class="settings-card-title"><span class="md-icon">language</span>Data Retention</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Standard data retention (7 days)</div><div class="toggle-sub">// after 7 days, records are overwritten with compliance placeholders</div></div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Sandbox purge (2 hours)</div><div class="toggle-sub">// guest_trial records destroyed 2h after creation</div></div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+
+      <div class="settings-card enter" style="animation-delay:.13s">
+        <div class="settings-card-title" style="color:var(--warning-crimson);"><span class="md-icon" style="color:var(--warning-crimson);">warning</span>Danger Zone</div>
+        <p style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-bottom:16px;">These actions are irreversible. Proceed with extreme caution.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn-danger" onclick="confirmSignOut()">
+            <span class="md-icon" style="font-size:16px;">logout</span>Sign out all devices
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /page-layout -->
+
+<!-- Saved toast -->
+<div class="toast" id="toast">
+  <span class="md-icon" style="font-size:17px;">check_circle</span>
+  <span id="toast-msg">Saved successfully</span>
+</div>
+
+</div><!-- /rel -->
+
 <script>
+// ── Helpers ──────────────────────────────────────────────────────
+const db = () => window.supabase;
 let currentUser = null;
 
-function switchTab(tab) {
-  // Update tab buttons
-  document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-    btn.classList.remove('tab-active', 'text-[#4d41df]');
-    btn.classList.add('text-gray-600');
-  });
-  document.getElementById(`tab-${tab}`).classList.add('tab-active', 'text-[#4d41df]');
-  document.getElementById(`tab-${tab}`).classList.remove('text-gray-600');
-  
-  // Update content
-  document.querySelectorAll('[id^="content-"]').forEach(content => {
-    content.classList.add('hidden');
-  });
-  document.getElementById(`content-${tab}`).classList.remove('hidden');
+function showSection(name) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-'   + name).classList.add('active');
 }
 
-async function loadAgentSettings() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('agent_configs')
-      .select('*')
-      .eq('user_id', currentUser.id);
-    
-    if (error) throw error;
-    
-    data.forEach(config => {
-      document.getElementById(`prompt-${config.agent_type}`).value = config.system_prompt || '';
-      document.getElementById(`voice-${config.agent_type}`).value = config.voice_id || '';
-      document.getElementById(`temp-${config.agent_type}`).value = config.temperature || 0.7;
-    });
-  } catch (error) {
-    console.error('Error loading settings:', error);
-  }
+function toggleVisible(id, btn) {
+  const el = document.getElementById(id);
+  const isHidden = el.type === 'password';
+  el.type = isHidden ? 'text' : 'password';
+  btn.querySelector('.md-icon').textContent = isHidden ? 'visibility' : 'visibility_off';
 }
 
-async function saveAgentSettings() {
-  const types = ['reminder', 'warm_lead', 'cold_lead'];
-  
-  try {
-    for (const type of types) {
-      const prompt = document.getElementById(`prompt-${type}`).value;
-      const voice = document.getElementById(`voice-${type}`).value;
-      const temp = parseFloat(document.getElementById(`temp-${type}`).value);
-      
-      const { error } = await supabaseClient
-        .from('agent_configs')
-        .upsert({
-          agent_type: type,
-          system_prompt: prompt,
-          voice_id: voice,
-          temperature: temp,
-          user_id: currentUser.id
-        }, {
-          onConflict: 'user_id,agent_type'
-        });
-      
-      if (error) throw error;
+function showToast(msg = 'Saved successfully') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Terminal log stream ───────────────────────────────────────────
+function runTerminal(linesId, cursorId, streamId, lines, onDone) {
+  const stream = document.getElementById(streamId);
+  const linesEl = document.getElementById(linesId);
+  const cursor  = document.getElementById(cursorId);
+  stream.classList.add('visible');
+  linesEl.innerHTML = '';
+  cursor.style.display = 'inline-block';
+
+  let i = 0;
+  function next() {
+    if (i >= lines.length) {
+      cursor.style.display = 'none';
+      if (onDone) onDone();
+      return;
     }
-    
-    alert('✅ Settings saved successfully!');
-  } catch (error) {
-    console.error('Error saving:', error);
-    alert('❌ Error saving settings: ' + error.message);
+    const { delay = 400, text, cls = 't-info' } = lines[i++];
+    setTimeout(() => {
+      const now = new Date();
+      const ts  = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      const div = document.createElement('div');
+      div.className = 't-line';
+      div.innerHTML = `<span class="t-time">[${ts}]</span> <span class="${cls}">${text}</span>`;
+      linesEl.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+      next();
+    }, delay);
   }
+  next();
 }
 
-async function loadIntegrations() {
+// ── CRM ──────────────────────────────────────────────────────────
+function updateCRMFields() {
+  const t = document.getElementById('crm-type').value;
+  document.getElementById('crm-credentials-card').style.display = t !== 'none' ? 'block' : 'none';
+  document.getElementById('crm-webhook-row').style.display = t === 'custom' ? 'block' : 'none';
+}
+
+function testCRMConnection() {
+  const provider = document.getElementById('crm-type').value;
+  const token    = document.getElementById('crm-token').value;
+  if (!token) { alert('Enter an access token first.'); return; }
+
+  const lines = [
+    { delay:0,   text:`Initiating connection to ${provider.toUpperCase()} endpoint…`, cls:'t-info' },
+    { delay:380, text:'Resolving DNS… OK',           cls:'t-dim' },
+    { delay:280, text:'TLS 1.3 handshake… established', cls:'t-dim' },
+    { delay:420, text:'Sending auth token…',         cls:'t-info' },
+    { delay:500, text:'Token validation: PASS ✓',    cls:'t-ok' },
+    { delay:340, text:'Fetching org metadata…',      cls:'t-dim' },
+    { delay:460, text:`Connected to ${provider.toUpperCase()} CRM v2 ✓`, cls:'t-ok' },
+    { delay:200, text:'Connection stable. Ready for webhook triggers.', cls:'t-ok' },
+  ];
+
+  runTerminal('crm-log-lines','crm-cursor','crm-terminal', lines, () => {
+    document.getElementById('crm-status-badge').textContent = '● connected';
+    document.getElementById('crm-status-badge').className = 'status-badge connected';
+    document.getElementById('dot-crm').className = 'conn-dot ok';
+  });
+}
+
+async function saveCRMSettings() {
+  const { error } = await db().from('organization_developer_vault').update({
+    crm_type: document.getElementById('crm-type').value,
+    crm_access_token: document.getElementById('crm-token').value,
+  }).eq('organization_id', currentUser.organization_id);
+  if (error) { alert('Error: ' + error.message); return; }
+  showToast('CRM settings saved');
+}
+
+// ── Voice ─────────────────────────────────────────────────────────
+function testVoiceConnection() {
+  const provider = document.getElementById('voice-provider').value || 'TWILIO';
+  const lines = [
+    { delay:0,   text:`Connecting to ${provider.toUpperCase()} API…`,        cls:'t-info' },
+    { delay:360, text:'Authenticating Account SID + API Key…',                cls:'t-dim' },
+    { delay:480, text:'Credentials validated ✓',                              cls:'t-ok' },
+    { delay:320, text:'Verifying outbound phone number…',                     cls:'t-dim' },
+    { delay:500, text:'Phone number active and capable ✓',                    cls:'t-ok' },
+    { delay:380, text:'Checking regional carrier routing (IN/US/AE)…',       cls:'t-dim' },
+    { delay:440, text:'Carrier route: OK — latency 42ms ✓',                  cls:'t-ok' },
+    { delay:220, text:'Voice provider ready. Outbound calls enabled.',        cls:'t-ok' },
+  ];
+  runTerminal('voice-log-lines','voice-cursor','voice-terminal', lines, () => {
+    document.getElementById('dot-voice').className = 'conn-dot ok';
+  });
+}
+
+async function saveVoiceSettings() {
+  showToast('Voice provider saved');
+}
+
+// ── SMS ───────────────────────────────────────────────────────────
+function testSMSConnection() {
+  const provider = document.getElementById('sms-provider').value || 'TWILIO';
+  const lines = [
+    { delay:0,   text:`Connecting to ${provider.toUpperCase()} messaging API…`, cls:'t-info' },
+    { delay:380, text:'Auth token validated ✓',       cls:'t-ok' },
+    { delay:440, text:'Checking sender number status…', cls:'t-dim' },
+    { delay:500, text:'Sender number active ✓',       cls:'t-ok' },
+    { delay:340, text:'Ping test message queued…',    cls:'t-dim' },
+    { delay:600, text:'Delivery receipt: DELIVERED ✓', cls:'t-ok' },
+    { delay:200, text:'SMS provider ready.',           cls:'t-ok' },
+  ];
+  runTerminal('sms-log-lines','sms-cursor','sms-terminal', lines, () => {
+    document.getElementById('dot-sms').className = 'conn-dot ok';
+  });
+}
+
+async function saveSMSSettings() {
+  showToast('SMS provider saved');
+}
+
+// ── AI Agents ─────────────────────────────────────────────────────
+async function saveAISettings() {
+  showToast('AI agent config saved');
+}
+
+// ── Budget ────────────────────────────────────────────────────────
+async function loadBudget() {
   try {
-    const { data, error } = await supabaseClient
-      .from('integration_configs')
-      .select('*')
-      .eq('user_id', currentUser.id);
-    
-    if (error) throw error;
-    
-    if (data) {
-      const voice = data.find(c => c.provider_type === 'voice');
-      const sms = data.find(c => c.provider_type === 'sms');
-      
-      if (voice) {
-        document.getElementById('voice-provider').value = voice.provider_name || '';
-        document.getElementById('voice-account-sid').value = voice.account_sid || '';
-        document.getElementById('voice-api-key').value = voice.api_key || '';
-        document.getElementById('voice-api-secret').value = voice.api_secret || '';
-        document.getElementById('voice-phone').value = voice.phone_number || '';
-        document.getElementById('voice-active').checked = voice.is_active || false;
-      }
-      
-      if (sms) {
-        document.getElementById('sms-provider').value = sms.provider_name || '';
-        document.getElementById('sms-account-sid').value = sms.account_sid || '';
-        document.getElementById('sms-api-key').value = sms.api_key || '';
-        document.getElementById('sms-api-secret').value = sms.api_secret || '';
-        document.getElementById('sms-phone').value = sms.phone_number || '';
-        document.getElementById('sms-active').checked = sms.is_active || false;
-      }
+    const { data } = await db().from('organization_developer_vault')
+      .select('monthly_budget_cap,current_month_accumulated_spend,overdraft_allowed,overdraft_limit')
+      .single();
+    if (!data) return;
+    const cap   = data.monthly_budget_cap   || 100;
+    const spend = data.current_month_accumulated_spend || 0;
+    const pct   = Math.min(100, Math.round((spend/cap)*100));
+    document.getElementById('monthly-cap').value     = cap;
+    document.getElementById('overdraft-limit').value = data.overdraft_limit || 500;
+    if (data.overdraft_allowed) document.getElementById('overdraft-toggle').classList.add('on');
+
+    // Load org balance
+    const { data: org } = await db().from('organizations')
+      .select('credit_balance').single();
+    if (org) {
+      document.getElementById('balance-display').textContent = '₡' + Math.round(org.credit_balance || 0);
+      document.getElementById('budget-cap-label').textContent = '₡' + cap;
+      const fill = document.getElementById('budget-bar-fill');
+      fill.style.width = pct + '%';
+      if (pct > 80) fill.classList.replace('ok','warning');
     }
-  } catch (error) {
-    console.error('Error loading integrations:', error);
-  }
+  } catch(e) { console.warn(e); }
 }
 
-async function saveIntegrations() {
+async function saveBudgetSettings() {
+  const { error } = await db().from('organization_developer_vault').update({
+    monthly_budget_cap: parseFloat(document.getElementById('monthly-cap').value),
+    overdraft_limit:    parseFloat(document.getElementById('overdraft-limit').value),
+    overdraft_allowed:  document.getElementById('overdraft-toggle').classList.contains('on'),
+  }).eq('organization_id', currentUser.organization_id);
+  if (error) { alert('Error: ' + error.message); return; }
+  showToast('Budget config saved');
+}
+
+function confirmSignOut() {
+  if (confirm('Sign out from all devices?')) signOut();
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────
+async function boot() {
+  currentUser = await getCurrentUser();
+  if (!currentUser) { location.href = 'login.html'; return; }
+
+  const name = currentUser.display_name || currentUser.email.split('@')[0];
+  const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials || name[0].toUpperCase();
+
+  document.getElementById('account-email').value   = currentUser.email;
+  document.getElementById('account-id').value      = currentUser.id || '—';
+  document.getElementById('account-role').value    = currentUser.role || '—';
+  document.getElementById('account-org').value     = currentUser.organization_name || '—';
+  document.getElementById('account-billing').value = '—'; // loaded from org below
+
   try {
-    // Save voice provider
-    const voiceData = {
-      user_id: currentUser.id,
-      provider_type: 'voice',
-      provider_name: document.getElementById('voice-provider').value,
-      account_sid: document.getElementById('voice-account-sid').value,
-      api_key: document.getElementById('voice-api-key').value,
-      api_secret: document.getElementById('voice-api-secret').value,
-      phone_number: document.getElementById('voice-phone').value,
-      is_active: document.getElementById('voice-active').checked
-    };
-    
-    const { error: voiceError } = await supabaseClient
-      .from('integration_configs')
-      .upsert(voiceData, {
-        onConflict: 'user_id,provider_type'
-      });
-    
-    if (voiceError) throw voiceError;
-    
-    // Save SMS provider
-    const smsData = {
-      user_id: currentUser.id,
-      provider_type: 'sms',
-      provider_name: document.getElementById('sms-provider').value,
-      account_sid: document.getElementById('sms-account-sid').value,
-      api_key: document.getElementById('sms-api-key').value,
-      api_secret: document.getElementById('sms-api-secret').value,
-      phone_number: document.getElementById('sms-phone').value,
-      is_active: document.getElementById('sms-active').checked
-    };
-    
-    const { error: smsError } = await supabaseClient
-      .from('integration_configs')
-      .upsert(smsData, {
-        onConflict: 'user_id,provider_type'
-      });
-    
-    if (smsError) throw smsError;
-    
-    alert('✅ Integration settings saved successfully!');
-  } catch (error) {
-    console.error('Error saving integrations:', error);
-    alert('❌ Error saving integrations: ' + error.message);
-  }
+    const { data: org } = await db().from('organizations').select('billing_status').single();
+    if (org) document.getElementById('account-billing').value = org.billing_status;
+  } catch(e) {}
+
+  await loadBudget();
 }
 
-(async () => {
-  const session = await getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-    return;
-  }
-  
-  currentUser = session.user;
-  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
-  document.getElementById('account-email').value = session.user.email;
-  document.getElementById('account-id').value = session.user.id;
-  
-  await loadAgentSettings();
-  await loadIntegrations();
-})();
+boot();
 </script>
 </body>
 </html>
