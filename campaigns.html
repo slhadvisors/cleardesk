@@ -1,428 +1,793 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk - Campaigns</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
-<style>
-body {
-    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-    min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.glass-card {
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-}
-.glass-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(32px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-}
-.status-draft { background: #e0e0e0; color: #666; }
-.status-running { background: #4caf50; color: white; }
-.status-paused { background: #ff9800; color: white; }
-.status-completed { background: #2196f3; color: white; }
-</style>
-</head>
-<body>
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
-          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="text-xl font-semibold">ClearDesk</span>
-      </a>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
-        <a href="campaigns.html" class="text-sm text-[#4d41df] font-semibold">Campaigns</a>
-        <a href="call-logs.html" class="text-sm hover:text-[#4d41df]">Call Logs</a>
-        <a href="sms-logs.html" class="text-sm hover:text-[#4d41df]">SMS Logs</a>
-        <a href="settings.html" class="text-sm hover:text-[#4d41df]">Settings</a>
-        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<main class="pt-24 pb-12 px-6">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-4xl font-bold mb-2">Campaigns</h1>
-        <p class="text-lg text-gray-600">Create and manage outreach campaigns</p>
-      </div>
-      <button onclick="showNewCampaignModal()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf] flex items-center gap-2">
-        <span class="material-symbols-outlined">add</span>
-        <span>New Campaign</span>
-      </button>
-    </div>
-    
-    <!-- Campaign Types Filter -->
-    <div class="flex gap-3 mb-6">
-      <button onclick="filterCampaigns('all')" id="filter-all" class="px-4 py-2 rounded-lg bg-[#4d41df] text-white font-semibold">All Types</button>
-      <button onclick="filterCampaigns('reminder')" id="filter-reminder" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">🔔 Reminders</button>
-      <button onclick="filterCampaigns('warm_lead')" id="filter-warm_lead" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">🔥 Warm Leads</button>
-      <button onclick="filterCampaigns('cold_lead')" id="filter-cold_lead" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">❄️ Cold Leads</button>
-    </div>
-    
-    <div id="campaigns-container" class="space-y-4">
-      <div class="glass-card rounded-xl p-6 animate-pulse">
-        <div class="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
-        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<!-- New Campaign Modal -->
-<div id="new-campaign-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-  <div class="glass-card rounded-xl p-8 max-w-2xl w-full mx-4 my-8">
-    <h2 class="text-2xl font-bold mb-6">Create New Campaign</h2>
-    
-    <div class="space-y-4">
-      <div>
-        <label class="block mb-2 text-sm font-medium">Campaign Name</label>
-        <input type="text" id="new-campaign-name" placeholder="Q1 Tax Reminders" class="w-full p-3 border rounded-lg"/>
-      </div>
-      
-      <div>
-        <label class="block mb-2 text-sm font-medium">Campaign Type</label>
-        <select id="new-campaign-type" class="w-full p-3 border rounded-lg">
-          <option value="call">📞 Voice Call</option>
-          <option value="sms">💬 SMS Message</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block mb-2 text-sm font-medium">Agent Type</label>
-        <select id="new-agent-type" class="w-full p-3 border rounded-lg">
-          <option value="reminder">🔔 Reminder Agent</option>
-          <option value="warm_lead">🔥 Warm Lead Agent</option>
-          <option value="cold_lead">❄️ Cold Lead Agent</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block mb-2 text-sm font-medium">Select Contacts</label>
-        <div class="border rounded-lg p-3 max-h-64 overflow-y-auto" id="contacts-list">
-          <p class="text-gray-500 text-sm">Loading contacts...</p>
-        </div>
-        <p class="text-xs text-gray-500 mt-1"><span id="selected-count">0</span> contacts selected</p>
-      </div>
-    </div>
-    
-    <div class="flex gap-3 mt-6">
-      <button onclick="createCampaign()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Create</button>
-      <button onclick="hideNewCampaignModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
-    </div>
-  </div>
-</div>
+<title>ClearDesk — Campaigns</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="translations.js"></script>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
 <script>
-let currentUser = null;
-let allCampaigns = [];
-let allContacts = [];
-let selectedContacts = [];
-let currentFilter = 'all';
-
-function showNewCampaignModal() {
-  document.getElementById('new-campaign-modal').classList.remove('hidden');
-  loadContactsForModal();
+tailwind.config = {
+  darkMode:"class",
+  theme:{extend:{
+    colors:{
+      "on-background":"#1b1b24","surface-tint":"#4f44e2","surface-dim":"#dcd8e5",
+      "surface-variant":"#e4e1ee","primary":"#4d41df","on-primary":"#ffffff",
+      "primary-fixed":"#e3dfff","primary-fixed-dim":"#c4c0ff","primary-container":"#675df9",
+      "secondary":"#005bbf","on-secondary":"#ffffff","secondary-fixed":"#d7e2ff",
+      "tertiary":"#914800","outline":"#777587","outline-variant":"#c7c4d8",
+      "surface-bright":"#fcf8ff","surface-container-highest":"#e4e1ee",
+      "background":"#fcf8ff","surface-container":"#f0ecf9","surface-container-low":"#f6f2ff",
+      "surface-container-high":"#eae6f3","on-surface-variant":"#464555",
+      "surface-container-lowest":"#ffffff","on-surface":"#1b1b24",
+      "error":"#ba1a1a","error-container":"#ffdad6","inverse-surface":"#302f39",
+      "inverse-primary":"#c4c0ff"
+    },
+    fontFamily:{sans:["Plus Jakarta Sans","sans-serif"]},
+    borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem","2xl":"1rem","3xl":"1.5rem",full:"9999px"}
+  }}
 }
+</script>
 
-function hideNewCampaignModal() {
-  document.getElementById('new-campaign-modal').classList.add('hidden');
-  document.getElementById('new-campaign-name').value = '';
-  // Clear selected contacts and uncheck all boxes
-  selectedContacts = [];
-  document.querySelectorAll('#contacts-list input[type="checkbox"]').forEach(cb => cb.checked = false);
-  document.getElementById('selected-count').textContent = '0';
-}
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:100vh;overflow-x:hidden;}
 
-async function loadContactsForModal() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('contacts')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .eq('status', 'active')
-      .order('name');
-    
-    if (error) throw error;
-    
-    allContacts = data || [];
-    renderContactsList();
-  } catch (error) {
-    console.error('Error loading contacts:', error);
-  }
-}
+.ambient-bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,.13) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,.10) 0%,transparent 55%),
+  linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);
+  animation:ambientShift 20s ease-in-out infinite alternate;}
+@keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
 
-function renderContactsList() {
-  const container = document.getElementById('contacts-list');
-  
-  if (allContacts.length === 0) {
-    container.innerHTML = `
-      <p class="text-gray-500 text-sm">No contacts available. <a href="contacts.html" class="text-[#4d41df] underline">Add contacts</a> first.</p>
-    `;
-    return;
-  }
-  
-  container.innerHTML = allContacts.map(contact => `
-    <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
-      <input type="checkbox" value="${contact.id}" onchange="toggleContact('${contact.id}')" class="w-4 h-4"/>
-      <div class="flex-1">
-        <p class="font-medium">${contact.name}</p>
-        <p class="text-xs text-gray-500">${contact.phone}</p>
+.glass-nav{background:rgba(255,255,255,.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.5);box-shadow:0 1px 0 rgba(77,65,223,.06);}
+.glass-card{background:rgba(255,255,255,.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,.5);box-shadow:0 4px 24px rgba(77,65,223,.07),0 1px 0 rgba(255,255,255,.8) inset;}
+.glass-solid{background:rgba(255,255,255,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 24px rgba(77,65,223,.08);}
+
+.t-snappy{transition:all .22s cubic-bezier(.25,1,.5,1);}
+
+/* Nav item */
+.nav-item{position:relative;transition:color .18s ease,background .18s ease;}
+.nav-item::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:#6C63FF;border-radius:2px;transition:transform .22s cubic-bezier(.25,1,.5,1);}
+.nav-item:hover::after,.nav-item.active::after{transform:translateX(-50%) scaleX(1);}
+.nav-item.active{color:#6C63FF;}
+
+.credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
+
+/* Filter tabs */
+.filter-tab{transition:all .18s ease;border-bottom:2px solid transparent;}
+.filter-tab.active{color:#4d41df;border-bottom-color:#4d41df;}
+
+/* Campaign card */
+.campaign-card{transition:transform .22s cubic-bezier(.25,1,.5,1),box-shadow .22s cubic-bezier(.25,1,.5,1);}
+.campaign-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(77,65,223,.14);}
+
+/* Status badges */
+.badge-draft     {background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;}
+.badge-scheduled {background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe;}
+.badge-processing{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
+.badge-completed {background:#e3dfff;color:#4d41df;border:1px solid #c4c0ff;}
+.badge-paused    {background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+
+/* Purpose badges */
+.purpose-chaser  {background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8;}
+.purpose-outreach{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
+.purpose-deadline{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+
+/* Mode pill */
+.mode-manual   {background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;}
+.mode-automated{background:#e3dfff;color:#4d41df;border:1px solid #c4c0ff;}
+
+/* Drawer overlay */
+.drawer-overlay{position:fixed;inset:0;background:rgba(15,10,40,.45);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity .28s ease;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+
+/* Drawer panel */
+.drawer-panel{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:#fff;z-index:201;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.25,1,.5,1);
+  display:flex;flex-direction:column;overflow:hidden;box-shadow:-8px 0 40px rgba(77,65,223,.15);}
+.drawer-panel.open{transform:translateX(0);}
+
+/* Step indicator */
+.step-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:all .22s ease;}
+.step-dot.done{background:#4d41df;}
+.step-dot.active{background:#4d41df;transform:scale(1.4);}
+
+/* Purpose selector cards */
+.purpose-card{border:2px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:all .18s ease;}
+.purpose-card:hover{border-color:#a5b4fc;background:#f8f7ff;}
+.purpose-card.selected{border-color:#4d41df;background:#f0efff;}
+
+/* Mode selector cards */
+.mode-card{border:2px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:all .18s ease;}
+.mode-card:hover{border-color:#a5b4fc;background:#f8f7ff;}
+.mode-card.selected{border-color:#4d41df;background:#f0efff;}
+
+/* Tone buttons */
+.tone-btn{border:1.5px solid #e2e8f0;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;transition:all .18s ease;}
+.tone-btn:hover{border-color:#a5b4fc;}
+.tone-btn.selected{border-color:#4d41df;background:#e3dfff;color:#4d41df;}
+
+/* Execute button pulse */
+@keyframes executePulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.4);}50%{box-shadow:0 0 0 8px rgba(22,163,74,0);}}
+.btn-execute{animation:executePulse 2.4s ease-in-out infinite;}
+
+/* Progress bar */
+.progress-bar{height:5px;border-radius:3px;background:#e3dfff;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#6C63FF,#8b5cf6);transition:width .6s ease;}
+
+/* Stagger entrance */
+@keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.enter{opacity:0;animation:slideUp .38s cubic-bezier(.25,1,.5,1) forwards;}
+
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;
+  font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;user-select:none;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(108,99,255,.2);border-radius:3px;}
+</style>
+</head>
+
+<body class="text-on-surface">
+<div class="ambient-bg"></div>
+<div class="relative z-10 min-h-screen flex flex-col">
+
+<!-- ══ NAVBAR ══ -->
+<nav class="glass-nav sticky top-0 z-50">
+  <div class="max-w-[1320px] mx-auto px-6 md:px-10">
+    <div class="flex items-center justify-between h-16 gap-6">
+      <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
+        <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm">
+          <span class="md-icon text-white text-[17px]">receipt_long</span>
+        </div>
+        <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
+      </a>
+      <div class="flex-1 flex items-stretch gap-1 overflow-x-auto">
+        <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
+        <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
+        <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
+        <a href="campaigns.html"       class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
+        <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
+        <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
+        <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
+        <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
       </div>
-    </label>
-  `).join('');
+      <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md t-snappy">
+        <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+        <span class="md-icon text-[15px] text-outline hover:text-error t-snappy">logout</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between flex-wrap gap-4 enter" style="animation-delay:.05s">
+    <div>
+      <h1 class="text-[26px] font-bold tracking-tight text-on-surface leading-tight">Campaigns</h1>
+      <p class="mt-1 text-[14px] text-on-surface-variant">Outbound document chasers, sales outreach, and deadline reminders.</p>
+    </div>
+    <button onclick="openDrawer()"
+      class="flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold text-[13px] shadow-md hover:shadow-lg t-snappy credit-stripe">
+      <span class="md-icon text-[18px]">add</span>New Campaign
+    </button>
+  </div>
+
+  <!-- Summary chips -->
+  <div class="flex flex-wrap gap-3 enter" style="animation-delay:.08s" id="summary-chips">
+    <div class="glass-card rounded-full px-4 py-2 flex items-center gap-2 text-[13px] font-semibold">
+      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span id="chip-processing">0 processing</span>
+    </div>
+    <div class="glass-card rounded-full px-4 py-2 flex items-center gap-2 text-[13px] font-semibold">
+      <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+      <span id="chip-scheduled">0 scheduled</span>
+    </div>
+    <div class="glass-card rounded-full px-4 py-2 flex items-center gap-2 text-[13px] font-semibold">
+      <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+      <span id="chip-draft">0 draft</span>
+    </div>
+    <div class="glass-card rounded-full px-4 py-2 flex items-center gap-2 text-[13px] font-semibold">
+      <span class="w-2 h-2 rounded-full bg-violet-500"></span>
+      <span id="chip-total">0 total</span>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex items-center gap-6 border-b border-outline-variant enter" style="animation-delay:.1s">
+    <button onclick="setFilter('all')"              id="f-all"       class="filter-tab active pb-3 text-[13.5px] font-semibold text-primary">All</button>
+    <button onclick="setFilter('document_chaser')"  id="f-chaser"    class="filter-tab pb-3 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface t-snappy">📄 Doc Chasers</button>
+    <button onclick="setFilter('sales_outreach')"   id="f-outreach"  class="filter-tab pb-3 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface t-snappy">🔥 Sales</button>
+    <button onclick="setFilter('deadline_reminder')" id="f-deadline" class="filter-tab pb-3 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface t-snappy">⏰ Deadlines</button>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <span class="text-[12px] text-on-surface-variant font-medium">Mode:</span>
+      <button onclick="setModeFilter('all')"       id="m-all"       class="px-3 py-1 rounded-full text-[12px] font-semibold bg-primary-fixed text-primary t-snappy">All</button>
+      <button onclick="setModeFilter('manual')"    id="m-manual"    class="px-3 py-1 rounded-full text-[12px] font-medium text-on-surface-variant bg-surface-container t-snappy">Manual</button>
+      <button onclick="setModeFilter('automated')" id="m-automated" class="px-3 py-1 rounded-full text-[12px] font-medium text-on-surface-variant bg-surface-container t-snappy">Automated</button>
+    </div>
+  </div>
+
+  <!-- Campaign list -->
+  <div id="campaigns-container" class="space-y-4">
+    <!-- skeleton -->
+    <div class="glass-card rounded-2xl p-6 animate-pulse">
+      <div class="flex gap-4"><div class="w-10 h-10 rounded-xl bg-surface-container-high"></div>
+      <div class="flex-1 space-y-2"><div class="h-4 bg-surface-container-high rounded w-1/3"></div>
+      <div class="h-3 bg-surface-container-high rounded w-1/2"></div></div></div>
+    </div>
+  </div>
+
+</main>
+<div class="h-8"></div>
+</div>
+
+<!-- ══ CREATE CAMPAIGN DRAWER ══ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="drawer-panel">
+
+  <!-- Drawer header -->
+  <div class="flex items-center justify-between px-6 py-5 border-b border-surface-container-high shrink-0">
+    <div>
+      <h2 class="text-[17px] font-bold text-on-surface">New Campaign</h2>
+      <p class="text-[12.5px] text-on-surface-variant mt-0.5" id="drawer-step-label">Step 1 of 3 — Choose purpose</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Step dots -->
+      <div class="flex items-center gap-1.5" id="step-dots">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+      </div>
+      <button onclick="closeDrawer()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high t-snappy">
+        <span class="md-icon text-[18px] text-on-surface-variant">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Drawer body (scrollable) -->
+  <div class="flex-1 overflow-y-auto px-6 py-5" id="drawer-body">
+
+    <!-- ── Step 1: Purpose ── -->
+    <div id="step-1">
+      <p class="text-[13px] text-on-surface-variant mb-4">What is this campaign for?</p>
+      <div class="space-y-3">
+        <div class="purpose-card" onclick="selectPurpose('document_chaser', this)">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center shrink-0">
+              <span class="md-icon text-pink-600 text-[20px]">description</span>
+            </div>
+            <div>
+              <p class="font-bold text-[14px] text-on-surface">Document Chaser</p>
+              <p class="text-[12.5px] text-on-surface-variant mt-0.5 leading-relaxed">Chase clients for pending documents, KYC files, or tax returns. AI calls and follows up automatically.</p>
+            </div>
+          </div>
+        </div>
+        <div class="purpose-card" onclick="selectPurpose('sales_outreach', this)">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+              <span class="md-icon text-blue-600 text-[20px]">trending_up</span>
+            </div>
+            <div>
+              <p class="font-bold text-[14px] text-on-surface">Sales Outreach</p>
+              <p class="text-[12.5px] text-on-surface-variant mt-0.5 leading-relaxed">Reach warm or cold leads via AI voice or WhatsApp. Connects to your CRM for live trigger support.</p>
+            </div>
+          </div>
+        </div>
+        <div class="purpose-card" onclick="selectPurpose('deadline_reminder', this)">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
+              <span class="md-icon text-orange-600 text-[20px]">alarm</span>
+            </div>
+            <div>
+              <p class="font-bold text-[14px] text-on-surface">Deadline Reminder</p>
+              <p class="text-[12.5px] text-on-surface-variant mt-0.5 leading-relaxed">Automated reminders for GSTR-1, Form 1099-NEC, UAE VAT and regional tax deadlines.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Mode + Details ── -->
+    <div id="step-2" class="hidden space-y-5">
+      <!-- Execution mode -->
+      <div>
+        <p class="text-[13px] font-semibold text-on-surface mb-3">Execution mode</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="mode-card" onclick="selectMode('manual', this)">
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center mb-3">
+              <span class="md-icon text-emerald-600 text-[20px]">touch_app</span>
+            </div>
+            <p class="font-bold text-[13.5px] text-on-surface">Manual Batch</p>
+            <p class="text-[12px] text-on-surface-variant mt-1 leading-relaxed">Upload contacts, review script, then trigger manually.</p>
+          </div>
+          <div class="mode-card" onclick="selectMode('automated', this)">
+            <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center mb-3">
+              <span class="md-icon text-violet-600 text-[20px]">auto_mode</span>
+            </div>
+            <p class="font-bold text-[13.5px] text-on-surface">Automated</p>
+            <p class="text-[12px] text-on-surface-variant mt-1 leading-relaxed">Set-and-forget. Fires from CRM webhook or cron schedule.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campaign name -->
+      <div>
+        <label class="block text-[12.5px] font-semibold text-on-surface-variant mb-1.5">Campaign name</label>
+        <input id="inp-name" type="text" placeholder="e.g. June GSTR-1 Chasers"
+          class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13.5px] focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
+      </div>
+
+      <!-- AI script -->
+      <div>
+        <label class="block text-[12.5px] font-semibold text-on-surface-variant mb-1.5">AI script prompt</label>
+        <textarea id="inp-script" rows="4" placeholder="e.g. Call the client, introduce yourself as a ClearDesk compliance agent, and remind them to submit their GSTR-1 documents before the 11th. If unavailable, leave a callback request."
+          class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13.5px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"></textarea>
+        <p class="text-[11.5px] text-on-surface-variant mt-1">This prompt drives the AI voice agent's conversation.</p>
+      </div>
+
+      <!-- Tone -->
+      <div>
+        <label class="block text-[12.5px] font-semibold text-on-surface-variant mb-2">Tone</label>
+        <div class="flex gap-2 flex-wrap" id="tone-buttons">
+          <button class="tone-btn" onclick="selectTone('professional', this)">🤝 Professional</button>
+          <button class="tone-btn" onclick="selectTone('urgent', this)">⚡ Urgent</button>
+          <button class="tone-btn" onclick="selectTone('friendly', this)">😊 Friendly</button>
+        </div>
+      </div>
+
+      <!-- Automation trigger (shown only for automated mode) -->
+      <div id="automation-section" class="hidden space-y-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+        <p class="text-[12.5px] font-semibold text-on-surface">Automation trigger</p>
+        <div>
+          <label class="block text-[12px] text-on-surface-variant mb-1.5">Trigger condition (CRM or cron)</label>
+          <input id="inp-trigger" type="text" placeholder='e.g. "Zoho: lead_status = Inquiry - Warm Open" or "cron: 5 days before GSTR-1"'
+            class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
+        </div>
+        <div>
+          <label class="block text-[12px] text-on-surface-variant mb-1.5">Cron schedule expression (optional)</label>
+          <input id="inp-cron" type="text" placeholder="e.g.  0 9 6 * *  (9am on the 6th of every month)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13px] font-mono focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
+        </div>
+      </div>
+
+      <!-- Budget cap -->
+      <div>
+        <label class="block text-[12.5px] font-semibold text-on-surface-variant mb-1.5">Budget cap (ClearDesk Credits)</label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-on-surface-variant">₡</span>
+          <input id="inp-budget" type="number" min="1" value="50" placeholder="50"
+            class="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-outline-variant text-[13.5px] focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
+        </div>
+        <p class="text-[11.5px] text-on-surface-variant mt-1">Campaign pauses automatically when this limit is hit.</p>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Contacts ── -->
+    <div id="step-3" class="hidden space-y-5">
+      <p class="text-[13px] text-on-surface-variant">Add your target contact list.</p>
+
+      <!-- Upload zone -->
+      <div id="upload-zone"
+        class="border-2 border-dashed border-outline-variant rounded-2xl p-8 text-center cursor-pointer hover:border-primary hover:bg-surface-container-low t-snappy"
+        onclick="document.getElementById('csv-input').click()"
+        ondragover="event.preventDefault();this.classList.add('border-primary','bg-surface-container-low')"
+        ondragleave="this.classList.remove('border-primary','bg-surface-container-low')"
+        ondrop="handleDrop(event)">
+        <span class="md-icon text-[40px] text-outline-variant block mb-2">upload_file</span>
+        <p class="font-semibold text-[13.5px] text-on-surface">Drop a CSV or click to upload</p>
+        <p class="text-[12px] text-on-surface-variant mt-1">Columns: name, phone, email (optional)</p>
+        <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="handleCSV(event)"/>
+      </div>
+
+      <!-- OR divider -->
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-outline-variant"></div>
+        <span class="text-[12px] text-on-surface-variant font-medium">or add manually</span>
+        <div class="flex-1 h-px bg-outline-variant"></div>
+      </div>
+
+      <!-- Manual entry -->
+      <div class="flex gap-2">
+        <input id="inp-contact-name"  type="text"  placeholder="Name"         class="flex-1 px-3 py-2 rounded-xl border border-outline-variant text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25 t-snappy"/>
+        <input id="inp-contact-phone" type="tel"   placeholder="+91 98765…"  class="flex-1 px-3 py-2 rounded-xl border border-outline-variant text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25 t-snappy"/>
+        <button onclick="addContactManually()" class="px-4 py-2 rounded-xl bg-primary-fixed text-primary font-semibold text-[13px] hover:bg-primary hover:text-white t-snappy">Add</button>
+      </div>
+
+      <!-- Contact list preview -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-[12.5px] font-semibold text-on-surface-variant">Contact list <span id="contact-count" class="text-primary">(0)</span></p>
+          <button onclick="clearContacts()" class="text-[12px] text-error hover:underline t-snappy" id="clear-contacts-btn" style="display:none">Clear all</button>
+        </div>
+        <div id="contact-preview" class="max-h-48 overflow-y-auto space-y-1.5 rounded-xl border border-outline-variant p-2 bg-surface-container-low min-h-[60px]">
+          <p class="text-[12.5px] text-on-surface-variant text-center py-3" id="contact-empty-msg">No contacts added yet.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Drawer footer -->
+  <div class="px-6 py-4 border-t border-surface-container-high shrink-0 flex gap-3">
+    <button id="btn-back" onclick="drawerBack()" class="px-5 py-2.5 rounded-full border border-outline-variant text-[13px] font-semibold text-on-surface-variant hover:bg-surface-container t-snappy" style="display:none">
+      ← Back
+    </button>
+    <button id="btn-next" onclick="drawerNext()"
+      class="flex-1 px-5 py-2.5 rounded-full credit-stripe text-white font-semibold text-[13px] shadow-md hover:shadow-lg t-snappy">
+      Continue →
+    </button>
+  </div>
+</div>
+
+
+<script>
+// ── State ────────────────────────────────────────────────────────
+let currentUser   = null;
+let allCampaigns  = [];
+let activeFilter  = 'all';
+let activeModeFilter = 'all';
+let drawerStep    = 1;
+let form = { purpose: null, mode: null, tone: 'professional' };
+let contacts      = [];
+
+// ── Supabase ref ─────────────────────────────────────────────────
+const db = () => window.supabase;
+
+// ── Auth bootstrap ───────────────────────────────────────────────
+async function boot() {
+  currentUser = await getCurrentUser();
+  if (!currentUser) { location.href = 'login.html'; return; }
+  const name = currentUser.display_name || currentUser.email.split('@')[0];
+  const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() || name[0].toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials;
+  await loadCampaigns();
 }
 
-function toggleContact(id) {
-  const index = selectedContacts.indexOf(id);
-  if (index > -1) {
-    selectedContacts.splice(index, 1);
-  } else {
-    selectedContacts.push(id);
-  }
-  document.getElementById('selected-count').textContent = selectedContacts.length;
-}
-
-function filterCampaigns(type) {
-  currentFilter = type;
-  
-  // Update button styles
-  document.querySelectorAll('[id^="filter-"]').forEach(btn => {
-    btn.classList.remove('bg-[#4d41df]', 'text-white');
-    btn.classList.add('bg-gray-200');
-  });
-  document.getElementById(`filter-${type}`).classList.add('bg-[#4d41df]', 'text-white');
-  document.getElementById(`filter-${type}`).classList.remove('bg-gray-200');
-  
+// ── Load campaigns ───────────────────────────────────────────────
+async function loadCampaigns() {
+  const { data, error } = await db()
+    .from('outbound_campaigns')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.warn('Campaigns load error:', error); allCampaigns = []; }
+  else allCampaigns = data || [];
+  updateChips();
   renderCampaigns();
 }
 
-async function createCampaign() {
-  const name = document.getElementById('new-campaign-name').value;
-  const type = document.getElementById('new-campaign-type').value;
-  const agentType = document.getElementById('new-agent-type').value;
-  
-  if (!name) {
-    alert('Please enter campaign name');
-    return;
-  }
-  
-  if (selectedContacts.length === 0) {
-    alert('Please select at least one contact');
-    return;
-  }
-  
-  try {
-    // Create campaign
-    const { data: campaign, error: campaignError } = await supabaseClient
-      .from('campaigns')
-      .insert({
-        user_id: currentUser.id,
-        name,
-        campaign_type: type,
-        agent_type: agentType,
-        status: 'draft',
-        target_count: selectedContacts.length
-      })
-      .select()
-      .single();
-    
-    if (campaignError) throw campaignError;
-    
-    // Link contacts to campaign
-    const links = selectedContacts.map(contactId => ({
-      campaign_id: campaign.id,
-      contact_id: contactId
-    }));
-    
-    const { error: linkError } = await supabaseClient
-      .from('campaign_contacts')
-      .insert(links);
-    
-    if (linkError) throw linkError;
-    
-    const contactCount = selectedContacts.length;
-    hideNewCampaignModal();
-    await loadCampaigns();
-    alert('✅ Campaign created with ' + contactCount + ' contacts!');
-  } catch (error) {
-    console.error('Error:', error);
-    alert('❌ Error creating campaign: ' + error.message);
-  }
+function updateChips() {
+  document.getElementById('chip-total').textContent      = `${allCampaigns.length} total`;
+  document.getElementById('chip-processing').textContent = `${allCampaigns.filter(c=>c.status==='processing').length} processing`;
+  document.getElementById('chip-scheduled').textContent  = `${allCampaigns.filter(c=>c.status==='scheduled').length} scheduled`;
+  document.getElementById('chip-draft').textContent      = `${allCampaigns.filter(c=>c.status==='draft').length} draft`;
 }
 
-async function loadCampaigns() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('campaigns')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    allCampaigns = data || [];
-    renderCampaigns();
-  } catch (error) {
-    console.error('Error loading campaigns:', error);
-  }
+// ── Filter logic ─────────────────────────────────────────────────
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('[id^="f-"]').forEach(b => {
+    b.classList.remove('active','text-primary');
+    b.classList.add('text-on-surface-variant');
+  });
+  const el = document.getElementById('f-' + (f==='document_chaser'?'chaser':f==='sales_outreach'?'outreach':f==='deadline_reminder'?'deadline':'all'));
+  if(el){ el.classList.add('active','text-primary'); el.classList.remove('text-on-surface-variant'); }
+  renderCampaigns();
 }
+
+function setModeFilter(m) {
+  activeModeFilter = m;
+  ['all','manual','automated'].forEach(k => {
+    const b = document.getElementById('m-'+k);
+    if(k===m){ b.classList.add('bg-primary-fixed','text-primary'); b.classList.remove('bg-surface-container','text-on-surface-variant'); }
+    else     { b.classList.remove('bg-primary-fixed','text-primary'); b.classList.add('bg-surface-container','text-on-surface-variant'); }
+  });
+  renderCampaigns();
+}
+
+// ── Render campaigns ─────────────────────────────────────────────
+const PURPOSE_META = {
+  document_chaser:  { label:'Doc Chaser',  cls:'purpose-chaser',   icon:'description', iconCls:'text-pink-600',   iconBg:'bg-pink-50'   },
+  sales_outreach:   { label:'Sales',       cls:'purpose-outreach',  icon:'trending_up', iconCls:'text-blue-600',   iconBg:'bg-blue-50'   },
+  deadline_reminder:{ label:'Deadline',    cls:'purpose-deadline',  icon:'alarm',       iconCls:'text-orange-600', iconBg:'bg-orange-50' },
+};
+const STATUS_META = {
+  draft:      { cls:'badge-draft',      label:'Draft'      },
+  scheduled:  { cls:'badge-scheduled',  label:'Scheduled'  },
+  processing: { cls:'badge-processing', label:'Processing' },
+  completed:  { cls:'badge-completed',  label:'Completed'  },
+  paused:     { cls:'badge-paused',     label:'Paused'     },
+};
 
 function renderCampaigns() {
-  const filtered = currentFilter === 'all' 
-    ? allCampaigns 
-    : allCampaigns.filter(c => c && c.agent_type === currentFilter);
-  
+  let list = allCampaigns;
+  if (activeFilter !== 'all')     list = list.filter(c => c.campaign_purpose === activeFilter);
+  if (activeModeFilter !== 'all') list = list.filter(c => c.execution_mode   === activeModeFilter);
+
   const container = document.getElementById('campaigns-container');
-  
-  if (filtered.length === 0) {
+
+  if (!list.length) {
     container.innerHTML = `
-      <div class="text-center py-12">
-        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">campaign</span>
-        <h3 class="text-xl font-semibold mb-2">No campaigns found</h3>
-        <p class="text-gray-600">Create a new campaign to get started</p>
-      </div>
-    `;
+      <div class="glass-card rounded-2xl p-16 text-center">
+        <span class="md-icon text-[52px] text-outline-variant block mb-3">campaign</span>
+        <h3 class="text-[16px] font-bold text-on-surface mb-1">No campaigns yet</h3>
+        <p class="text-[13px] text-on-surface-variant mb-5">Create your first campaign to start automating outreach.</p>
+        <button onclick="openDrawer()" class="px-6 py-2.5 rounded-full credit-stripe text-white font-semibold text-[13px] shadow-md">
+          + New Campaign
+        </button>
+      </div>`;
     return;
   }
-  
-  container.innerHTML = filtered.filter(campaign => campaign).map(campaign => {
-    const typeIcon = campaign.campaign_type === 'call' ? '📞' : '💬';
-    const agentIcon = campaign.agent_type === 'reminder' ? '🔔' : 
-                      campaign.agent_type === 'warm_lead' ? '🔥' : '❄️';
-    
+
+  container.innerHTML = list.map((c, i) => {
+    const pm = PURPOSE_META[c.campaign_purpose] || PURPOSE_META.document_chaser;
+    const sm = STATUS_META[c.status] || STATUS_META.draft;
+    const modeLabel = c.execution_mode === 'automated' ? 'Automated' : 'Manual';
+    const modeCls   = c.execution_mode === 'automated' ? 'mode-automated' : 'mode-manual';
+    const contacts  = Array.isArray(c.contact_list_json) ? c.contact_list_json.length : 0;
+    const budget    = c.allocated_budget_cap ?? 50;
+    const pct       = Math.min(100, Math.round(((c.current_spend||0)/budget)*100));
+    const created   = new Date(c.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+
     return `
-      <div class="glass-card rounded-xl p-6 hover:shadow-lg transition-shadow">
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
-              <span class="text-2xl">${typeIcon}</span>
-              <h3 class="text-xl font-semibold">${campaign.name || 'Unnamed'}</h3>
-              <span class="px-3 py-1 rounded-full text-xs font-semibold status-${campaign.status || 'draft'}">
-                ${(campaign.status || 'draft').toUpperCase()}
-              </span>
-            </div>
-            <p class="text-sm text-gray-600 flex items-center gap-2">
-              <span>${agentIcon}</span>
-              <span>${(campaign.agent_type || '').replace('_', ' ').toUpperCase()}</span>
-              <span>•</span>
-              <span>Created ${new Date(campaign.created_at).toLocaleDateString()}</span>
-            </p>
+    <div class="glass-card campaign-card rounded-2xl p-6 enter" style="animation-delay:${i*0.04}s">
+      <div class="flex items-start gap-4">
+        <!-- Icon -->
+        <div class="w-11 h-11 rounded-xl ${pm.iconBg} flex items-center justify-center shrink-0">
+          <span class="md-icon ${pm.iconCls} text-[22px]">${pm.icon}</span>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap mb-1">
+            <h3 class="font-bold text-[15px] text-on-surface truncate">${c.campaign_name || 'Untitled'}</h3>
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${sm.cls}">${sm.label}</span>
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${pm.cls}">${pm.label}</span>
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${modeCls}">${modeLabel}</span>
           </div>
-          
-          <div class="flex gap-2">
-            <button onclick="viewCampaign('${campaign.id}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">View</button>
-            ${campaign.status === 'draft' ? `
-              <button onclick="startCampaign('${campaign.id}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Start</button>
-            ` : ''}
+          <p class="text-[12.5px] text-on-surface-variant line-clamp-1 mb-3">${c.custom_script_prompt || 'No script set.'}</p>
+
+          <!-- Stats row -->
+          <div class="flex items-center gap-6 flex-wrap">
+            <div class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+              <span class="md-icon text-[15px]">contacts</span>
+              <span class="font-semibold text-on-surface">${contacts}</span> contacts
+            </div>
+            <div class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+              <span class="md-icon text-[15px]">wallet</span>
+              Budget: <span class="font-semibold text-on-surface">₡${budget}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+              <span class="md-icon text-[15px]">calendar_today</span>
+              ${created}
+            </div>
+            ${c.execution_mode === 'automated' && c.automation_trigger_condition ? `
+            <div class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
+              <span class="md-icon text-[15px]">auto_mode</span>
+              <span class="font-medium truncate max-w-[180px]">${c.automation_trigger_condition}</span>
+            </div>` : ''}
+          </div>
+
+          <!-- Budget progress -->
+          <div class="mt-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] text-on-surface-variant">Budget used</span>
+              <span class="text-[11px] font-semibold text-on-surface">${pct}%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           </div>
         </div>
-        
-        <div class="grid grid-cols-3 gap-4 pt-4 border-t">
-          <div>
-            <p class="text-xs text-gray-500 mb-1">Target</p>
-            <p class="text-lg font-semibold">${campaign.target_count || 0}</p>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500 mb-1">Completed</p>
-            <p class="text-lg font-semibold">${campaign.completed_count || 0}</p>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500 mb-1">Success</p>
-            <p class="text-lg font-semibold">${campaign.success_count || 0}</p>
-          </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-2 shrink-0">
+          ${c.status === 'draft' && c.execution_mode === 'manual' ? `
+          <button onclick="executeCampaign('${c.id}')"
+            class="btn-execute flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-500 text-white text-[12.5px] font-bold shadow-md hover:bg-emerald-600 t-snappy">
+            <span class="md-icon text-[16px]">play_arrow</span>Execute
+          </button>` : ''}
+          ${c.status === 'processing' ? `
+          <button onclick="pauseCampaign('${c.id}')"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[12.5px] font-semibold t-snappy hover:bg-amber-100">
+            <span class="md-icon text-[16px]">pause</span>Pause
+          </button>` : ''}
+          ${c.status === 'paused' ? `
+          <button onclick="resumeCampaign('${c.id}')"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12.5px] font-semibold t-snappy hover:bg-emerald-100">
+            <span class="md-icon text-[16px]">play_arrow</span>Resume
+          </button>` : ''}
+          <button onclick="deleteCampaign('${c.id}')"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container text-on-surface-variant text-[12.5px] font-medium t-snappy hover:bg-error-container hover:text-error">
+            <span class="md-icon text-[16px]">delete</span>Delete
+          </button>
         </div>
       </div>
-    `;
+    </div>`;
   }).join('');
 }
 
-async function viewCampaign(id) {
-  const campaign = allCampaigns.find(c => c.id === id);
-  if (campaign.campaign_type === 'call') {
-    window.location.href = `call-logs.html?campaign=${id}`;
-  } else {
-    window.location.href = `sms-logs.html?campaign=${id}`;
-  }
+// ── Campaign actions ─────────────────────────────────────────────
+async function executeCampaign(id) {
+  if (!confirm('Execute this campaign batch? This will begin outbound calls / SMS.')) return;
+  await db().from('outbound_campaigns').update({ status:'processing' }).eq('id', id);
+  await loadCampaigns();
+}
+async function pauseCampaign(id) {
+  await db().from('outbound_campaigns').update({ status:'paused' }).eq('id', id);
+  await loadCampaigns();
+}
+async function resumeCampaign(id) {
+  await db().from('outbound_campaigns').update({ status:'processing' }).eq('id', id);
+  await loadCampaigns();
+}
+async function deleteCampaign(id) {
+  if (!confirm('Delete this campaign? This cannot be undone.')) return;
+  await db().from('outbound_campaigns').delete().eq('id', id);
+  await loadCampaigns();
 }
 
-async function startCampaign(id) {
-  if (!confirm('Start this campaign? This will begin outbound calls/SMS.')) return;
-  
-  try {
-    // Get campaign contacts
-    const { data: links, error: linksError } = await supabaseClient
-      .from('campaign_contacts')
-      .select('contact_id, contacts(*)')
-      .eq('campaign_id', id);
-    
-    if (linksError) throw linksError;
-    
-    const contacts = links.map(l => ({
-      id: l.contacts.id,
-      name: l.contacts.name,
-      phone: l.contacts.phone,
-      email: l.contacts.email
-    }));
-    
-    if (contacts.length === 0) {
-      alert('No contacts in this campaign');
-      return;
-    }
-    
-    // Call API to start campaign
-    const response = await fetch('/api/campaigns/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        campaignId: id,
-        userId: currentUser.id,
-        contacts
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to start campaign');
-    }
-    
-    await loadCampaigns();
-    alert(`✅ Campaign started! Executing ${result.executed} calls/SMS...`);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('❌ Error: ' + error.message);
-  }
+// ── Drawer logic ─────────────────────────────────────────────────
+function openDrawer() {
+  drawerStep = 1;
+  form = { purpose: null, mode: null, tone: 'professional' };
+  contacts = [];
+  resetDrawerUI();
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function resetDrawerUI() {
+  showStep(1);
+  document.getElementById('inp-name').value    = '';
+  document.getElementById('inp-script').value  = '';
+  document.getElementById('inp-budget').value  = '50';
+  document.getElementById('inp-trigger').value = '';
+  document.getElementById('inp-cron').value    = '';
+  document.querySelectorAll('.purpose-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelector('.tone-btn').classList.add('selected');
+  contacts = [];
+  renderContactPreview();
 }
 
-(async () => {
-  const session = await getSession();
-  if (!session) {
-    window.location.href = 'login.html';
+function showStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step-'+i).classList.toggle('hidden', i!==n);
+    const dot = document.getElementById('dot-'+i);
+    dot.classList.remove('active','done');
+    if (i < n)  dot.classList.add('done');
+    if (i === n) dot.classList.add('active');
+  });
+  const labels = ['Step 1 of 3 — Choose purpose','Step 2 of 3 — Mode & details','Step 3 of 3 — Add contacts'];
+  document.getElementById('drawer-step-label').textContent = labels[n-1];
+  document.getElementById('btn-back').style.display = n > 1 ? 'block' : 'none';
+  document.getElementById('btn-next').textContent = n < 3 ? 'Continue →' : '🚀 Create Campaign';
+}
+
+function drawerNext() {
+  if (drawerStep === 1) {
+    if (!form.purpose) { alert('Please select a purpose.'); return; }
+    drawerStep = 2; showStep(2); return;
+  }
+  if (drawerStep === 2) {
+    if (!form.mode) { alert('Please select an execution mode.'); return; }
+    if (!document.getElementById('inp-name').value.trim()) { alert('Please enter a campaign name.'); return; }
+    drawerStep = 3; showStep(3); return;
+  }
+  if (drawerStep === 3) saveCampaign();
+}
+function drawerBack() {
+  if (drawerStep > 1) { drawerStep--; showStep(drawerStep); }
+}
+
+function selectPurpose(val, el) {
+  form.purpose = val;
+  document.querySelectorAll('.purpose-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectMode(val, el) {
+  form.mode = val;
+  document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('automation-section').classList.toggle('hidden', val!=='automated');
+}
+function selectTone(val, el) {
+  form.tone = val;
+  document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Contacts ─────────────────────────────────────────────────────
+function addContactManually() {
+  const name  = document.getElementById('inp-contact-name').value.trim();
+  const phone = document.getElementById('inp-contact-phone').value.trim();
+  if (!name || !phone) { alert('Enter both name and phone.'); return; }
+  contacts.push({ name, phone });
+  document.getElementById('inp-contact-name').value  = '';
+  document.getElementById('inp-contact-phone').value = '';
+  renderContactPreview();
+}
+function clearContacts() { contacts = []; renderContactPreview(); }
+function renderContactPreview() {
+  document.getElementById('contact-count').textContent = `(${contacts.length})`;
+  document.getElementById('clear-contacts-btn').style.display = contacts.length ? 'block' : 'none';
+  const el = document.getElementById('contact-preview');
+  if (!contacts.length) {
+    el.innerHTML = '<p class="text-[12.5px] text-on-surface-variant text-center py-3" id="contact-empty-msg">No contacts added yet.</p>';
     return;
   }
-  
-  currentUser = session.user;
-  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
-  
-  await loadCampaigns();
-})();
+  el.innerHTML = contacts.map((c,i) => `
+    <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-container-high t-snappy">
+      <div class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-primary shrink-0">${c.name[0].toUpperCase()}</div>
+      <span class="text-[12.5px] font-medium text-on-surface flex-1 truncate">${c.name}</span>
+      <span class="text-[12px] text-on-surface-variant">${c.phone}</span>
+      <button onclick="contacts.splice(${i},1);renderContactPreview()" class="md-icon text-[14px] text-outline hover:text-error t-snappy">close</button>
+    </div>`).join('');
+}
+
+function handleCSV(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const rows = ev.target.result.split('\n').slice(1);
+    rows.forEach(row => {
+      const [name, phone] = row.split(',').map(s=>s.trim().replace(/^"|"$/g,''));
+      if (name && phone) contacts.push({ name, phone });
+    });
+    renderContactPreview();
+  };
+  reader.readAsText(file);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('border-primary','bg-surface-container-low');
+  const file = e.dataTransfer.files[0];
+  if (file) { const fe = { target: { files: [file] } }; handleCSV(fe); }
+}
+
+// ── Save campaign ─────────────────────────────────────────────────
+async function saveCampaign() {
+  const btn = document.getElementById('btn-next');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    const payload = {
+      campaign_name:              document.getElementById('inp-name').value.trim(),
+      campaign_purpose:           form.purpose,
+      execution_mode:             form.mode,
+      custom_script_prompt:       document.getElementById('inp-script').value.trim() || `Default ${form.purpose} script.`,
+      contact_list_json:          contacts,
+      status:                     'draft',
+      allocated_budget_cap:       parseFloat(document.getElementById('inp-budget').value) || 50,
+      automation_trigger_condition: document.getElementById('inp-trigger').value.trim() || null,
+      cron_schedule_expression:   document.getElementById('inp-cron').value.trim() || null,
+    };
+    const { error } = await db().from('outbound_campaigns').insert(payload);
+    if (error) throw error;
+    closeDrawer();
+    await loadCampaigns();
+  } catch(err) {
+    alert('Error saving campaign: ' + err.message);
+    btn.textContent = '🚀 Create Campaign'; btn.disabled = false;
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+boot();
 </script>
 </body>
 </html>
