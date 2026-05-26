@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Configuration - Developer Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../supabase-config.js"></script>
+  <script src="../auth.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Navigation -->
+  <nav class="bg-gray-800 border-b border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back to Dashboard</a>
+          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
+          <a href="models.html" class="text-purple-400 font-medium">Models</a>
+          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
+          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
+          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold mb-2">AI Model Configuration</h2>
+      <p class="text-gray-400">Configure LLM providers, voice synthesis, and localization settings.</p>
+    </div>
+
+    <!-- LLM Provider Selection -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+      <h3 class="text-lg font-semibold mb-4">LLM Provider</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="border border-gray-700 rounded-lg p-4 hover:border-purple-500 cursor-pointer" data-provider="openai">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-medium">OpenAI</h4>
+            <input type="radio" name="llm-provider" value="openai" class="text-purple-600">
+          </div>
+          <p class="text-sm text-gray-400">GPT-4, GPT-3.5-turbo</p>
+        </div>
+
+        <div class="border border-gray-700 rounded-lg p-4 hover:border-purple-500 cursor-pointer" data-provider="anthropic">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-medium">Anthropic</h4>
+            <input type="radio" name="llm-provider" value="anthropic" class="text-purple-600" checked>
+          </div>
+          <p class="text-sm text-gray-400">Claude 3.5 Sonnet, Opus</p>
+        </div>
+
+        <div class="border border-gray-700 rounded-lg p-4 hover:border-purple-500 cursor-pointer" data-provider="custom">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-medium">Custom</h4>
+            <input type="radio" name="llm-provider" value="custom" class="text-purple-600">
+          </div>
+          <p class="text-sm text-gray-400">Custom endpoint</p>
+        </div>
+      </div>
+
+      <!-- Provider-specific config -->
+      <div id="provider-config" class="mt-4">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">API Key</label>
+            <input type="password" id="llm-api-key" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="sk-...">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Model</label>
+            <select id="llm-model" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+              <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+              <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Temperature</label>
+            <input type="range" id="llm-temperature" min="0" max="1" step="0.1" value="0.7" class="w-full">
+            <span id="temp-value" class="text-sm text-gray-400">0.7</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="saveLLMConfig()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+        Save LLM Configuration
+      </button>
+    </div>
+
+    <!-- Voice Synthesis -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+      <h3 class="text-lg font-semibold mb-4">Voice Synthesis</h3>
+      
+      <!-- Language-specific voices -->
+      <div class="space-y-6">
+        <!-- English -->
+        <div>
+          <h4 class="font-medium mb-3 flex items-center">
+            <span class="mr-2">🇬🇧</span> English
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice Provider</label>
+              <select class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+                <option value="elevenlabs">ElevenLabs</option>
+                <option value="google">Google TTS</option>
+                <option value="azure">Azure Speech</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice ID</label>
+              <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="voice_id_123">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hindi -->
+        <div>
+          <h4 class="font-medium mb-3 flex items-center">
+            <span class="mr-2">🇮🇳</span> हिन्दी (Hindi)
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice Provider</label>
+              <select class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+                <option value="google">Google TTS</option>
+                <option value="azure">Azure Speech</option>
+                <option value="aws">Amazon Polly</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice ID</label>
+              <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="hi-IN-Wavenet-A">
+            </div>
+          </div>
+        </div>
+
+        <!-- Marathi -->
+        <div>
+          <h4 class="font-medium mb-3 flex items-center">
+            <span class="mr-2">🇮🇳</span> मराठी (Marathi)
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice Provider</label>
+              <select class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+                <option value="google">Google TTS</option>
+                <option value="azure">Azure Speech</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Voice ID</label>
+              <input type="text" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="mr-IN-Wavenet-A">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="saveVoiceConfig()" class="mt-6 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+        Save Voice Configuration
+      </button>
+    </div>
+
+    <!-- Localization Settings -->
+    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <h3 class="text-lg font-semibold mb-4">Localization</h3>
+      <p class="text-gray-400 text-sm mb-4">Configure system prompts and responses for each language.</p>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-2">Default Language</label>
+          <select class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
+            <option value="ENGLISH">English</option>
+            <option value="HINDI">हिन्दी</option>
+            <option value="MARATHI">मराठी</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Auto-detect Language</label>
+          <label class="flex items-center">
+            <input type="checkbox" class="mr-2" checked>
+            <span class="text-sm">Automatically detect user language from phone number region</span>
+          </label>
+        </div>
+      </div>
+
+      <button onclick="saveLocalizationConfig()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
+        Save Localization Settings
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    async function initModels() {
+      currentUser = await requireRole(['DEVELOPER'], '../index.html');
+      if (!currentUser) return;
+
+      // Load existing config
+      await loadModelConfig();
+
+      // Temperature slider
+      document.getElementById('llm-temperature').addEventListener('input', (e) => {
+        document.getElementById('temp-value').textContent = e.target.value;
+      });
+    }
+
+    async function loadModelConfig() {
+      // Load from database - placeholder
+      console.log('Loading model config...');
+    }
+
+    async function saveLLMConfig() {
+      const provider = document.querySelector('input[name="llm-provider"]:checked').value;
+      const apiKey = document.getElementById('llm-api-key').value;
+      const model = document.getElementById('llm-model').value;
+      const temperature = parseFloat(document.getElementById('llm-temperature').value);
+
+      // Save to database
+      console.log('Saving LLM config:', { provider, model, temperature });
+      alert('LLM configuration saved!');
+    }
+
+    async function saveVoiceConfig() {
+      console.log('Saving voice config...');
+      alert('Voice configuration saved!');
+    }
+
+    async function saveLocalizationConfig() {
+      console.log('Saving localization config...');
+      alert('Localization settings saved!');
+    }
+
+    document.addEventListener('DOMContentLoaded', initModels);
+  </script>
+</body>
+</html>

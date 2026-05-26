@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk - Campaigns</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
+<style>
+body {
+    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
+}
+.glass-nav {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(32px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+.status-draft { background: #e0e0e0; color: #666; }
+.status-running { background: #4caf50; color: white; }
+.status-paused { background: #ff9800; color: white; }
+.status-completed { background: #2196f3; color: white; }
+</style>
+</head>
+<body>
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
+          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
+        </div>
+        <span class="text-xl font-semibold">ClearDesk</span>
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
+        <a href="campaigns.html" class="text-sm text-[#4d41df] font-semibold">Campaigns</a>
+        <a href="call-logs.html" class="text-sm hover:text-[#4d41df]">Call Logs</a>
+        <a href="sms-logs.html" class="text-sm hover:text-[#4d41df]">SMS Logs</a>
+        <a href="settings.html" class="text-sm hover:text-[#4d41df]">Settings</a>
+        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="pt-24 pb-12 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-4xl font-bold mb-2">Campaigns</h1>
+        <p class="text-lg text-gray-600">Create and manage outreach campaigns</p>
+      </div>
+      <button onclick="showNewCampaignModal()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf] flex items-center gap-2">
+        <span class="material-symbols-outlined">add</span>
+        <span>New Campaign</span>
+      </button>
+    </div>
+    
+    <!-- Campaign Types Filter -->
+    <div class="flex gap-3 mb-6">
+      <button onclick="filterCampaigns('all')" id="filter-all" class="px-4 py-2 rounded-lg bg-[#4d41df] text-white font-semibold">All Types</button>
+      <button onclick="filterCampaigns('reminder')" id="filter-reminder" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">🔔 Reminders</button>
+      <button onclick="filterCampaigns('warm_lead')" id="filter-warm_lead" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">🔥 Warm Leads</button>
+      <button onclick="filterCampaigns('cold_lead')" id="filter-cold_lead" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">❄️ Cold Leads</button>
+    </div>
+    
+    <div id="campaigns-container" class="space-y-4">
+      <div class="glass-card rounded-xl p-6 animate-pulse">
+        <div class="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
+        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- New Campaign Modal -->
+<div id="new-campaign-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+  <div class="glass-card rounded-xl p-8 max-w-2xl w-full mx-4 my-8">
+    <h2 class="text-2xl font-bold mb-6">Create New Campaign</h2>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block mb-2 text-sm font-medium">Campaign Name</label>
+        <input type="text" id="new-campaign-name" placeholder="Q1 Tax Reminders" class="w-full p-3 border rounded-lg"/>
+      </div>
+      
+      <div>
+        <label class="block mb-2 text-sm font-medium">Campaign Type</label>
+        <select id="new-campaign-type" class="w-full p-3 border rounded-lg">
+          <option value="call">📞 Voice Call</option>
+          <option value="sms">💬 SMS Message</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block mb-2 text-sm font-medium">Agent Type</label>
+        <select id="new-agent-type" class="w-full p-3 border rounded-lg">
+          <option value="reminder">🔔 Reminder Agent</option>
+          <option value="warm_lead">🔥 Warm Lead Agent</option>
+          <option value="cold_lead">❄️ Cold Lead Agent</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block mb-2 text-sm font-medium">Select Contacts</label>
+        <div class="border rounded-lg p-3 max-h-64 overflow-y-auto" id="contacts-list">
+          <p class="text-gray-500 text-sm">Loading contacts...</p>
+        </div>
+        <p class="text-xs text-gray-500 mt-1"><span id="selected-count">0</span> contacts selected</p>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 mt-6">
+      <button onclick="createCampaign()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Create</button>
+      <button onclick="hideNewCampaignModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script>
+let currentUser = null;
+let allCampaigns = [];
+let allContacts = [];
+let selectedContacts = [];
+let currentFilter = 'all';
+
+function showNewCampaignModal() {
+  document.getElementById('new-campaign-modal').classList.remove('hidden');
+  loadContactsForModal();
+}
+
+function hideNewCampaignModal() {
+  document.getElementById('new-campaign-modal').classList.add('hidden');
+  document.getElementById('new-campaign-name').value = '';
+  // Clear selected contacts and uncheck all boxes
+  selectedContacts = [];
+  document.querySelectorAll('#contacts-list input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('selected-count').textContent = '0';
+}
+
+async function loadContactsForModal() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('contacts')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .eq('status', 'active')
+      .order('name');
+    
+    if (error) throw error;
+    
+    allContacts = data || [];
+    renderContactsList();
+  } catch (error) {
+    console.error('Error loading contacts:', error);
+  }
+}
+
+function renderContactsList() {
+  const container = document.getElementById('contacts-list');
+  
+  if (allContacts.length === 0) {
+    container.innerHTML = `
+      <p class="text-gray-500 text-sm">No contacts available. <a href="contacts.html" class="text-[#4d41df] underline">Add contacts</a> first.</p>
+    `;
+    return;
+  }
+  
+  container.innerHTML = allContacts.map(contact => `
+    <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+      <input type="checkbox" value="${contact.id}" onchange="toggleContact('${contact.id}')" class="w-4 h-4"/>
+      <div class="flex-1">
+        <p class="font-medium">${contact.name}</p>
+        <p class="text-xs text-gray-500">${contact.phone}</p>
+      </div>
+    </label>
+  `).join('');
+}
+
+function toggleContact(id) {
+  const index = selectedContacts.indexOf(id);
+  if (index > -1) {
+    selectedContacts.splice(index, 1);
+  } else {
+    selectedContacts.push(id);
+  }
+  document.getElementById('selected-count').textContent = selectedContacts.length;
+}
+
+function filterCampaigns(type) {
+  currentFilter = type;
+  
+  // Update button styles
+  document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+    btn.classList.remove('bg-[#4d41df]', 'text-white');
+    btn.classList.add('bg-gray-200');
+  });
+  document.getElementById(`filter-${type}`).classList.add('bg-[#4d41df]', 'text-white');
+  document.getElementById(`filter-${type}`).classList.remove('bg-gray-200');
+  
+  renderCampaigns();
+}
+
+async function createCampaign() {
+  const name = document.getElementById('new-campaign-name').value;
+  const type = document.getElementById('new-campaign-type').value;
+  const agentType = document.getElementById('new-agent-type').value;
+  
+  if (!name) {
+    alert('Please enter campaign name');
+    return;
+  }
+  
+  if (selectedContacts.length === 0) {
+    alert('Please select at least one contact');
+    return;
+  }
+  
+  try {
+    // Create campaign
+    const { data: campaign, error: campaignError } = await supabaseClient
+      .from('campaigns')
+      .insert({
+        user_id: currentUser.id,
+        name,
+        campaign_type: type,
+        agent_type: agentType,
+        status: 'draft',
+        target_count: selectedContacts.length
+      })
+      .select()
+      .single();
+    
+    if (campaignError) throw campaignError;
+    
+    // Link contacts to campaign
+    const links = selectedContacts.map(contactId => ({
+      campaign_id: campaign.id,
+      contact_id: contactId
+    }));
+    
+    const { error: linkError } = await supabaseClient
+      .from('campaign_contacts')
+      .insert(links);
+    
+    if (linkError) throw linkError;
+    
+    const contactCount = selectedContacts.length;
+    hideNewCampaignModal();
+    await loadCampaigns();
+    alert('✅ Campaign created with ' + contactCount + ' contacts!');
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error creating campaign: ' + error.message);
+  }
+}
+
+async function loadCampaigns() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('campaigns')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    allCampaigns = data || [];
+    renderCampaigns();
+  } catch (error) {
+    console.error('Error loading campaigns:', error);
+  }
+}
+
+function renderCampaigns() {
+  const filtered = currentFilter === 'all' 
+    ? allCampaigns 
+    : allCampaigns.filter(c => c && c.agent_type === currentFilter);
+  
+  const container = document.getElementById('campaigns-container');
+  
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">campaign</span>
+        <h3 class="text-xl font-semibold mb-2">No campaigns found</h3>
+        <p class="text-gray-600">Create a new campaign to get started</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = filtered.filter(campaign => campaign).map(campaign => {
+    const typeIcon = campaign.campaign_type === 'call' ? '📞' : '💬';
+    const agentIcon = campaign.agent_type === 'reminder' ? '🔔' : 
+                      campaign.agent_type === 'warm_lead' ? '🔥' : '❄️';
+    
+    return `
+      <div class="glass-card rounded-xl p-6 hover:shadow-lg transition-shadow">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-2xl">${typeIcon}</span>
+              <h3 class="text-xl font-semibold">${campaign.name || 'Unnamed'}</h3>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold status-${campaign.status || 'draft'}">
+                ${(campaign.status || 'draft').toUpperCase()}
+              </span>
+            </div>
+            <p class="text-sm text-gray-600 flex items-center gap-2">
+              <span>${agentIcon}</span>
+              <span>${(campaign.agent_type || '').replace('_', ' ').toUpperCase()}</span>
+              <span>•</span>
+              <span>Created ${new Date(campaign.created_at).toLocaleDateString()}</span>
+            </p>
+          </div>
+          
+          <div class="flex gap-2">
+            <button onclick="viewCampaign('${campaign.id}')" class="px-4 py-2 border rounded-lg hover:bg-gray-50">View</button>
+            ${campaign.status === 'draft' ? `
+              <button onclick="startCampaign('${campaign.id}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Start</button>
+            ` : ''}
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-4 pt-4 border-t">
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Target</p>
+            <p class="text-lg font-semibold">${campaign.target_count || 0}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Completed</p>
+            <p class="text-lg font-semibold">${campaign.completed_count || 0}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Success</p>
+            <p class="text-lg font-semibold">${campaign.success_count || 0}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function viewCampaign(id) {
+  const campaign = allCampaigns.find(c => c.id === id);
+  if (campaign.campaign_type === 'call') {
+    window.location.href = `call-logs.html?campaign=${id}`;
+  } else {
+    window.location.href = `sms-logs.html?campaign=${id}`;
+  }
+}
+
+async function startCampaign(id) {
+  if (!confirm('Start this campaign? This will begin outbound calls/SMS.')) return;
+  
+  try {
+    // Get campaign contacts
+    const { data: links, error: linksError } = await supabaseClient
+      .from('campaign_contacts')
+      .select('contact_id, contacts(*)')
+      .eq('campaign_id', id);
+    
+    if (linksError) throw linksError;
+    
+    const contacts = links.map(l => ({
+      id: l.contacts.id,
+      name: l.contacts.name,
+      phone: l.contacts.phone,
+      email: l.contacts.email
+    }));
+    
+    if (contacts.length === 0) {
+      alert('No contacts in this campaign');
+      return;
+    }
+    
+    // Call API to start campaign
+    const response = await fetch('/api/campaigns/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        campaignId: id,
+        userId: currentUser.id,
+        contacts
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to start campaign');
+    }
+    
+    await loadCampaigns();
+    alert(`✅ Campaign started! Executing ${result.executed} calls/SMS...`);
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error: ' + error.message);
+  }
+}
+
+(async () => {
+  const session = await getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  currentUser = session.user;
+  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
+  
+  await loadCampaigns();
+})();
+</script>
+</body>
+</html>

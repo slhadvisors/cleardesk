@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk - Agents</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "on-background": "#1b1b24",
+        "primary": "#4d41df",
+        "secondary": "#005bbf",
+        "tertiary": "#914800",
+        "on-primary": "#ffffff",
+        "on-secondary": "#ffffff",
+        "surface-container": "#f0ecf9",
+        "on-surface": "#1b1b24",
+        "on-surface-variant": "#464555"
+      }
+    }
+  }
+}
+</script>
+<style>
+body {
+    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
+    min-height: 100vh;
+}
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
+}
+.glass-nav {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(32px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+</style>
+</head>
+<body class="text-on-surface">
+<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
+          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
+        </div>
+        <span class="text-xl font-semibold">ClearDesk</span>
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="text-sm hover:text-primary">Dashboard</a>
+        <a href="team-management.html" class="text-sm hover:text-primary">Teams</a>
+        <a href="agent-detail.html" class="text-sm text-primary font-semibold">Agents</a>
+        <a href="campaigns.html" class="text-sm hover:text-primary">Campaigns</a>
+        <a href="contacts.html" class="text-sm hover:text-primary">Contacts</a>
+        <a href="call-logs.html" class="text-sm hover:text-primary">Calls</a>
+        <a href="sms-logs.html" class="text-sm hover:text-primary">SMS</a>
+        <a href="settings.html" class="text-sm hover:text-primary">Settings</a>
+        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-primary text-white rounded-full text-sm">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="pt-24 pb-12 px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">Automation Agents</h1>
+      <p class="text-lg text-on-surface-variant">View and manage your compliance agents</p>
+    </div>
+    
+    <div id="agents-container" class="space-y-4">
+      <div class="glass-card rounded-xl p-6 animate-pulse">
+        <div class="h-6 bg-surface-container rounded mb-4"></div>
+        <div class="h-4 bg-surface-container rounded"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script>
+(async () => {
+  const session = await getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  
+  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
+  
+  // Load agents with team names
+  const { data: agents, error } = await supabaseClient
+    .from('agents')
+    .select(`
+      *,
+      teams (name)
+    `)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error:', error);
+    return;
+  }
+  
+  const container = document.getElementById('agents-container');
+  container.innerHTML = agents.map(agent => `
+    <div class="glass-card rounded-xl p-6 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-2">
+            <h3 class="text-xl font-semibold">${agent.name}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+              agent.status === 'active' ? 'bg-secondary text-white' : 'bg-surface-container'
+            }">
+              ${agent.status}
+            </span>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <p class="text-sm text-on-surface-variant mb-1">Email</p>
+              <p class="text-sm font-medium">${agent.email || 'N/A'}</p>
+            </div>
+            <div>
+              <p class="text-sm text-on-surface-variant mb-1">Role</p>
+              <p class="text-sm font-medium">${agent.role || 'N/A'}</p>
+            </div>
+            <div>
+              <p class="text-sm text-on-surface-variant mb-1">Team</p>
+              <p class="text-sm font-medium">${agent.teams?.name || 'Unassigned'}</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-6 mt-4 pt-4 border-t border-white/20">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+              <div>
+                <p class="text-xs text-on-surface-variant">Compliance Rate</p>
+                <p class="text-sm font-semibold">${agent.compliance_rate?.toFixed(1) || 0}%</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-secondary text-xl">task</span>
+              <div>
+                <p class="text-xs text-on-surface-variant">Tasks Completed</p>
+                <p class="text-sm font-semibold">${agent.tasks_completed || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+})();
+</script>
+</body>
+</html>
