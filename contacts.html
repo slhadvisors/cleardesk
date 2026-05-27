@@ -296,20 +296,35 @@ const AVATAR_COLORS=['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'
 const PAGE_SIZE=15;
 let allContacts=[],filtered=[],currentPage=1,currentTag='all',csvParsed=[];
 
-const MOCK=[
-  {id:'1',name:'Rajesh Gupta',     phone:'+91 98100 11222',email:'rajesh@gupta.com',  type:'client',company:'Gupta & Sons',      last_contact:'2 days ago'},
-  {id:'2',name:'Anita Menon',      phone:'+91 94455 67890',email:'anita@menon.in',    type:'lead',  company:'Menon Exports',      last_contact:'Today'},
-  {id:'3',name:'Suresh Patil',     phone:'+91 90011 22334',email:'spatil@patil.co',   type:'client',company:'Patil Pvt Ltd',      last_contact:'1 week ago'},
-  {id:'4',name:'Kavitha Iyer',     phone:'+91 87654 32100',email:'k.iyer@firm.com',   type:'vendor',company:'Iyer Supplies',      last_contact:'3 days ago'},
-  {id:'5',name:'Manish Kapoor',    phone:'+91 99887 76655',email:'mkapoor@kapoor.net',type:'client',company:'Kapoor Real Estate', last_contact:'Today'},
-  {id:'6',name:'Deepa Nair',       phone:'+91 80000 55555',email:'deepa@nair.org',    type:'lead',  company:'Nair Technologies',  last_contact:'5 days ago'},
-  {id:'7',name:'Aakash Verma',     phone:'+91 77777 44444',email:'aakash@verma.com',  type:'client',company:'Verma Holdings',     last_contact:'Yesterday'},
-  {id:'8',name:'Pooja Agarwal',    phone:'+91 95555 33333',email:'pooja@agarwal.biz', type:'lead',  company:'Agarwal Traders',    last_contact:'Today'},
-  {id:'9',name:'Sanjay Reddy',     phone:'+91 88888 22222',email:'sanjay@reddy.in',   type:'vendor',company:'Reddy Distributors', last_contact:'2 weeks ago'},
-  {id:'10',name:'Ritu Bhatt',      phone:'+91 96666 11111',email:'ritu@bhatt.co',     type:'client',company:'Bhatt Consultants',  last_contact:'Today'},
-  {id:'11',name:'Vikram Malhotra', phone:'+91 91111 22222',email:'v@malhotra.in',     type:'lead',  company:'Malhotra Group',     last_contact:'Yesterday'},
-  {id:'12',name:'Sunita Joshi',    phone:'+91 85555 66666',email:'sunita@joshi.com',  type:'client',company:'Joshi Accounting',   last_contact:'3 days ago'},
-];
+// ── DB helpers ────────────────────────────────────────────────────
+function getOrgId() {
+  const s = window._cdSession;
+  return s?.user?.app_metadata?.organization_id
+      || s?.user?.user_metadata?.organization_id
+      || null;
+}
+// Map DB row → UI contact shape
+function dbToContact(c) {
+  const type = Array.isArray(c.tags) && c.tags.length ? c.tags[0] : 'client';
+  return {
+    id: c.id,
+    name: c.full_name,
+    phone: c.phone,
+    email: c.email || '',
+    type,
+    company: c.company || '',
+    last_contact: c.updated_at ? fmtAgo(c.updated_at) : '—',
+    raw: c
+  };
+}
+function fmtAgo(iso) {
+  const d = Date.now() - new Date(iso);
+  if (d < 60000)   return 'Just now';
+  if (d < 3600000) return Math.floor(d/60000) + 'm ago';
+  if (d < 86400000)return Math.floor(d/3600000) + 'h ago';
+  if (d < 172800000) return 'Yesterday';
+  return new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
 
 function getInitials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 function avatarColor(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
@@ -331,15 +346,24 @@ function renderPage(){
   document.getElementById('page-label').textContent=`${currentPage} / ${Math.max(1,Math.ceil(filtered.length/PAGE_SIZE))}`;
   if(!page.length){list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">contacts</span><p class="text-[14px] font-medium">No contacts found</p></div>`;return;}
   list.innerHTML=page.map((c,i)=>`
-    <div class="contact-row grid grid-cols-[2fr_1fr_1.2fr_1fr_60px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
+    <div class="contact-row grid grid-cols-[2fr_1fr_1.2fr_1fr_80px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
       <div class="flex items-center gap-3">
         <div style="width:38px;height:38px;border-radius:999px;background:${avatarColor(c.name)};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;">${getInitials(c.name)}</div>
-        <div><div class="text-[13.5px] font-semibold text-on-surface">${c.name}</div><div class="text-[12px] text-on-surface-variant">${c.company||c.email||''}</div></div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-[13.5px] font-semibold text-on-surface">${c.name}</span>
+            ${c.raw?.do_not_call ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">DNC</span>' : ''}
+          </div>
+          <div class="text-[12px] text-on-surface-variant">${c.company||c.email||''}</div>
+        </div>
       </div>
       <div>${tagChip(c.type)}</div>
-      <div class="hidden md:block text-[13px] text-on-surface-variant">${c.phone}</div>
+      <div class="hidden md:block text-[13px] text-on-surface-variant font-mono">${c.phone}</div>
       <div class="hidden md:block text-[12.5px] text-on-surface-variant">${c.last_contact}</div>
-      <div class="flex justify-end"><button onclick="deleteContact('${c.id}')" class="w-8 h-8 rounded-lg hover:bg-error-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">delete</span></button></div>
+      <div class="flex justify-end gap-1">
+        <a href="call-logs.html" title="View calls" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">call</span></a>
+        <button onclick="deleteContact('${c.id}')" class="w-8 h-8 rounded-lg hover:bg-error-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">delete</span></button>
+      </div>
     </div>`).join('');
 }
 
@@ -374,15 +398,37 @@ function showToast(msg,icon='check_circle',color='#10b981'){
 }
 
 async function saveContact(){
-  const name=(document.getElementById('add-fname').value.trim()+' '+document.getElementById('add-lname').value.trim()).trim();
+  const fname=document.getElementById('add-fname').value.trim();
+  const lname=document.getElementById('add-lname').value.trim();
+  const full_name=(fname+' '+lname).trim();
   const phone=document.getElementById('add-phone').value.trim();
-  if(!name||!phone){showToast('Name and phone required.','warning','#f59e0b');return;}
-  const c={id:Date.now().toString(),name,phone,email:document.getElementById('add-email').value,type:document.getElementById('add-type').value,company:document.getElementById('add-company').value,last_contact:'Just now'};
-  allContacts.unshift(c);filterContacts();updateStats();
-  showToast(`${name} added`,'person_add','#6C63FF');closeDrawers();
+  if(!full_name||!phone){showToast('Name and phone required.','warning','#f59e0b');return;}
+  const orgId=getOrgId();
+  if(!orgId){showToast('Session error — reload.','error','#ef4444');return;}
+  const row={
+    organization_id:orgId,
+    full_name,phone,
+    email:document.getElementById('add-email').value||null,
+    company:document.getElementById('add-company').value||null,
+    tags:[document.getElementById('add-type').value||'client'],
+    country_code:'IN'
+  };
+  const{data,error}=await window.supabase.from('contacts').insert(row).select().single();
+  if(error){showToast('Save failed: '+error.message,'error','#ef4444');return;}
+  allContacts.unshift(dbToContact(data));
+  filterContacts();updateStats();
+  showToast(`${full_name} added`,'person_add','#6C63FF');closeDrawers();
+  document.getElementById('add-fname').value='';document.getElementById('add-lname').value='';
+  document.getElementById('add-phone').value='';document.getElementById('add-email').value='';
+  document.getElementById('add-company').value='';
 }
 
-function deleteContact(id){allContacts=allContacts.filter(c=>c.id!==id);filterContacts();updateStats();showToast('Contact removed','delete','#ef4444');}
+async function deleteContact(id){
+  const{error}=await window.supabase.from('contacts').delete().eq('id',id);
+  if(error){showToast('Delete failed: '+error.message,'error','#ef4444');return;}
+  allContacts=allContacts.filter(c=>c.id!==id);filterContacts();updateStats();
+  showToast('Contact removed','delete','#ef4444');
+}
 
 function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)processCSV(f);}
 function handleFileSelect(e){const f=e.target.files[0];if(f)processCSV(f);}
@@ -397,25 +443,50 @@ function processCSV(file){
   };
   r.readAsText(file);
 }
-function importCSV(){
+async function importCSV(){
   if(!csvParsed.length){showToast('Please select a CSV file first.','warning','#f59e0b');return;}
-  allContacts=[...csvParsed,...allContacts];filterContacts();updateStats();
-  showToast(`${csvParsed.length} contacts imported`,'upload_file','#6C63FF');closeDrawers();csvParsed=[];
+  const orgId=getOrgId();
+  if(!orgId){showToast('Session error — reload.','error','#ef4444');return;}
+  const rows=csvParsed.map(c=>({
+    organization_id:orgId,
+    full_name:c.name,phone:c.phone,
+    email:c.email||null,company:c.company||null,
+    tags:[c.type||'client'],country_code:'IN'
+  }));
+  const{data,error}=await window.supabase.from('contacts').insert(rows).select();
+  if(error){showToast('Import failed: '+error.message,'error','#ef4444');return;}
+  const imported=(data||[]).map(dbToContact);
+  allContacts=[...imported,...allContacts];filterContacts();updateStats();
+  showToast(`${imported.length} contacts imported`,'upload_file','#6C63FF');closeDrawers();csvParsed=[];
 }
 
-function changeLanguage(){}
+async function loadContacts(){
+  const{data,error}=await window.supabase
+    .from('contacts').select('*').order('created_at',{ascending:false});
+  if(error){
+    document.getElementById('contacts-list').innerHTML=`
+      <div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant">
+        <span class="md-icon text-[40px] opacity-40">cloud_off</span>
+        <p class="text-[14px] font-semibold text-on-surface">Failed to load contacts</p>
+        <p class="text-[12.5px] opacity-70">${error.message}</p>
+        <button onclick="loadContacts()" class="px-4 py-2 credit-stripe text-white text-[13px] font-semibold rounded-xl mt-1">Retry</button>
+      </div>`;
+    return;
+  }
+  allContacts=(data||[]).map(dbToContact);
+  filtered=[...allContacts];renderPage();updateStats();
+}
 
 async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
-  const name=user.display_name||user.email;
-  document.getElementById('avatar-initials').textContent=getInitials(name);
-  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
-  try{
-    const{data,error}=await window.supabase.from('contacts').select('*').eq('organization_id',user.organization_id).order('created_at',{ascending:false});
-    if(!error&&data&&data.length){allContacts=data.map(c=>({...c,last_contact:'Recently'}));}else{allContacts=MOCK;}
-  }catch{allContacts=MOCK;}
-  filtered=[...allContacts];renderPage();updateStats();
+  const{data:{session}}=await window.supabase.auth.getSession();
+  window._cdSession=session;
+  const meta=user.user_metadata||{};
+  const name=meta.full_name||user.email||'';
+  document.getElementById('avatar-initials').textContent=getInitials(name)||'?';
+  document.getElementById('user-email-short').textContent=(user.email||'').split('@')[0];
+  await loadContacts();
 }
 init();
 </script>
