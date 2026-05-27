@@ -31,7 +31,7 @@
 html, body {
   min-height: 100%;
   font-family: var(--font);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* ── Ambient animated background ── */
@@ -315,6 +315,62 @@ html, body {
 #card-reset {
   padding: 44px 44px 40px;
 }
+
+/* ── Sign-up wizard card ── */
+#card-signup { padding: 44px 44px 40px; }
+
+.step-track { display:flex; align-items:center; gap:8px; margin-bottom:24px; }
+.step-dot {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0;
+  background:rgba(199,196,216,0.3); color:#94a3b8;
+  border:1.5px solid rgba(199,196,216,0.5);
+  transition: all var(--t);
+}
+.step-dot.active { background:var(--primary); color:#fff; border-color:var(--primary); box-shadow:0 0 0 4px rgba(77,65,223,0.15); }
+.step-dot.done   { background:#10b981; color:#fff; border-color:#10b981; }
+.step-line { flex:1; height:1.5px; background:rgba(199,196,216,0.4); border-radius:1px; overflow:hidden; position:relative; }
+.step-line::after { content:''; position:absolute; left:0; top:0; bottom:0; background:var(--primary); width:0%; transition:width 0.35s cubic-bezier(0.25,1,0.5,1); }
+.step-line.done::after { width:100%; }
+
+.wizard-step { display:none; }
+.wizard-step.active { display:block; animation:stepIn 0.22s cubic-bezier(0.25,1,0.5,1) both; }
+@keyframes stepIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.avatar-zone { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:16px; }
+.avatar-preview {
+  width:72px; height:72px; border-radius:50%;
+  background:rgba(77,65,223,0.07); border:2px dashed rgba(77,65,223,0.25);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; transition:border-color var(--t),background var(--t);
+  cursor:pointer; position:relative;
+}
+.avatar-preview:hover { border-color:var(--primary); background:rgba(77,65,223,0.1); }
+.avatar-preview.drag-over { border-color:var(--primary); background:rgba(77,65,223,0.12); border-style:solid; }
+.avatar-preview img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.avatar-placeholder { display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; }
+.avatar-placeholder .md-icon { font-size:22px; color:#94a3b8; }
+.avatar-placeholder span { font-size:9px; color:#94a3b8; font-weight:700; letter-spacing:0.06em; }
+.drop-label { font-size:11.5px; color:#94a3b8; text-align:center; }
+
+.field-select {
+  width:100%; padding:12px 14px 12px 44px;
+  background:rgba(255,255,255,0.6); border:1.5px solid rgba(199,196,216,0.7);
+  border-radius:12px; font-family:var(--font); font-size:14.5px; color:#1b1b24;
+  outline:none; appearance:none; cursor:pointer;
+  transition:border-color var(--t),background var(--t),box-shadow var(--t);
+}
+.field-select:focus { border-color:var(--primary); background:rgba(255,255,255,0.85); box-shadow:0 0 0 4px rgba(77,65,223,0.1); }
+
+.btn-ghost {
+  display:block; width:100%; padding:10px;
+  background:none; border:none; font-family:var(--font); font-size:12.5px;
+  color:#6C63FF; cursor:pointer; text-align:center; margin-top:12px;
+  text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px;
+  transition:opacity var(--t);
+}
+.btn-ghost:hover { opacity:0.72; }
 </style>
 </head>
 
@@ -408,6 +464,8 @@ html, body {
       </button>
     </form>
 
+    <button class="btn-ghost" onclick="openSignUp()">Need an organization workspace? Register here</button>
+
     <div class="creds-footer">
       <span class="md-icon" style="font-size:14px;color:#c7c4d8;">shield</span>
       Protected by Supabase Auth · Row-level security
@@ -448,6 +506,118 @@ html, body {
     <div class="creds-footer">
       <span class="md-icon" style="font-size:14px;color:#c7c4d8;">timer</span>
       Link expires in 60 minutes
+    </div>
+
+  </div>
+
+
+  <!-- ── Sign-up wizard card ── -->
+  <div class="card hidden" id="card-signup">
+
+    <button class="creds-back" onclick="backToCredentials()">
+      <span class="md-icon">arrow_back</span> Back to Sign In
+    </button>
+
+    <!-- Step indicator -->
+    <div class="step-track">
+      <div class="step-dot active" id="reg-dot-1">1</div>
+      <div class="step-line" id="reg-line-1"></div>
+      <div class="step-dot" id="reg-dot-2">2</div>
+    </div>
+
+    <div id="signup-alert"></div>
+
+    <!-- Step 1: User profile -->
+    <div class="wizard-step active" id="signup-step-1">
+      <div class="creds-header">
+        <div class="creds-title">Create account</div>
+        <div class="creds-sub">Step 1 of 2 — Your profile</div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="txtRegName">Full Name</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">person</span>
+          <input class="field-input" id="txtRegName" type="text" placeholder="Rajan Mehta" autocomplete="name"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="txtRegEmail">Business Email</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">mail</span>
+          <input class="field-input" id="txtRegEmail" type="email" placeholder="you@yourfirm.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="txtRegPassword">Password</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">lock</span>
+          <input class="field-input" id="txtRegPassword" type="password" placeholder="Min. 8 characters" autocomplete="new-password"/>
+          <button type="button" class="pw-toggle" onclick="toggleRegPw()">
+            <span class="md-icon" id="reg-pw-icon">visibility_off</span>
+          </button>
+        </div>
+      </div>
+      <button class="btn-signin" type="button" onclick="signupNextStep()">
+        <span>Next</span>
+        <span class="md-icon" style="font-size:19px;">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Step 2: Organisation -->
+    <div class="wizard-step" id="signup-step-2">
+      <div class="creds-header">
+        <div class="creds-title">Your organisation</div>
+        <div class="creds-sub">Step 2 of 2 — Workspace setup</div>
+      </div>
+
+      <div class="avatar-zone">
+        <div class="avatar-preview" id="avatar-preview"
+             onclick="document.getElementById('fileAvatarUpload').click()"
+             ondragover="avatarDragOver(event)" ondragleave="avatarDragLeave(event)" ondrop="avatarDrop(event)">
+          <div class="avatar-placeholder" id="avatar-placeholder">
+            <span class="md-icon">add_a_photo</span>
+            <span>PHOTO</span>
+          </div>
+        </div>
+        <input type="file" id="fileAvatarUpload" accept="image/png,image/jpeg"
+               style="display:none" onchange="handleAvatarSelect(event)"/>
+        <p class="drop-label">Profile photo (optional) · PNG/JPEG · max 2 MB</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="txtRegFirmName">Firm / Organisation Name</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">business</span>
+          <input class="field-input" id="txtRegFirmName" type="text" placeholder="Mehta &amp; Associates" autocomplete="organization"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="selectCountry">Jurisdiction</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">public</span>
+          <select class="field-select" id="selectCountry">
+            <option value="IN">&#127470;&#127475; India (IN)</option>
+            <option value="US">&#127482;&#127480; United States (US)</option>
+            <option value="AE">&#127462;&#127466; UAE (AE)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="button" onclick="signupPrevStep()"
+                style="flex-shrink:0;width:48px;padding:14px 0;border-radius:14px;border:1.5px solid rgba(77,65,223,0.2);background:rgba(77,65,223,0.06);color:var(--primary);cursor:pointer;transition:all var(--t);display:flex;align-items:center;justify-content:center;">
+          <span class="md-icon" style="font-size:20px;">arrow_back</span>
+        </button>
+        <button class="btn-signin" type="button" id="signup-btn" onclick="handleSignUp()" style="flex:1;">
+          <span id="signup-label">Create Workspace</span>
+          <span class="md-icon" id="signup-arrow" style="font-size:19px;">rocket_launch</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="creds-footer" style="margin-top:16px;">
+      <span class="md-icon" style="font-size:14px;color:#c7c4d8;">shield</span>
+      Encrypted · Multi-tenant · Role-gated
     </div>
 
   </div>
@@ -657,6 +827,222 @@ document.addEventListener('keydown', (e) => {
     if (welcome.classList.contains('visible')) openCredentials();
   }
 });
+
+/* ── Sign-up card navigation ── */
+let _regAvatarFile = null;
+
+function openSignUp() {
+  clearAlert('creds-alert');
+  clearAlert('signup-alert');
+  swapCards('card-creds', 'card-signup');
+  setTimeout(() => document.getElementById('txtRegName').focus(), T + 60);
+}
+
+function signupPrevStep() {
+  document.getElementById('signup-step-2').classList.remove('active');
+  document.getElementById('signup-step-1').classList.add('active');
+  document.getElementById('reg-dot-2').classList.remove('active');
+  document.getElementById('reg-dot-1').classList.remove('done');
+  document.getElementById('reg-dot-1').classList.add('active');
+  document.getElementById('reg-line-1').classList.remove('done');
+  clearAlert('signup-alert');
+}
+
+function signupNextStep() {
+  const name  = document.getElementById('txtRegName').value.trim();
+  const email = document.getElementById('txtRegEmail').value.trim();
+  const pw    = document.getElementById('txtRegPassword').value;
+
+  clearAlert('signup-alert');
+  ['txtRegName','txtRegEmail','txtRegPassword'].forEach(id =>
+    document.getElementById(id).classList.remove('error'));
+
+  if (!name) {
+    showAlert('signup-alert', 'Full name is required.', 'err');
+    document.getElementById('txtRegName').classList.add('error');
+    document.getElementById('txtRegName').focus();
+    return;
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showAlert('signup-alert', 'Enter a valid email address.', 'err');
+    document.getElementById('txtRegEmail').classList.add('error');
+    document.getElementById('txtRegEmail').focus();
+    return;
+  }
+  if (pw.length < 8) {
+    showAlert('signup-alert', 'Password must be at least 8 characters.', 'err');
+    document.getElementById('txtRegPassword').classList.add('error');
+    document.getElementById('txtRegPassword').focus();
+    return;
+  }
+
+  // Advance to step 2
+  document.getElementById('signup-step-1').classList.remove('active');
+  document.getElementById('signup-step-2').classList.add('active');
+  document.getElementById('reg-dot-1').classList.remove('active');
+  document.getElementById('reg-dot-1').classList.add('done');
+  document.getElementById('reg-line-1').classList.add('done');
+  document.getElementById('reg-dot-2').classList.add('active');
+  setTimeout(() => document.getElementById('txtRegFirmName').focus(), 50);
+}
+
+function toggleRegPw() {
+  const input = document.getElementById('txtRegPassword');
+  const icon  = document.getElementById('reg-pw-icon');
+  input.type = input.type === 'password' ? 'text' : 'password';
+  icon.textContent = input.type === 'password' ? 'visibility_off' : 'visibility';
+}
+
+/* ── Avatar drag-and-drop ── */
+function avatarDragOver(e) {
+  e.preventDefault();
+  document.getElementById('avatar-preview').classList.add('drag-over');
+}
+function avatarDragLeave() {
+  document.getElementById('avatar-preview').classList.remove('drag-over');
+}
+function avatarDrop(e) {
+  e.preventDefault();
+  document.getElementById('avatar-preview').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) applyAvatarFile(file);
+}
+function handleAvatarSelect(e) {
+  const file = e.target.files[0];
+  if (file) applyAvatarFile(file);
+}
+function applyAvatarFile(file) {
+  if (!file.type.match(/^image\/(png|jpeg)$/)) {
+    showAlert('signup-alert', 'Avatar must be PNG or JPEG.', 'err');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showAlert('signup-alert', 'Avatar must be under 2 MB.', 'err');
+    return;
+  }
+  _regAvatarFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById('avatar-preview');
+    document.getElementById('avatar-placeholder').style.display = 'none';
+    const existing = preview.querySelector('img');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.src = ev.target.result;
+    preview.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+  clearAlert('signup-alert');
+}
+
+/* ── Sign-up submit ── */
+async function handleSignUp() {
+  const email    = document.getElementById('txtRegEmail').value.trim();
+  const password = document.getElementById('txtRegPassword').value;
+  const name     = document.getElementById('txtRegName').value.trim();
+  const firmName = document.getElementById('txtRegFirmName').value.trim();
+  const country  = document.getElementById('selectCountry').value;
+  const btn      = document.getElementById('signup-btn');
+  const label    = document.getElementById('signup-label');
+  const arrow    = document.getElementById('signup-arrow');
+
+  clearAlert('signup-alert');
+
+  if (!firmName) {
+    showAlert('signup-alert', 'Organisation name is required.', 'err');
+    document.getElementById('txtRegFirmName').focus();
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  label.textContent = 'Creating workspace…';
+  arrow.style.display = 'none';
+  btn.insertAdjacentHTML('beforeend', '<div class="btn-spinner" id="su-spinner"></div>');
+
+  try {
+    let avatarUrl = null;
+
+    // Upload avatar if provided
+    if (_regAvatarFile) {
+      const fileExt   = _regAvatarFile.name.split('.').pop();
+      const bucketPath = `org-profiles/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.supabase.storage
+        .from('avatars')
+        .upload(bucketPath, _regAvatarFile);
+
+      if (uploadError) throw new Error('Avatar upload failed: ' + uploadError.message);
+
+      avatarUrl = window.supabase.storage.from('avatars').getPublicUrl(bucketPath).data.publicUrl;
+    }
+
+    // Sign up
+    const { data, error } = await window.supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name:   name,
+          firm_name:   firmName,
+          country_code: country,
+          avatar_url:  avatarUrl
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    // Success
+    const spinner = document.getElementById('su-spinner');
+    if (spinner) spinner.remove();
+    label.textContent = 'Workspace created!';
+    btn.insertAdjacentHTML('beforeend', '<span class="md-icon" style="font-size:19px;">check_circle</span>');
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+
+    showAlert('signup-alert',
+      'Account created! Check your email to confirm, then sign in.',
+      'ok');
+
+    // After 3s, flip back to sign-in
+    setTimeout(() => {
+      btn.disabled = false; label.textContent = 'Create Workspace';
+      arrow.style.display = ''; btn.style.background = '';
+      const ic = btn.querySelector('.md-icon:last-child');
+      if (ic && ic.textContent === 'check_circle') ic.remove();
+      clearAlert('signup-alert');
+      signupPrevStep(); // reset to step 1
+      ['txtRegName','txtRegEmail','txtRegPassword','txtRegFirmName'].forEach(id =>
+        document.getElementById(id).value = '');
+      _regAvatarFile = null;
+      document.getElementById('avatar-placeholder').style.display = '';
+      const img = document.querySelector('#avatar-preview img');
+      if (img) img.remove();
+      swapCards('card-signup', 'card-creds');
+    }, 3000);
+
+  } catch(err) {
+    const spinner = document.getElementById('su-spinner');
+    if (spinner) spinner.remove();
+    btn.disabled = false;
+    label.textContent = 'Create Workspace';
+    arrow.style.display = '';
+    showAlert('signup-alert', friendlySignupError(err.message), 'err');
+  }
+}
+
+function friendlySignupError(raw) {
+  const r = (raw || '').toLowerCase();
+  if (r.includes('already registered') || r.includes('user already exists') || r.includes('already been registered'))
+    return 'An account with this email already exists. Try signing in instead.';
+  if (r.includes('password') && r.includes('weak'))
+    return 'Password is too weak. Use at least 8 characters with mixed case.';
+  if (r.includes('invalid email'))
+    return 'Invalid email address format.';
+  if (r.includes('avatar upload failed'))
+    return raw;
+  return raw || 'Registration failed. Please try again.';
+}
 </script>
 </body>
 </html>

@@ -105,6 +105,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
     <div class="flex items-center gap-2.5">
       <div class="flex items-center gap-1.5 text-[12.5px] text-on-surface-variant"><span class="live-dot"></span><span id="last-refresh">Live</span></div>
       <button onclick="loadLogs()" class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40"><span class="md-icon text-[18px] text-[#6C63FF]">refresh</span>Refresh</button>
+      <button onclick="openCompose()" class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40"><span class="md-icon text-[18px] text-[#6C63FF]">add_comment</span>Send SMS</button>
       <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2.5 credit-stripe text-white rounded-xl text-[13.5px] font-semibold shadow-sm hover:shadow-md transition-snappy"><span class="md-icon text-[18px]">download</span>Export</button>
     </div>
   </div>
@@ -169,6 +170,41 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 </main>
 </div>
 
+<!-- Compose / Send SMS Modal -->
+<div id="compose-overlay" class="fixed inset-0 z-[110] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" style="background:rgba(15,12,41,0.45);backdrop-filter:blur(4px);">
+  <div id="compose-box" class="glass-card-solid rounded-3xl p-6 w-[480px] max-w-[95vw] shadow-2xl scale-95 transition-transform duration-200">
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center"><span class="md-icon text-[20px] text-[#6C63FF]">add_comment</span></div>
+        <h3 class="text-[16px] font-bold text-on-surface">New SMS</h3>
+      </div>
+      <button onclick="closeCompose()" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
+    </div>
+    <div class="space-y-4 text-[13.5px]">
+      <div>
+        <label class="block text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-1.5" for="cmp-phone">Phone Number <span class="text-error">*</span></label>
+        <input id="cmp-phone" type="tel" placeholder="+91 98100 00000" class="w-full px-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy font-mono"/>
+      </div>
+      <div>
+        <label class="block text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-1.5" for="cmp-name">Recipient Name</label>
+        <input id="cmp-name" type="text" placeholder="Full name (optional)" class="w-full px-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-[11.5px] font-semibold uppercase tracking-wider text-outline" for="cmp-message">Message <span class="text-error">*</span></label>
+          <span id="cmp-charcount" class="text-[11.5px] font-mono text-outline">0 / 160</span>
+        </div>
+        <textarea id="cmp-message" rows="4" maxlength="160" placeholder="Type your message…" class="w-full px-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy resize-none leading-relaxed"></textarea>
+      </div>
+      <div id="compose-alert" hidden class="px-4 py-2.5 bg-error/8 border border-error/20 rounded-xl text-error text-[13px] font-medium"></div>
+      <div class="flex items-center gap-3 pt-1">
+        <button onclick="closeCompose()" class="flex-1 px-4 py-2.5 text-[13.5px] font-semibold text-on-surface-variant border border-outline-variant rounded-xl hover:bg-surface-container transition-snappy">Cancel</button>
+        <button id="cmp-send-btn" onclick="sendSMS()" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 credit-stripe text-white rounded-xl text-[13.5px] font-semibold shadow-sm hover:shadow-md transition-snappy">Send ➔</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Detail Modal -->
 <div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" style="background:rgba(15,12,41,0.4);backdrop-filter:blur(4px);">
   <div id="modal-box" class="glass-card-solid rounded-3xl p-6 w-[480px] max-w-[95vw] shadow-2xl scale-95 transition-transform duration-200">
@@ -184,20 +220,12 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 const PAGE_SIZE=20;
 let allLogs=[],filtered=[],currentPage=1,currentFilter='all';
 
-const MOCK=[
-  {id:'1',name:'Rajesh Gupta',    phone:'+91 98100 11222',message:'Dear Rajesh, your GSTR-1 filing deadline is in 5 days. Please upload your sales register to our portal at the earliest.',campaign:'Q4 Tax Reminder',status:'delivered',time:'Today 10:20 AM',reply:null},
-  {id:'2',name:'Anita Menon',     phone:'+91 94455 67890',message:'Hi Anita, just following up on the documents we requested last week. Could you please share them by EOD today?',campaign:'Doc Chaser',status:'replied',time:'Today 10:05 AM',reply:'I will send them by 3pm today.'},
-  {id:'3',name:'Suresh Patil',    phone:'+91 90011 22334',message:'Dear Suresh, your account has been approved. Welcome to ClearDesk! Log in at cleardesk.io to get started.',campaign:'Sales Outreach',status:'delivered',time:'Today 09:48 AM',reply:null},
-  {id:'4',name:'Kavitha Iyer',    phone:'+91 87654 32100',message:'Kavitha, reminder: Form 26AS reconciliation is due Friday. Our team is ready to assist — reply to this message.',campaign:'Q4 Tax Reminder',status:'failed',time:'Today 09:30 AM',reply:null},
-  {id:'5',name:'Manish Kapoor',   phone:'+91 99887 76655',message:'Hi Manish! Your trial expires in 2 days. Upgrade to Pro to retain all your data and unlock unlimited AI calls.',campaign:'Sales Outreach',status:'replied',time:'Today 09:15 AM',reply:'Yes please send me the invoice.'},
-  {id:'6',name:'Deepa Nair',      phone:'+91 80000 55555',message:'Dear Deepa, please note that TDS return filing closes on the 31st. Contact us for assistance.',campaign:'Q4 Tax Reminder',status:'sent',time:'Today 09:00 AM',reply:null},
-  {id:'7',name:'Aakash Verma',    phone:'+91 77777 44444',message:'Aakash, your documents have been received and are under review. We will revert within 24 hours.',campaign:'Doc Chaser',status:'delivered',time:'Yesterday 5:10 PM',reply:null},
-  {id:'8',name:'Pooja Agarwal',   phone:'+91 95555 33333',message:'Hi Pooja, your demo is confirmed for Monday at 11am IST. Please join via the link we emailed you.',campaign:'Sales Outreach',status:'delivered',time:'Yesterday 4:00 PM',reply:null},
-  {id:'9',name:'Sanjay Reddy',    phone:'+91 88888 22222',message:'Sanjay, we have been trying to reach you regarding outstanding documents. Please call us at your earliest convenience.',campaign:'Doc Chaser',status:'delivered',time:'Yesterday 2:30 PM',reply:null},
-  {id:'10',name:'Ritu Bhatt',     phone:'+91 96666 11111',message:'Dear Ritu, your GST filing is complete. Certificate attached to your portal inbox. Thank you for using ClearDesk!',campaign:'Q4 Tax Reminder',status:'replied',time:'Yesterday 11:45 AM',reply:'Thank you so much!'},
-  {id:'11',name:'Vikram Malhotra',phone:'+91 91111 22222',message:'Hi Vikram, your 1099-NEC forms are ready. Log in to download them before the January 31 deadline.',campaign:'Q4 Tax Reminder',status:'pending',time:'2 days ago',reply:null},
-  {id:'12',name:'Sunita Joshi',   phone:'+91 85555 66666',message:'Sunita, we noticed your TDS certificate upload is still pending. Please complete it to avoid a late fee penalty.',campaign:'Doc Chaser',status:'delivered',time:'2 days ago',reply:null},
-];
+// ── Org ID from JWT ────────────────────────────────────────────────
+function getOrgId(){
+  const s=window._cdSession;
+  return s?.user?.app_metadata?.organization_id
+      || s?.user?.user_metadata?.organization_id || null;
+}
 
 function statusBadge(s){
   const m={delivered:'<span class="badge badge-delivered"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span>Delivered</span>',replied:'<span class="badge badge-replied"><span style="width:6px;height:6px;border-radius:50%;background:#06b6d4;display:inline-block;"></span>Replied</span>',sent:'<span class="badge badge-sent"><span style="width:6px;height:6px;border-radius:50%;background:#4d41df;display:inline-block;"></span>Sent</span>',failed:'<span class="badge badge-failed"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span>Failed</span>',pending:'<span class="badge badge-pending"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Pending</span>'};
@@ -245,19 +273,121 @@ function openDetail(id){
 function closeModal(){const ov=document.getElementById('modal-overlay'),box=document.getElementById('modal-box');ov.style.opacity='0';ov.style.pointerEvents='none';box.style.transform='scale(0.95)';}
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 function exportCSV(){const rows=['Name,Phone,Campaign,Status,Sent',...allLogs.map(l=>`${l.name},${l.phone},${l.campaign},${l.status},${l.time}`)];const blob=new Blob([rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sms-logs.csv';a.click();}
+// ── Org ID from JWT ────────────────────────────────────────────────
+function getOrgId(){
+  const s=window._cdSession;
+  return s?.user?.app_metadata?.organization_id
+      || s?.user?.user_metadata?.organization_id || null;
+}
+
+// ── DB → view model mapper ─────────────────────────────────────────
+function dbToLog(l){
+  return {
+    id:       l.id,
+    name:     l.contact_name  || '—',
+    phone:    l.phone_number  || '—',
+    message:  l.message_body  || '',
+    campaign: l.campaign_name || '—',
+    status:   l.delivery_status || 'sent',
+    time:     new Date(l.created_at).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}),
+    reply:    l.reply_body    || null,
+    cost:     parseFloat(l.cost_inr)||0,
+  };
+}
+
 async function loadLogs(){
-  try{const user=window._user;if(!user)return;const{data,error}=await window.supabase.from('sms_logs').select('*').eq('organization_id',user.organization_id).order('created_at',{ascending:false}).limit(200);if(!error&&data&&data.length){allLogs=data.map(l=>({id:l.id,name:l.contact_name||'—',phone:l.phone_number||'—',message:l.message_body||'',campaign:l.campaign_name||'—',status:l.delivery_status||'sent',time:new Date(l.created_at).toLocaleString(),reply:l.reply_body||null}));}else{allLogs=MOCK;}}catch{allLogs=MOCK;}
-  filtered=[...allLogs];renderPage();updateStats();
+  const list=document.getElementById('logs-list');
+  const orgId=getOrgId();
+  if(!orgId){
+    list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">account_circle</span><p class="text-[14px] font-medium">Session not ready — please refresh.</p></div>`;
+    return;
+  }
+  list.innerHTML=`<div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant"><span class="md-icon text-[20px] animate-spin">progress_activity</span><span class="text-[13.5px]">Loading SMS logs…</span></div>`;
+
+  const{data,error}=await window.supabase
+    .from('sms_logs')
+    .select('id,contact_name,phone_number,message_body,campaign_name,delivery_status,reply_body,cost_inr,created_at')
+    .eq('organization_id',orgId)
+    .order('created_at',{ascending:false})
+    .limit(200);
+
+  if(error){
+    list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">cloud_off</span><p class="text-[14px] font-medium">Could not load SMS logs</p><p class="text-[12.5px] opacity-70">${error.message}</p><button onclick="loadLogs()" class="mt-2 px-4 py-2 text-[13px] font-semibold text-primary border border-primary/30 rounded-xl hover:bg-primary/5 transition-snappy">Retry</button></div>`;
+    return;
+  }
+
+  allLogs=(data||[]).map(dbToLog);
+  filtered=[...allLogs];
+  renderPage();
+  updateStats();
   document.getElementById('last-refresh').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 }
+
+// ── Compose / Send SMS ─────────────────────────────────────────────
+function openCompose(){
+  document.getElementById('compose-overlay').style.opacity='1';
+  document.getElementById('compose-overlay').style.pointerEvents='all';
+  document.getElementById('compose-box').style.transform='scale(1)';
+  document.getElementById('compose-alert').textContent='';
+  document.getElementById('compose-alert').hidden=true;
+  document.getElementById('cmp-phone').value='';
+  document.getElementById('cmp-name').value='';
+  document.getElementById('cmp-message').value='';
+  document.getElementById('cmp-charcount').textContent='0 / 160';
+  setTimeout(()=>document.getElementById('cmp-phone').focus(),80);
+}
+function closeCompose(){
+  document.getElementById('compose-overlay').style.opacity='0';
+  document.getElementById('compose-overlay').style.pointerEvents='none';
+  document.getElementById('compose-box').style.transform='scale(0.95)';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('compose-overlay');
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)closeCompose();});
+  document.getElementById('cmp-message')?.addEventListener('input',function(){
+    document.getElementById('cmp-charcount').textContent=this.value.length+' / 160';
+  });
+});
+async function sendSMS(){
+  const orgId=getOrgId();
+  const phone  =document.getElementById('cmp-phone').value.trim();
+  const name   =document.getElementById('cmp-name').value.trim();
+  const message=document.getElementById('cmp-message').value.trim();
+  const alert  =document.getElementById('compose-alert');
+  const btn    =document.getElementById('cmp-send-btn');
+  const showErr=msg=>{alert.textContent=msg;alert.hidden=false;};
+  if(!phone){showErr('Phone number is required.');return;}
+  if(!message){showErr('Message body is required.');return;}
+  if(message.length>160){showErr('Message exceeds 160 characters.');return;}
+  if(!orgId){showErr('Session error — please reload.');return;}
+  btn.disabled=true;btn.textContent='Sending…';
+  alert.hidden=true;
+  const{data,error}=await window.supabase.from('sms_logs').insert({
+    organization_id:orgId,
+    contact_name:   name||phone,
+    phone_number:   phone,
+    message_body:   message,
+    delivery_status:'sent',
+  }).select().single();
+  btn.disabled=false;btn.textContent='Send ➔';
+  if(error){showErr('Failed: '+error.message);return;}
+  closeCompose();
+  allLogs.unshift(dbToLog(data));
+  filtered=[...allLogs];
+  renderPage();
+  updateStats();
+}
+
 async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
-  window._user=user;
+  const{data:{session}}=await window.supabase.auth.getSession();
+  window._cdSession=session;
   const name=user.display_name||user.email;
   document.getElementById('avatar-initials').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('user-email-short').textContent=user.email.split('@')[0];
-  await loadLogs();setInterval(loadLogs,30000);
+  await loadLogs();
+  setInterval(loadLogs,30000);
 }
 init();
 </script>

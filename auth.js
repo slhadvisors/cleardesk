@@ -110,22 +110,28 @@ async function requireMinimumRole(minimumRole, redirectUrl = '/login.html') {
   return user;
 }
 
-// Sign up new user
-async function signUp(email, password, displayName, preferredLanguage = 'ENGLISH') {
+// Sign up new user (org registration wizard)
+// orgMeta: { full_name, firm_name, country_code, avatar_url }
+// Legacy callers can still pass displayName; orgMeta is additive.
+async function signUp(email, password, displayName, preferredLanguage = 'ENGLISH', orgMeta = {}) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        display_name: displayName,
-        preferred_language: preferredLanguage
+        display_name:      orgMeta.full_name  || displayName,
+        full_name:         orgMeta.full_name  || displayName,
+        preferred_language: preferredLanguage,
+        firm_name:         orgMeta.firm_name  || null,
+        country_code:      orgMeta.country_code || null,
+        avatar_url:        orgMeta.avatar_url  || null,
       }
     }
   });
 
   if (error) throw error;
 
-  // User profile will be created by database trigger
+  // User profile + organization rows created by DB trigger on auth.users insert
   return data;
 }
 
