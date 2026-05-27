@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -1161,6 +1162,7 @@ function confirmSignOut() {
 
 // ── Bootstrap ─────────────────────────────────────────────────────
 async function boot() {
+  await checkMaintenanceMode();
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
 

@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -414,119 +415,231 @@ function openDrawer(id) {
     <div class="glass-card rounded-xl p-4">
       <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Campaign</p>
       <p class="text-[13.5px] font-semibold text-on-surface">${campName}</p>
-      ${l.vapi_call_id ? `<p class="text-[11px] font-mono text-on-surface-variant mt-1 opacity-60">Vapi ID: ${l.vapi_call_id}</p>` : ''}
+      ${l.vapi_call_id ? `<p class="text-[11px] font-mono text-on-surface-variant mt-1 opacity-70">Vapi ID: ${l.vapi_call_id}</p>` : ''}
     </div>
 
-    <!-- AI Transcript / Summary -->
+    <!-- AI Summary -->
+    ${l.summary ? `
     <div class="glass-card rounded-xl p-4">
-      <div class="flex items-center gap-2 mb-3">
-        <span class="md-icon text-[18px] text-[#6C63FF]">auto_awesome</span>
-        <p class="text-[12.5px] font-bold text-on-surface">AI Call Summary</p>
-      </div>
-      ${l.summary
-        ? `<p class="text-[13px] text-on-surface leading-relaxed">${l.summary}</p>`
-        : `<p class="text-[13px] text-on-surface-variant italic opacity-60">${
-            normStatus(l.status) === 'in-progress'
-              ? 'Call in progress — transcript will appear here when the call ends.'
-              : 'No summary available. Enable Vapi end-of-call reports to populate this field.'
-          }</p>`
-      }
-    </div>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-2">AI Summary</p>
+      <p class="text-[13.5px] text-on-surface leading-relaxed">${l.summary}</p>
+    </div>` : ''}
 
     <!-- Timestamps -->
-    <div class="glass-card rounded-xl p-4 text-[12.5px] text-on-surface-variant space-y-1.5">
-      <div class="flex justify-between"><span class="font-medium">Started</span><span class="font-mono">${l.created_at ? new Date(l.created_at).toLocaleString() : '—'}</span></div>
-      <div class="flex justify-between"><span class="font-medium">Last updated</span><span class="font-mono">${l.updated_at ? new Date(l.updated_at).toLocaleString() : '—'}</span></div>
-    </div>`;
+    <div class="glass-card rounded-xl p-4 space-y-2">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-2">Timestamps</p>
+      <div class="flex items-center justify-between">
+        <span class="text-[12.5px] text-on-surface-variant">Created</span>
+        <span class="text-[12.5px] font-mono text-on-surface">${l.created_at ? new Date(l.created_at).toLocaleString('en-IN') : '—'}</span>
+      </div>
+      ${l.updated_at ? `<div class="flex items-center justify-between">
+        <span class="text-[12.5px] text-on-surface-variant">Updated</span>
+        <span class="text-[12.5px] font-mono text-on-surface">${new Date(l.updated_at).toLocaleString('en-IN')}</span>
+      </div>` : ''}
+    </div>
+  `;
 
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer-panel').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
+
 function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('open');
   document.getElementById('drawer-panel').classList.remove('open');
-  document.body.style.overflow = '';
 }
 
-// ── Export ────────────────────────────────────────────────────────
-function exportCSV() {
-  const rows = [
-    'Contact Name,Phone,Campaign,Status,Duration (s),Cost (credits),Jurisdiction,Vapi Call ID,Created At',
-    ...allLogs.map(l => [
-      `"${l.contact_name || ''}"`,
-      l.contact_phone || '',
-      `"${campaignMap[l.campaign_id] || ''}"`,
-      l.status || '',
-      l.duration_seconds || '',
-      l.cost_credits || '',
-      l.jurisdiction || '',
-      l.vapi_call_id || '',
-      l.created_at || '',
-    ].join(','))
-  ];
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `call-logs-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-}
-
-// ── Load data ─────────────────────────────────────────────────────
+// ── Data loading ──────────────────────────────────────────────────
 async function loadCampaignNames() {
-  try {
-    const { data } = await window.supabase
-      .from('outbound_campaigns')
-      .select('id, campaign_name');
-    if (data) data.forEach(c => { campaignMap[c.id] = c.campaign_name; });
-  } catch { /* non-critical */ }
+  const { data } = await window.supabase
+    .from('outbound_campaigns')
+    .select('id, campaign_name');
+  if (data) data.forEach(c => { campaignMap[c.id] = c.campaign_name; });
 }
 
 async function loadLogs() {
-  const list = document.getElementById('logs-list');
-  try {
-    const { data, error } = await window.supabase
-      .from('call_logs')
-      .select('id, contact_name, contact_phone, campaign_id, vapi_call_id, status, duration_seconds, cost_credits, jurisdiction, summary, created_at, updated_at')
-      .order('created_at', { ascending: false })
-      .limit(500);
+  document.getElementById('logs-list').innerHTML = `
+    <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
+      <span class="md-icon text-[20px] animate-spin">progress_activity</span>
+      <span class="text-[13.5px]">Loading call logs…</span>
+    </div>`;
 
-    if (error) throw error;
-    allLogs = data || [];
-  } catch (err) {
-    console.error('call-logs load error:', err);
-    allLogs = [];
-    list.innerHTML = `
-      <div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant">
-        <span class="md-icon text-[40px] text-error opacity-60">error</span>
-        <p class="text-[13.5px] font-medium text-error">Failed to load call logs</p>
-        <p class="text-[12px] opacity-70">${err.message}</p>
-        <button onclick="loadLogs()" class="mt-2 px-4 py-2 rounded-xl bg-primary-fixed text-primary font-semibold text-[13px]">Retry</button>
+  const { data, error } = await window.supabase
+    .from('call_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) {
+    document.getElementById('logs-list').innerHTML = `
+      <div class="px-6 py-16 flex flex-col items-center gap-4 text-on-surface-variant">
+        <span class="md-icon text-[48px] opacity-30">cloud_off</span>
+        <p class="text-[14px] font-semibold text-on-surface">Failed to load logs</p>
+        <p class="text-[13px] opacity-70">${error.message}</p>
+        <button onclick="loadLogs()" class="px-4 py-2 credit-stripe text-white text-[13px] font-semibold rounded-xl">Retry</button>
       </div>`;
     return;
   }
+
+  allLogs = data || [];
   filtered = [...allLogs];
-  filterLogs();
   updateStats();
-  document.getElementById('last-refresh').textContent =
-    'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  filterLogs();
+
+  const now = new Date();
+  document.getElementById('last-refresh').textContent = `Updated ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
 }
 
-function changeLanguage() {}
+// ── CSV export ────────────────────────────────────────────────────
+function exportCSV() {
+  if (!filtered.length) return;
+  const headers = ['contact_name','contact_phone','campaign','status','duration_seconds','cost_credits','jurisdiction','vapi_call_id','created_at'];
+  const rows = filtered.map(l => [
+    l.contact_name || '',
+    l.contact_phone || '',
+    campaignMap[l.campaign_id] || '',
+    l.status || '',
+    l.duration_seconds || '',
+    l.cost_credits || '',
+    l.jurisdiction || '',
+    l.vapi_call_id || '',
+    l.created_at || ''
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), {href:url, download:`call-logs-${Date.now()}.csv`});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // ── Init ──────────────────────────────────────────────────────────
-async function init() {
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkMaintenanceMode();
   const user = await protectPage(); if (!user) return;
-  document.getElementById('avatar-initials').textContent =
-    user.display_name
-      ? user.display_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-      : user.email.slice(0, 2).toUpperCase();
-  document.getElementById('user-email-short').textContent = user.email.split('@')[0];
+
+  // Avatar
+  const meta = user.user_metadata || {};
+  const name = meta.full_name || user.email || '';
+  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+  document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
+
   await loadCampaignNames();
   await loadLogs();
-  setInterval(loadLogs, 30000); // auto-refresh 30s
+
+  // Auto-refresh every 30s
+  setInterval(loadLogs, 30000);
+});
+</script>
+</body>
+</html>ity-70">Vapi ID: ${l.vapi_call_id}</p>` : ''}
+    </div>
+
+    <!-- AI Summary -->
+    ${l.summary ? `
+    <div class="glass-card rounded-xl p-4">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-2">AI Summary</p>
+      <p class="text-[13.5px] text-on-surface leading-relaxed">${l.summary}</p>
+    </div>` : ''}
+
+    <!-- Timestamps -->
+    <div class="glass-card rounded-xl p-4 space-y-2">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-2">Timestamps</p>
+      <div class="flex items-center justify-between">
+        <span class="text-[12.5px] text-on-surface-variant">Created</span>
+        <span class="text-[12.5px] font-mono text-on-surface">${l.created_at ? new Date(l.created_at).toLocaleString('en-IN') : '—'}</span>
+      </div>
+      ${l.updated_at ? '<div class="flex items-center justify-between"><span class="text-[12.5px] text-on-surface-variant">Updated</span><span class="text-[12.5px] font-mono text-on-surface">' + new Date(l.updated_at).toLocaleString('en-IN') + '</span></div>' : ''}
+    </div>
+  `;
+
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-panel').classList.add('open');
 }
-init();
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer-panel').classList.remove('open');
+}
+
+// ── Data loading ──────────────────────────────────────────────────
+async function loadCampaignNames() {
+  const { data } = await window.supabase
+    .from('outbound_campaigns')
+    .select('id, campaign_name');
+  if (data) data.forEach(c => { campaignMap[c.id] = c.campaign_name; });
+}
+
+async function loadLogs() {
+  document.getElementById('logs-list').innerHTML = `
+    <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
+      <span class="md-icon text-[20px] animate-spin">progress_activity</span>
+      <span class="text-[13.5px]">Loading call logs…</span>
+    </div>`;
+
+  const { data, error } = await window.supabase
+    .from('call_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) {
+    document.getElementById('logs-list').innerHTML = `
+      <div class="px-6 py-16 flex flex-col items-center gap-4 text-on-surface-variant">
+        <span class="md-icon text-[48px] opacity-30">cloud_off</span>
+        <p class="text-[14px] font-semibold text-on-surface">Failed to load logs</p>
+        <p class="text-[13px] opacity-70">${error.message}</p>
+        <button onclick="loadLogs()" class="px-4 py-2 credit-stripe text-white text-[13px] font-semibold rounded-xl">Retry</button>
+      </div>`;
+    return;
+  }
+
+  allLogs = data || [];
+  filtered = [...allLogs];
+  updateStats();
+  filterLogs();
+
+  const now = new Date();
+  document.getElementById('last-refresh').textContent = 'Updated ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── CSV export ────────────────────────────────────────────────────
+function exportCSV() {
+  if (!filtered.length) return;
+  const headers = ['contact_name','contact_phone','campaign','status','duration_seconds','cost_credits','jurisdiction','vapi_call_id','created_at'];
+  const rows = filtered.map(l => [
+    l.contact_name || '',
+    l.contact_phone || '',
+    campaignMap[l.campaign_id] || '',
+    l.status || '',
+    l.duration_seconds || '',
+    l.cost_credits || '',
+    l.jurisdiction || '',
+    l.vapi_call_id || '',
+    l.created_at || ''
+  ].map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), {href:url, download:'call-logs-' + Date.now() + '.csv'});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkMaintenanceMode();
+  const user = await protectPage(); if (!user) return;
+
+  const meta = user.user_metadata || {};
+  const name = meta.full_name || user.email || '';
+  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+  document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
+
+  await loadCampaignNames();
+  await loadLogs();
+  setInterval(loadLogs, 30000);
+});
 </script>
 </body>
 </html>
+

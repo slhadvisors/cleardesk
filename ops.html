@@ -635,6 +635,75 @@ body::after {
       <div id="section-vault" style="display:none;">
         <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">lock</span>Vault Controls — Irreversible Operations</div>
 
+        <!-- ── MAINTENANCE MODE PANEL ── -->
+        <div class="fade-in delay-1" style="background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.18);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="md-icon" style="font-size:18px;color:#06b6d4;">construction</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:0.03em;">MAINTENANCE MODE</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Controls the platform-wide maintenance screen shown to all users.</div>
+              </div>
+            </div>
+            <!-- Current status badge -->
+            <div id="maint-status-badge" style="padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.25);">● LIVE</div>
+          </div>
+
+          <!-- Mode selector -->
+          <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;" id="maint-mode-btns">
+            <button onclick="setMaintMode('off')"       id="mbtn-off"       class="maint-mode-btn active-mode"   style="flex:1;min-width:90px;">
+              <span class="md-icon" style="font-size:15px;">check_circle</span> OFF
+            </button>
+            <button onclick="setMaintMode('on')"        id="mbtn-on"        class="maint-mode-btn"
+              style="flex:1;min-width:90px;">
+              <span class="md-icon" style="font-size:15px;">warning</span> ON NOW
+            </button>
+            <button onclick="setMaintMode('scheduled')" id="mbtn-scheduled" class="maint-mode-btn"
+              style="flex:1;min-width:90px;">
+              <span class="md-icon" style="font-size:15px;">schedule</span> SCHEDULED
+            </button>
+          </div>
+
+          <!-- Scheduled datetime pickers (hidden unless scheduled) -->
+          <div id="maint-schedule-fields" style="display:none;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <div style="font-size:10.5px;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:5px;">START (local time)</div>
+              <input type="datetime-local" id="maint-start" class="ops-input" style="width:100%;font-size:12px;padding:7px 10px;"/>
+            </div>
+            <div>
+              <div style="font-size:10.5px;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:5px;">END (local time)</div>
+              <input type="datetime-local" id="maint-end" class="ops-input" style="width:100%;font-size:12px;padding:7px 10px;"/>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div style="margin-bottom:16px;">
+            <div style="font-size:10.5px;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:5px;">MAINTENANCE MESSAGE (shown to users)</div>
+            <textarea id="maint-message" class="ops-input" rows="2"
+              style="width:100%;font-size:12px;padding:8px 10px;resize:none;line-height:1.5;"
+              placeholder="ClearDesk is undergoing scheduled maintenance. We will be back shortly."></textarea>
+          </div>
+
+          <!-- Save button -->
+          <button onclick="saveMaintenanceMode()"
+            style="padding:8px 22px;border-radius:8px;border:1px solid rgba(6,182,212,0.4);background:rgba(6,182,212,0.08);color:#06b6d4;font-size:12px;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all .18s ease;"
+            onmouseover="this.style.background='rgba(6,182,212,0.15)'" onmouseout="this.style.background='rgba(6,182,212,0.08)'">
+            SAVE MAINTENANCE STATE
+          </button>
+        </div>
+
+        <style>
+          .maint-mode-btn{
+            padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);
+            background:rgba(255,255,255,0.03);color:var(--text-muted);font-size:11px;
+            font-weight:700;letter-spacing:0.06em;cursor:pointer;display:flex;align-items:center;
+            justify-content:center;gap:6px;transition:all .18s ease;font-family:var(--mono);
+          }
+          .maint-mode-btn:hover{border-color:rgba(6,182,212,0.3);color:#06b6d4;background:rgba(6,182,212,0.06);}
+          .maint-mode-btn.active-mode{border-color:#06b6d4;color:#06b6d4;background:rgba(6,182,212,0.1);}
+          .maint-mode-btn.active-on{border-color:#dc2626;color:#f87171;background:rgba(220,38,38,0.1);}
+        </style>
+
         <div style="display:grid; gap:16px;" class="fade-in delay-2">
 
           <!-- Purge sandbox records -->
@@ -755,6 +824,7 @@ function switchSection(name, el) {
   if (name === 'billing')   loadBilling();
   if (name === 'circuit')   loadCircuit();
   if (name === 'campaigns') loadCampaigns();
+  if (name === 'vault')     loadMaintenanceMode();
 }
 
 // ── Stat counter animation ──────────────────────────────────────────
@@ -1203,12 +1273,96 @@ function showToast(msg, type='info') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// ── Maintenance mode ─────────────────────────────────────────────────
+let _maintMode = 'off';
+
+function setMaintMode(mode) {
+  _maintMode = mode;
+  ['off','on','scheduled'].forEach(m => {
+    const btn = document.getElementById('mbtn-' + m);
+    btn.classList.remove('active-mode','active-on');
+  });
+  const btn = document.getElementById('mbtn-' + mode);
+  if (mode === 'on') btn.classList.add('active-on');
+  else               btn.classList.add('active-mode');
+
+  const schedFields = document.getElementById('maint-schedule-fields');
+  schedFields.style.display = mode === 'scheduled' ? 'grid' : 'none';
+}
+
+async function loadMaintenanceMode() {
+  try {
+    const { data } = await db().from('platform_settings').select('value').eq('key','maintenance_mode').single();
+    if (!data) return;
+    const m = data.value;
+    _maintMode = m.mode || 'off';
+    setMaintMode(_maintMode);
+
+    if (m.message) document.getElementById('maint-message').value = m.message;
+    if (m.start)   document.getElementById('maint-start').value = m.start.slice(0,16);
+    if (m.end)     document.getElementById('maint-end').value   = m.end.slice(0,16);
+
+    // Status badge
+    const badge = document.getElementById('maint-status-badge');
+    if (m.mode === 'on') {
+      badge.textContent = '⚠ MAINTENANCE ON';
+      badge.style.cssText += ';background:rgba(220,38,38,0.12);color:#f87171;border-color:rgba(220,38,38,0.3);';
+    } else if (m.mode === 'scheduled') {
+      const now = Date.now();
+      const start = m.start ? new Date(m.start).getTime() : 0;
+      const end   = m.end   ? new Date(m.end).getTime()   : Infinity;
+      const active = now >= start && now <= end;
+      badge.textContent = active ? '⚠ MAINTENANCE ACTIVE' : '◷ SCHEDULED';
+      badge.style.cssText += active
+        ? ';background:rgba(220,38,38,0.12);color:#f87171;border-color:rgba(220,38,38,0.3);'
+        : ';background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);';
+    } else {
+      badge.textContent = '● LIVE';
+      badge.style.cssText += ';background:rgba(52,211,153,0.12);color:#34d399;border-color:rgba(52,211,153,0.25);';
+    }
+  } catch { /* non-critical */ }
+}
+
+async function saveMaintenanceMode() {
+  const mode    = _maintMode;
+  const message = document.getElementById('maint-message').value.trim()
+    || 'ClearDesk is undergoing scheduled maintenance. We will be back shortly.';
+  const startRaw = document.getElementById('maint-start').value;
+  const endRaw   = document.getElementById('maint-end').value;
+
+  if (mode === 'scheduled') {
+    if (!startRaw || !endRaw) { showToast('Set both start and end datetime.', 'warn'); return; }
+    if (new Date(startRaw) >= new Date(endRaw)) { showToast('End must be after start.', 'error'); return; }
+  }
+
+  const value = {
+    enabled:  mode !== 'off',
+    mode,
+    start:    startRaw ? new Date(startRaw).toISOString() : null,
+    end:      endRaw   ? new Date(endRaw).toISOString()   : null,
+    message,
+  };
+
+  const { data: { session } } = await db().auth.getSession();
+  const { error } = await db().from('platform_settings').upsert({
+    key:        'maintenance_mode',
+    value,
+    updated_at: new Date().toISOString(),
+    updated_by: session?.user?.email || 'ops',
+  }, { onConflict: 'key' });
+
+  if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
+  showToast(mode === 'off' ? 'Maintenance mode OFF — platform live.' : `Maintenance mode → ${mode.toUpperCase()}`, mode === 'off' ? 'ok' : 'warn');
+  await loadMaintenanceMode();
+}
+
 // ── Init ─────────────────────────────────────────────────────────────
 async function init() {
   const user = await requireMinimumRole('DEVELOPER', '/login.html');
   if (!user) return;
   document.getElementById('ops-user-label').textContent = (user.display_name || user.email).toUpperCase();
   await loadOverview();
+  await loadMaintenanceMode(); // preload vault state
 }
 init();
 </script>

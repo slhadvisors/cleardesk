@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -446,6 +447,7 @@ const db = () => window.supabase;
 
 // ── Auth bootstrap ───────────────────────────────────────────────
 async function boot() {
+  await checkMaintenanceMode();
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
   const name = currentUser.display_name || currentUser.email.split('@')[0];

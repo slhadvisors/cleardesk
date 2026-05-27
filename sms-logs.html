@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -250,6 +251,7 @@ async function loadLogs(){
   document.getElementById('last-refresh').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 }
 async function init(){
+  await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
   window._user=user;
   const name=user.display_name||user.email;

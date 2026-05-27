@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -618,6 +619,7 @@ const ROLE_LABELS = { DEVELOPER: 'Developer', ORG_ADMIN: 'Admin', ORG_STAFF: 'St
 
 // ── Bootstrap ──────────────────────────────────────────
 async function loadDashboard() {
+  await checkMaintenanceMode();
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
 
