@@ -1,127 +1,537 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Credit Management - Developer Portal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../supabase-config.js"></script>
-  <script src="../auth.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Credits & Billing</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<script src="../translations.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --base-slate:#0f172a;--slate-800:#1e293b;--slate-700:#2a3a52;--slate-600:#334155;
+  --neon-cyan:#06b6d4;--neon-cyan-dim:rgba(6,182,212,0.13);--neon-cyan-border:rgba(6,182,212,0.28);
+  --neon-emerald:#34d399;--neon-emerald-dim:rgba(52,211,153,0.12);
+  --warning-crimson:#dc2626;--crimson-dim:rgba(220,38,38,0.12);--crimson-border:rgba(220,38,38,0.28);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --violet:#8b5cf6;--violet-dim:rgba(139,92,246,0.12);
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#475569;
+  --border-dim:rgba(255,255,255,0.06);--border-med:rgba(255,255,255,0.10);
+  --card-bg:rgba(255,255,255,0.03);--card-bg-hover:rgba(255,255,255,0.055);
+  --font-mono:'JetBrains Mono','Fira Code',monospace;--font-sans:'Plus Jakarta Sans',sans-serif;
+  --t:0.22s cubic-bezier(0.25,1,0.5,1);
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--base-slate);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(6,182,212,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(6,182,212,0.03) 1px,transparent 1px);
+  background-size:40px 40px;}
+.rel{position:relative;z-index:1;}
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-dim);box-shadow:0 1px 0 rgba(6,182,212,0.08);height:60px;display:flex;align-items:center;padding:0 28px;gap:24px;}
+.topbar-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.topbar-badge{font-family:var(--font-mono);font-size:10px;font-weight:600;background:var(--neon-cyan-dim);color:var(--neon-cyan);border:1px solid var(--neon-cyan-border);padding:2px 8px;border-radius:4px;letter-spacing:0.08em;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.topbar-div{width:1px;height:24px;background:var(--border-dim);}
+.back-link{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color var(--t);}
+.back-link:hover{color:var(--neon-cyan);}
+.topbar-spacer{flex:1;}
+.topbar-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--neon-cyan));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+.topbar-name{font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* Subnav */
+.subnav{background:rgba(15,23,42,0.7);border-bottom:1px solid var(--border-dim);padding:0 28px;display:flex;align-items:center;gap:4px;height:44px;position:sticky;top:60px;z-index:99;}
+.subnav-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--text-muted);padding:6px 14px;border-radius:5px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--t),background var(--t);}
+.subnav-link:hover{color:var(--text-primary);background:rgba(255,255,255,0.05);}
+.subnav-link.active{color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.subnav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* Page */
+.page{padding:36px 40px;max-width:1100px;margin:0 auto;}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-bottom:28px;}
+
+/* Wallet hero */
+.wallet-hero{
+  background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(139,92,246,0.06));
+  border:1px solid var(--neon-cyan-border);border-radius:14px;
+  padding:28px 32px;display:flex;align-items:center;gap:32px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.wallet-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(6,182,212,0.03));pointer-events:none;}
+.wallet-balance-label{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
+.wallet-balance{font-family:var(--font-mono);font-size:48px;font-weight:700;color:var(--neon-cyan);line-height:1;letter-spacing:-0.02em;}
+.wallet-sub{font-size:13px;color:var(--text-muted);margin-top:6px;}
+.wallet-divider{width:1px;height:80px;background:var(--border-dim);}
+.wallet-stat{flex:1;}
+.wallet-stat-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px;}
+.wallet-stat-val{font-family:var(--font-mono);font-size:22px;font-weight:700;}
+.wallet-actions{display:flex;flex-direction:column;gap:8px;margin-left:auto;}
+
+/* Buttons */
+.btn{font-family:var(--font-mono);font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all var(--t);}
+.btn-cyan{background:var(--neon-cyan);color:#0f172a;}
+.btn-cyan:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border-dim);}
+.btn-ghost:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);background:var(--neon-cyan-dim);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;padding:18px 20px;transition:border-color var(--t);}
+.stat-card:hover{border-color:var(--border-med);}
+.stat-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-family:var(--font-mono);font-size:24px;font-weight:700;}
+.stat-delta{font-family:var(--font-mono);font-size:11px;margin-top:5px;}
+.stat-delta.up{color:var(--neon-emerald);}
+.stat-delta.down{color:var(--warning-crimson);}
+.stat-delta.neutral{color:var(--text-muted);}
+
+/* Two-col layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+
+/* Card */
+.card{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;padding:20px 22px;margin-bottom:18px;}
+.card-title{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.card-title .dot.cyan{background:var(--neon-cyan);box-shadow:0 0 6px var(--neon-cyan);}
+.card-title .dot.green{background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald);}
+.card-title .dot.amber{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+
+/* Usage bars */
+.usage-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.usage-row:last-child{margin-bottom:0;}
+.usage-label{font-size:13px;color:var(--text-secondary);flex:1;}
+.usage-amount{font-family:var(--font-mono);font-size:12px;color:var(--text-primary);min-width:60px;text-align:right;}
+.usage-bar{height:6px;border-radius:3px;background:var(--slate-700);flex:1;overflow:hidden;min-width:80px;}
+.usage-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(0.25,1,0.5,1);}
+
+/* Burn rate sparkline */
+.sparkline{display:flex;align-items:flex-end;gap:3px;height:36px;}
+.spark-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.spark-bar{width:100%;border-radius:2px 2px 0 0;transition:height 0.6s cubic-bezier(0.25,1,0.5,1);}
+.spark-label{font-family:var(--font-mono);font-size:8px;color:var(--text-muted);}
+
+/* Invoice table */
+.inv-table{width:100%;border-collapse:collapse;}
+.inv-table th{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;text-align:left;padding:8px 16px;border-bottom:1px solid var(--border-dim);}
+.inv-table td{padding:12px 16px;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border-dim);vertical-align:middle;}
+.inv-table tbody tr{transition:background var(--t);}
+.inv-table tbody tr:hover{background:var(--card-bg-hover);}
+.inv-table tbody tr:last-child td{border-bottom:none;}
+.inv-amount{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-primary);}
+.inv-chip{font-family:var(--font-mono);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;}
+.inv-chip.paid{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.inv-chip.pending{background:var(--amber-dim);color:var(--amber);}
+.inv-chip.overdue{background:var(--crimson-dim);color:var(--warning-crimson);}
+
+/* Overdraft setting */
+.overdraft-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-dim);}
+.overdraft-row:last-child{border-bottom:none;}
+.od-label{font-size:13px;color:var(--text-secondary);}
+.od-val{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-primary);}
+.toggle-wrap{display:flex;align-items:center;gap:8px;}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--neon-emerald);position:relative;cursor:pointer;transition:background var(--t);border:none;}
+.toggle.off{background:var(--slate-600);}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left var(--t);}
+.toggle.off::after{left:3px;}
+.toggle:not(.off)::after{left:19px;}
+
+/* Top-up modal */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--slate-800);border:1px solid var(--border-med);border-radius:12px;padding:28px 32px;width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:modal-in 0.22s cubic-bezier(0.25,1,0.5,1);}
+@keyframes modal-in{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:none}}
+.modal-title{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:20px;}
+.topup-amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.topup-btn{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:8px;padding:12px;text-align:center;cursor:pointer;font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text-primary);transition:all var(--t);}
+.topup-btn:hover,.topup-btn.selected{border-color:var(--neon-cyan);color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.modal-input{width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);border-radius:6px;padding:9px 13px;color:var(--text-primary);font-family:var(--font-mono);font-size:13px;outline:none;transition:border-color var(--t),box-shadow var(--t);}
+.modal-input:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,0.12);}
+.modal-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:block;margin-top:14px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+
+/* Toast */
+#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--slate-800);border:1px solid var(--border-med);border-radius:8px;padding:12px 18px;font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);box-shadow:0 8px 32px rgba(0,0,0,0.35);opacity:0;transform:translateY(12px);transition:opacity 0.22s,transform 0.22s;pointer-events:none;}
+#toast.show{opacity:1;transform:none;}
+</style>
 </head>
-<body class="bg-gray-900 text-white">
-  <nav class="bg-gray-800 border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back</a>
-          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
-        </div>
-        <div class="flex items-center space-x-6">
-          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
-          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
-          <a href="credits.html" class="text-purple-400 font-medium">Credits</a>
-          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
-          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
-        </div>
-      </div>
+
+<body>
+<div class="rel">
+
+<header class="topbar">
+  <a href="../index.html" class="topbar-brand">
+    <span class="topbar-title">ClearDesk</span>
+    <span class="topbar-badge">DEV PORTAL</span>
+  </a>
+  <div class="topbar-div"></div>
+  <a href="index.html" class="back-link"><span style="font-size:14px;">←</span> Portal Overview</a>
+  <div class="topbar-spacer"></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-avatar" id="topbarAvatar">D</div>
+    <span class="topbar-name" id="topbarName">Developer</span>
+  </div>
+</header>
+
+<nav class="subnav">
+  <a href="index.html"    class="subnav-link"><span class="subnav-dot"></span> Overview</a>
+  <a href="api-keys.html" class="subnav-link"><span class="subnav-dot"></span> API Keys</a>
+  <a href="models.html"   class="subnav-link"><span class="subnav-dot"></span> Models</a>
+  <a href="credits.html"  class="subnav-link active"><span class="subnav-dot"></span> Credits</a>
+  <a href="webhooks.html" class="subnav-link"><span class="subnav-dot"></span> Webhooks</a>
+</nav>
+
+<div class="page rel">
+
+  <div class="page-title">Credits & Billing</div>
+  <div class="page-sub">// wallet-based prepaid model · circuit breaker enforced · overdraft configurable per org</div>
+
+  <!-- Wallet hero -->
+  <div class="wallet-hero">
+    <div>
+      <div class="wallet-balance-label">Platform Credit Balance</div>
+      <div class="wallet-balance" id="wallet-bal">$0.00</div>
+      <div class="wallet-sub">across all active organisations</div>
     </div>
-  </nav>
-
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h2 class="text-3xl font-bold mb-2">Credit Management</h2>
-    <p class="text-gray-400 mb-8">Monitor usage and configure spending limits.</p>
-
-    <!-- Current Usage -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-sm text-gray-400 mb-2">Total Credits Used</h3>
-        <p class="text-3xl font-bold text-green-400" id="total-credits">$0.00</p>
-      </div>
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-sm text-gray-400 mb-2">This Month</h3>
-        <p class="text-3xl font-bold" id="month-credits">$0.00</p>
-      </div>
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-sm text-gray-400 mb-2">Credit Ceiling</h3>
-        <p class="text-3xl font-bold text-yellow-400" id="credit-ceiling">$500.00</p>
-      </div>
+    <div class="wallet-divider"></div>
+    <div class="wallet-stat">
+      <div class="wallet-stat-label">Burned MTD</div>
+      <div class="wallet-stat-val" style="color:var(--warning-crimson);">$<span id="hero-burned">14,820</span></div>
     </div>
-
-    <!-- Credit Ceiling Configuration -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Credit Ceiling</h3>
-      <p class="text-gray-400 text-sm mb-4">Set maximum monthly spending limit. System will pause when limit reached.</p>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-2">Monthly Limit ($)</label>
-          <input type="number" id="credit-limit" value="500" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="500">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Alert Threshold (%)</label>
-          <input type="range" id="alert-threshold" min="50" max="95" step="5" value="80" class="w-full">
-          <span id="threshold-value" class="text-sm text-gray-400">80%</span>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Alert Email</label>
-          <input type="email" id="alert-email" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="admin@example.com">
-        </div>
-      </div>
-
-      <button onclick="saveCreditLimits()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-        Save Credit Limits
+    <div class="wallet-divider"></div>
+    <div class="wallet-stat">
+      <div class="wallet-stat-label">Overdraft Exposure</div>
+      <div class="wallet-stat-val" style="color:var(--amber);">$<span id="hero-overdraft">820</span></div>
+    </div>
+    <div class="wallet-divider"></div>
+    <div class="wallet-stat">
+      <div class="wallet-stat-label">Gross Margin</div>
+      <div class="wallet-stat-val" style="color:var(--neon-emerald);" id="hero-margin">44.9%</div>
+    </div>
+    <div class="wallet-actions">
+      <button class="btn btn-cyan" onclick="openTopup()">
+        <span class="md-icon" style="font-size:14px;">add_card</span> Top Up Credits
+      </button>
+      <button class="btn btn-ghost" onclick="toast('Invoice download coming soon')">
+        <span class="md-icon" style="font-size:14px;">receipt_long</span> Download Invoice
       </button>
     </div>
+  </div>
 
-    <!-- Usage Breakdown -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">Usage Breakdown</h3>
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">LLM API Calls</span>
-          <span class="font-medium">$0.00</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">Voice Synthesis</span>
-          <span class="font-medium">$0.00</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">SMS Messages</span>
-          <span class="font-medium">$0.00</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">Phone Calls</span>
-          <span class="font-medium">$0.00</span>
-        </div>
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Voice Calls (MTD)</div>
+      <div class="stat-value" id="cnt-calls">0</div>
+      <div class="stat-delta up">↑ 12% vs last month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SMS Sent (MTD)</div>
+      <div class="stat-value" id="cnt-sms">0</div>
+      <div class="stat-delta up">↑ 8%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Docs Parsed (MTD)</div>
+      <div class="stat-value" id="cnt-docs">0</div>
+      <div class="stat-delta neutral">steady</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Orgs in Overdraft</div>
+      <div class="stat-value" style="color:var(--warning-crimson);">2</div>
+      <div class="stat-delta down">circuit breaker triggered</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Usage breakdown -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title"><span class="dot cyan"></span> Cost Breakdown (MTD)</div>
+      <div class="usage-row">
+        <span class="usage-label">Vapi Voice API</span>
+        <div class="usage-bar"><div class="usage-fill" style="width:0%;background:var(--neon-cyan);" data-w="72"></div></div>
+        <span class="usage-amount">$4,218</span>
+      </div>
+      <div class="usage-row">
+        <span class="usage-label">Twilio SMS</span>
+        <div class="usage-bar"><div class="usage-fill" style="width:0%;background:var(--violet);" data-w="31"></div></div>
+        <span class="usage-amount">$1,840</span>
+      </div>
+      <div class="usage-row">
+        <span class="usage-label">LlamaParse</span>
+        <div class="usage-bar"><div class="usage-fill" style="width:0%;background:var(--neon-emerald);" data-w="17"></div></div>
+        <span class="usage-amount">$980</span>
+      </div>
+      <div class="usage-row">
+        <span class="usage-label">Supabase</span>
+        <div class="usage-bar"><div class="usage-fill" style="width:0%;background:var(--amber);" data-w="10"></div></div>
+        <span class="usage-amount">$620</span>
+      </div>
+      <div class="usage-row">
+        <span class="usage-label">Vercel + Inngest</span>
+        <div class="usage-bar"><div class="usage-fill" style="width:0%;background:var(--slate-500);" data-w="8"></div></div>
+        <span class="usage-amount">$498</span>
+      </div>
+    </div>
+
+    <!-- Burn rate chart -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title"><span class="dot green"></span> Daily Burn Rate — May 2026</div>
+      <div class="sparkline" id="sparkline"></div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">
+        <span>May 1</span><span>May 14</span><span>May 27</span>
+      </div>
+      <div style="margin-top:14px;padding:10px 12px;background:var(--neon-emerald-dim);border:1px solid rgba(52,211,153,0.2);border-radius:6px;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--neon-emerald);font-weight:600;">✓ MARGIN HEALTHY — 44.9%</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;">Above 35% threshold · No alerts</div>
       </div>
     </div>
   </div>
 
-  <script>
-    let currentUser = null;
+  <div class="two-col">
+    <!-- Overdraft config -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title"><span class="dot amber"></span> Overdraft Configuration</div>
+      <div class="overdraft-row">
+        <span class="od-label">Overdraft enabled (platform default)</span>
+        <div class="toggle-wrap">
+          <button class="toggle" id="od-toggle" onclick="toggleOverdraft()"></button>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--neon-emerald);" id="od-status">ON</span>
+        </div>
+      </div>
+      <div class="overdraft-row">
+        <span class="od-label">Default overdraft limit per org</span>
+        <span class="od-val">$500.00</span>
+      </div>
+      <div class="overdraft-row">
+        <span class="od-label">Total active overdraft exposure</span>
+        <span class="od-val" style="color:var(--amber);">$820.00</span>
+      </div>
+      <div class="overdraft-row">
+        <span class="od-label">Orgs currently in overdraft</span>
+        <span class="od-val" style="color:var(--warning-crimson);">2</span>
+      </div>
+      <div class="overdraft-row">
+        <span class="od-label">Auto-pause campaigns at $0</span>
+        <div class="toggle-wrap">
+          <button class="toggle" id="pause-toggle"></button>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--neon-emerald);">ON</span>
+        </div>
+      </div>
+    </div>
 
-    async function initCredits() {
-      currentUser = await requireRole(['DEVELOPER'], '../index.html');
-      if (!currentUser) return;
+    <!-- Quick top-up targets -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title"><span class="dot cyan"></span> Org Wallet Snapshot</div>
+      <div id="wallet-snap"></div>
+    </div>
+  </div>
 
-      document.getElementById('alert-threshold').addEventListener('input', (e) => {
-        document.getElementById('threshold-value').textContent = e.target.value + '%';
-      });
+  <!-- Invoice history -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;"><span class="dot cyan"></span> Invoice History</div>
+      <button class="btn btn-ghost btn-sm" onclick="toast('Exporting invoices…')"><span class="md-icon" style="font-size:13px;">download</span> Export All</button>
+    </div>
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th>Retail Burn</th>
+          <th>Wholesale Cost</th>
+          <th>Gross Margin</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="invoice-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Top-up Modal -->
+<div class="modal-overlay" id="topup-modal" onclick="if(event.target===this)closeTopup()">
+  <div class="modal">
+    <div class="modal-title">// Add Credits to Platform Wallet</div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:14px;">Select an amount or enter custom</div>
+    <div class="topup-amounts">
+      <div class="topup-btn" onclick="selectAmount(100, this)">$100</div>
+      <div class="topup-btn" onclick="selectAmount(250, this)">$250</div>
+      <div class="topup-btn" onclick="selectAmount(500, this)">$500</div>
+      <div class="topup-btn" onclick="selectAmount(1000, this)">$1,000</div>
+      <div class="topup-btn" onclick="selectAmount(2500, this)">$2,500</div>
+      <div class="topup-btn" onclick="selectAmount(5000, this)">$5,000</div>
+    </div>
+    <label class="modal-label">Custom Amount (USD)</label>
+    <input class="modal-input" id="custom-amount" type="number" min="10" placeholder="e.g. 750" oninput="clearSelected()"/>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeTopup()">Cancel</button>
+      <button class="btn btn-cyan" onclick="processTopup()"><span class="md-icon" style="font-size:14px;">add_card</span> Add Credits</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(async () => {
+  try {
+    await requireMinimumRole('DEVELOPER', '../login.html');
+    const user = await getCurrentUser();
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('topbarName').textContent = name;
     }
+  } catch(e) {}
+})();
 
-    async function saveCreditLimits() {
-      const limit = document.getElementById('credit-limit').value;
-      const threshold = document.getElementById('alert-threshold').value;
-      const email = document.getElementById('alert-email').value;
+/* ── Data ── */
+const INVOICES = [
+  { period:'May 2026',   retail:14820, wholesale:8156, status:'pending' },
+  { period:'Apr 2026',   retail:13580, wholesale:7340, status:'paid' },
+  { period:'Mar 2026',   retail:11240, wholesale:6180, status:'paid' },
+  { period:'Feb 2026',   retail:9860,  wholesale:5420, status:'paid' },
+  { period:'Jan 2026',   retail:10420, wholesale:5740, status:'paid' },
+];
 
-      console.log('Saving credit limits:', { limit, threshold, email });
-      alert('Credit limits saved!');
-    }
+const ORGS_SNAP = [
+  { name:'Patel CPA Group',     balance:245.80 },
+  { name:'NYC Tax Advisors',    balance:1240.00 },
+  { name:'Sharma Tax Solutions',balance:28.40 },
+  { name:'Mehta & Mehta',       balance:0.00 },
+  { name:'TaxPro Solutions',    balance:80.20 },
+  { name:'Dubai Wealth Partners',balance:-320.00 },
+];
 
-    document.addEventListener('DOMContentLoaded', initCredits);
-  </script>
+const DAILY_BURN = [420,380,510,490,620,580,445,390,550,600,480,510,640,590,470,420,580,620,510,490,540,580,620,680,720,650,590];
+
+/* ── Render ── */
+function render() {
+  // wallet balance = sum of positive org balances
+  const totalBal = ORGS_SNAP.reduce((s,o) => s + Math.max(o.balance,0), 0);
+  animVal('wallet-bal', totalBal, '$');
+  animCount('cnt-calls', 1842);
+  animCount('cnt-sms',   3210);
+  animCount('cnt-docs',  247);
+
+  // invoices
+  const tbody = document.getElementById('invoice-tbody');
+  tbody.innerHTML = INVOICES.map(inv => {
+    const margin = ((inv.retail - inv.wholesale) / inv.retail * 100).toFixed(1);
+    const mColor = margin >= 35 ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+    return `<tr>
+      <td style="font-weight:600;color:var(--text-primary);">${inv.period}</td>
+      <td class="inv-amount">$${inv.retail.toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:13px;">$${inv.wholesale.toLocaleString()}</td>
+      <td style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:${mColor};">${margin}%</td>
+      <td><span class="inv-chip ${inv.status}">${inv.status.charAt(0).toUpperCase()+inv.status.slice(1)}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="toast('Downloading invoice…')"><span class="md-icon" style="font-size:13px;">download</span></button></td>
+    </tr>`;
+  }).join('');
+
+  // org wallet snap
+  const snap = document.getElementById('wallet-snap');
+  snap.innerHTML = ORGS_SNAP.map(o => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border-dim);">
+      <span style="font-size:13px;color:var(--text-secondary);">${o.name}</span>
+      <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:${o.balance<0?'var(--warning-crimson)':o.balance<50?'var(--amber)':'var(--neon-emerald)'};">$${o.balance.toFixed(2)}</span>
+    </div>
+  `).join('');
+
+  // sparkline
+  const sl = document.getElementById('sparkline');
+  const max = Math.max(...DAILY_BURN);
+  sl.innerHTML = DAILY_BURN.map((v,i) => `
+    <div class="spark-col">
+      <div class="spark-bar" style="height:0%;background:${v===max?'var(--warning-crimson)':v>500?'var(--amber)':'var(--neon-cyan)'};opacity:0.7;" data-h="${Math.round(v/max*100)}"></div>
+    </div>
+  `).join('');
+
+  // animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.usage-fill[data-w]').forEach(el => {
+      el.style.width = el.getAttribute('data-w') + '%';
+    });
+    document.querySelectorAll('.spark-bar[data-h]').forEach(el => {
+      el.style.height = el.getAttribute('data-h') + '%';
+    });
+  }, 200);
+}
+
+function animCount(id, target) {
+  const el = document.getElementById(id); if(!el) return;
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now-start)/1000,1), e=1-Math.pow(1-p,3);
+    el.textContent = Math.round(e*target).toLocaleString();
+    if(p<1) requestAnimationFrame(tick);
+  })(performance.now());
+}
+
+function animVal(id, target, prefix='') {
+  const el = document.getElementById(id); if(!el) return;
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now-start)/1200,1), e=1-Math.pow(1-p,3);
+    el.textContent = prefix + (e*target).toFixed(2);
+    if(p<1) requestAnimationFrame(tick);
+  })(performance.now());
+}
+
+/* ── Overdraft toggle ── */
+function toggleOverdraft() {
+  const btn = document.getElementById('od-toggle');
+  const lbl = document.getElementById('od-status');
+  btn.classList.toggle('off');
+  const on = !btn.classList.contains('off');
+  lbl.textContent = on ? 'ON' : 'OFF';
+  lbl.style.color = on ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+  toast(on ? 'Overdraft enabled for all orgs' : 'Overdraft disabled — campaigns will pause at $0');
+}
+
+/* ── Top-up modal ── */
+let selectedAmt = 0;
+function openTopup() { document.getElementById('topup-modal').classList.add('open'); }
+function closeTopup() { document.getElementById('topup-modal').classList.remove('open'); }
+function selectAmount(amt, el) {
+  selectedAmt = amt;
+  document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('custom-amount').value = '';
+}
+function clearSelected() {
+  selectedAmt = 0;
+  document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+}
+function processTopup() {
+  const custom = parseFloat(document.getElementById('custom-amount').value);
+  const amt = custom || selectedAmt;
+  if (!amt || amt < 10) { toast('Enter an amount of at least $10'); return; }
+  closeTopup();
+  toast(`$${amt.toLocaleString()} credits added — payment integration coming soon`);
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+render();
+</script>
 </body>
 </html>

@@ -617,9 +617,62 @@ function renderCampaigns() {
 
 // ── Campaign actions ─────────────────────────────────────────────
 async function executeCampaign(id) {
-  if (!confirm('Execute this campaign batch? This will begin outbound calls / SMS.')) return;
-  await db().from('outbound_campaigns').update({ status:'processing' }).eq('id', id);
-  await loadCampaigns();
+  if (!confirm('Execute this campaign batch? This will begin live outbound calls via Vapi.')) return;
+
+  // Find campaign data
+  const campaign = allCampaigns.find(c => c.id === id);
+  if (!campaign) { alert('Campaign not found.'); return; }
+
+  const contacts = Array.isArray(campaign.contact_list_json) ? campaign.contact_list_json : [];
+  if (!contacts.length) {
+    alert('No contacts in this campaign. Add contacts before executing.');
+    return;
+  }
+
+  // Visual feedback — disable Execute button
+  const btn = document.querySelector(`button[onclick="executeCampaign('${id}')"]`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="md-icon text-[16px]">hourglass_top</span>Dispatching…'; }
+
+  try {
+    // Get caller session token
+    const { data: { session } } = await db().auth.getSession();
+    if (!session?.access_token) throw new Error('No active session — please sign in again.');
+
+    const SUPABASE_URL = window.SUPABASE_URL || (window.supabase?.supabaseUrl ?? '');
+    const fnUrl = `${SUPABASE_URL}/functions/v1/vapi-dispatch`;
+
+    const res = await fetch(fnUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        campaign_id:   campaign.id,
+        contacts:      contacts,
+        script_prompt: campaign.custom_script_prompt,
+        tone:          'professional',
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      // Circuit breaker codes
+      if (json.code === 'PAST_DUE')     { alert('⚠️ Account past due. Please settle your balance before executing campaigns.'); return; }
+      if (json.code === 'WALLET_EMPTY') { alert('⚠️ Wallet depleted. Top up credits in the Developer portal to resume calls.'); return; }
+      throw new Error(json.error || `HTTP ${res.status}`);
+    }
+
+    // Success toast
+    showToast(`✅ Dispatched ${json.queued} of ${json.total} calls successfully.`);
+    await loadCampaigns();
+
+  } catch (err) {
+    console.error('executeCampaign error:', err);
+    alert('Execution failed: ' + err.message);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="md-icon text-[16px]">play_arrow</span>Execute'; }
+  }
 }
 async function pauseCampaign(id) {
   await db().from('outbound_campaigns').update({ status:'paused' }).eq('id', id);
@@ -784,6 +837,24 @@ async function saveCampaign() {
     alert('Error saving campaign: ' + err.message);
     btn.textContent = '🚀 Create Campaign'; btn.disabled = false;
   }
+}
+
+// ── Toast helper ─────────────────────────────────────────────────
+function showToast(msg, duration = 4000) {
+  const t = document.createElement('div');
+  t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] glass-solid rounded-full px-5 py-3 text-[13px] font-semibold text-on-surface shadow-xl flex items-center gap-2 t-snappy';
+  t.style.cssText = 'opacity:0;transform:translate(-50%,12px);';
+  t.innerHTML = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translate(-50%,0)';
+  });
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translate(-50%,12px)';
+    setTimeout(() => t.remove(), 300);
+  }, duration);
 }
 
 // ── Init ──────────────────────────────────────────────────────────

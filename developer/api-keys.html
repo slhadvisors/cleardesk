@@ -1,215 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Keys - Developer Portal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../supabase-config.js"></script>
-  <script src="../auth.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — API Keys</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<script src="../translations.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --base-slate:#0f172a;--slate-800:#1e293b;--slate-700:#2a3a52;--slate-600:#334155;
+  --slate-500:#475569;--slate-400:#64748b;--slate-300:#94a3b8;
+  --neon-cyan:#06b6d4;--neon-cyan-dim:rgba(6,182,212,0.13);--neon-cyan-border:rgba(6,182,212,0.28);
+  --neon-emerald:#34d399;--neon-emerald-dim:rgba(52,211,153,0.12);
+  --warning-crimson:#dc2626;--crimson-dim:rgba(220,38,38,0.12);--crimson-border:rgba(220,38,38,0.28);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --violet:#8b5cf6;--violet-dim:rgba(139,92,246,0.12);
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#475569;
+  --border-dim:rgba(255,255,255,0.06);--border-med:rgba(255,255,255,0.10);
+  --card-bg:rgba(255,255,255,0.03);--card-bg-hover:rgba(255,255,255,0.055);
+  --font-mono:'JetBrains Mono','Fira Code',monospace;--font-sans:'Plus Jakarta Sans',sans-serif;
+  --t:0.22s cubic-bezier(0.25,1,0.5,1);
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--base-slate);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(6,182,212,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(6,182,212,0.03) 1px,transparent 1px);
+  background-size:40px 40px;}
+.rel{position:relative;z-index:1;}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-dim);box-shadow:0 1px 0 rgba(6,182,212,0.08);height:60px;display:flex;align-items:center;padding:0 28px;gap:24px;}
+.topbar-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.topbar-badge{font-family:var(--font-mono);font-size:10px;font-weight:600;background:var(--neon-cyan-dim);color:var(--neon-cyan);border:1px solid var(--neon-cyan-border);padding:2px 8px;border-radius:4px;letter-spacing:0.08em;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.topbar-div{width:1px;height:24px;background:var(--border-dim);}
+.back-link{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color var(--t);}
+.back-link:hover{color:var(--neon-cyan);}
+.topbar-spacer{flex:1;}
+.topbar-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--neon-cyan));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.topbar-name{font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* Subnav */
+.subnav{background:rgba(15,23,42,0.7);border-bottom:1px solid var(--border-dim);padding:0 28px;display:flex;align-items:center;gap:4px;height:44px;position:sticky;top:60px;z-index:99;}
+.subnav-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--text-muted);padding:6px 14px;border-radius:5px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--t),background var(--t);white-space:nowrap;}
+.subnav-link:hover{color:var(--text-primary);background:rgba(255,255,255,0.05);}
+.subnav-link.active{color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.subnav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* Page */
+.page{padding:36px 40px;max-width:1000px;margin:0 auto;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* Buttons */
+.btn{font-family:var(--font-mono);font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all var(--t);}
+.btn-cyan{background:var(--neon-cyan);color:#0f172a;}
+.btn-cyan:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border-dim);}
+.btn-ghost:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);background:var(--neon-cyan-dim);}
+.btn-danger{background:var(--crimson-dim);color:var(--warning-crimson);border:1px solid var(--crimson-border);}
+.btn-danger:hover{background:rgba(220,38,38,0.2);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* Warning banner */
+.rotate-banner{display:flex;align-items:center;gap:10px;background:var(--amber-dim);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px 16px;margin-bottom:24px;font-size:13px;color:var(--amber);}
+.rotate-banner .md-icon{font-family:'Material Symbols Outlined';font-size:19px;font-style:normal;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;line-height:1;flex-shrink:0;}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-mini{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:8px;padding:14px 16px;}
+.stat-mini-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
+.stat-mini-val{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text-primary);}
+.stat-mini-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:3px;}
+
+/* Table card */
+.table-card{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;overflow:hidden;margin-bottom:24px;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border-dim);}
+.table-label{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.table-label .dot{width:6px;height:6px;border-radius:50%;background:var(--neon-cyan);box-shadow:0 0 6px var(--neon-cyan);}
+table{width:100%;border-collapse:collapse;}
+th{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;text-align:left;padding:10px 20px;border-bottom:1px solid var(--border-dim);}
+td{padding:13px 20px;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border-dim);vertical-align:middle;}
+tbody tr{transition:background var(--t);}
+tbody tr:hover{background:var(--card-bg-hover);}
+tbody tr:last-child td{border-bottom:none;}
+
+.key-name{font-weight:600;color:var(--text-primary);}
+.key-val{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);background:rgba(0,0,0,0.25);padding:4px 9px;border-radius:5px;border:1px solid var(--border-dim);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:color var(--t),border-color var(--t);}
+.key-val:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);}
+.key-val .md-icon{font-family:'Material Symbols Outlined';font-size:13px;font-style:normal;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;}
+
+.scope{font-family:var(--font-mono);font-size:10px;font-weight:600;padding:3px 7px;border-radius:4px;}
+.scope.full{background:var(--violet-dim);color:var(--violet);}
+.scope.read{background:var(--neon-cyan-dim);color:var(--neon-cyan);}
+.scope.write{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+
+.status-row{display:flex;align-items:center;gap:6px;}
+.status-dot{width:6px;height:6px;border-radius:50%;}
+.status-dot.active{background:var(--neon-emerald);}
+.status-dot.revoked{background:var(--warning-crimson);}
+.status-dot.expiring{background:var(--amber);}
+
+.usage-bar{height:4px;border-radius:2px;background:var(--slate-700);width:80px;overflow:hidden;}
+.usage-fill{height:100%;border-radius:2px;background:var(--neon-cyan);}
+
+.expiry-warn{font-family:var(--font-mono);font-size:10px;color:var(--amber);}
+
+/* Reveal box */
+.reveal-box{background:rgba(6,182,212,0.06);border:1px solid var(--neon-cyan-border);border-radius:10px;padding:16px 18px;margin-bottom:24px;display:none;}
+.reveal-label{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:6px;}
+.reveal-val{font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);word-break:break-all;line-height:1.6;}
+.reveal-warn{font-family:var(--font-mono);font-size:10px;color:var(--amber);margin-top:8px;}
+.reveal-actions{display:flex;gap:8px;margin-top:12px;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--slate-800);border:1px solid var(--border-med);border-radius:12px;padding:28px 32px;width:440px;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:modal-in 0.22s cubic-bezier(0.25,1,0.5,1);}
+@keyframes modal-in{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:none}}
+.modal-title{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:20px;}
+.modal-field{margin-bottom:16px;}
+.modal-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.modal-input{width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);border-radius:6px;padding:9px 13px;color:var(--text-primary);font-family:var(--font-mono);font-size:13px;transition:border-color var(--t),box-shadow var(--t);outline:none;}
+.modal-input:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,0.12);}
+.modal-select{width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);border-radius:6px;padding:9px 13px;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;outline:none;cursor:pointer;}
+.modal-select:focus{border-color:var(--neon-cyan);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+
+/* Toast */
+#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--slate-800);border:1px solid var(--border-med);border-radius:8px;padding:12px 18px;font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);box-shadow:0 8px 32px rgba(0,0,0,0.35);opacity:0;transform:translateY(12px);transition:opacity 0.22s,transform 0.22s;pointer-events:none;display:flex;align-items:center;gap:8px;}
+#toast.show{opacity:1;transform:none;}
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;}
+</style>
 </head>
-<body class="bg-gray-900 text-white">
-  <nav class="bg-gray-800 border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back</a>
-          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
-        </div>
-        <div class="flex items-center space-x-6">
-          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
-          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
-          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
-          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
-          <a href="api-keys.html" class="text-purple-400 font-medium">API Keys</a>
-        </div>
-      </div>
+
+<body>
+<div class="rel">
+
+<header class="topbar">
+  <a href="../index.html" class="topbar-brand">
+    <span class="topbar-title">ClearDesk</span>
+    <span class="topbar-badge">DEV PORTAL</span>
+  </a>
+  <div class="topbar-div"></div>
+  <a href="index.html" class="back-link"><span style="font-size:14px;">←</span> Portal Overview</a>
+  <div class="topbar-spacer"></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-avatar" id="topbarAvatar">D</div>
+    <span class="topbar-name" id="topbarName">Developer</span>
+  </div>
+</header>
+
+<nav class="subnav">
+  <a href="index.html"      class="subnav-link"><span class="subnav-dot"></span> Overview</a>
+  <a href="api-keys.html"   class="subnav-link active"><span class="subnav-dot"></span> API Keys</a>
+  <a href="models.html"     class="subnav-link"><span class="subnav-dot"></span> Models</a>
+  <a href="credits.html"    class="subnav-link"><span class="subnav-dot"></span> Credits</a>
+  <a href="webhooks.html"   class="subnav-link"><span class="subnav-dot"></span> Webhooks</a>
+</nav>
+
+<div class="page rel">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">API Keys</div>
+      <div class="page-sub">// scoped credentials · rotate quarterly · HMAC-signed payloads</div>
     </div>
-  </nav>
+    <button class="btn btn-cyan" onclick="openModal()">
+      <span class="md-icon" style="font-size:15px;">add</span> New Key
+    </button>
+  </div>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h2 class="text-3xl font-bold mb-2">API Key Management</h2>
-    <p class="text-gray-400 mb-8">Generate and manage API keys for external integrations.</p>
+  <!-- Rotation warning -->
+  <div class="rotate-banner" id="rotation-banner" style="display:none;">
+    <span class="md-icon">schedule</span>
+    <span><strong>1 key expiring in 14 days.</strong> Rotate before expiry to avoid service interruption.</span>
+    <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="document.getElementById('rotation-banner').style.display='none'">Dismiss</button>
+  </div>
 
-    <!-- Warning -->
-    <div class="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4 mb-6">
-      <p class="text-yellow-300 text-sm">⚠️ Keep your API keys secure. Never share them publicly or commit to version control.</p>
-    </div>
-
-    <!-- Generate New Key -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Generate New API Key</h3>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-2">Key Name</label>
-          <input type="text" id="key-name" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="Production Server">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Permissions</label>
-          <div class="space-y-2">
-            <label class="flex items-center">
-              <input type="checkbox" class="mr-2" value="campaigns.read">
-              <span class="text-sm">Read Campaigns</span>
-            </label>
-            <label class="flex items-center">
-              <input type="checkbox" class="mr-2" value="campaigns.write">
-              <span class="text-sm">Write Campaigns</span>
-            </label>
-            <label class="flex items-center">
-              <input type="checkbox" class="mr-2" value="contacts.read">
-              <span class="text-sm">Read Contacts</span>
-            </label>
-            <label class="flex items-center">
-              <input type="checkbox" class="mr-2" value="contacts.write">
-              <span class="text-sm">Write Contacts</span>
-            </label>
-            <label class="flex items-center">
-              <input type="checkbox" class="mr-2" value="logs.read">
-              <span class="text-sm">Read Logs</span>
-            </label>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Expiration</label>
-          <select id="key-expiration" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
-            <option value="never">Never</option>
-            <option value="30">30 days</option>
-            <option value="90">90 days</option>
-            <option value="365">1 year</option>
-          </select>
-        </div>
-      </div>
-
-      <button onclick="generateKey()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-        Generate API Key
-      </button>
-    </div>
-
-    <!-- Active Keys -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">Active API Keys</h3>
-      <div id="keys-list" class="space-y-3">
-        <p class="text-gray-400 text-sm">No API keys generated yet.</p>
-      </div>
-    </div>
-
-    <!-- API Documentation -->
-    <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">API Documentation</h3>
-      <p class="text-gray-400 text-sm mb-4">Example API usage with your keys:</p>
-      
-      <pre class="bg-gray-900 p-4 rounded text-sm overflow-x-auto"><code class="text-green-400">curl -X GET https://api.cleardesk.com/v1/campaigns \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json"</code></pre>
-
-      <div class="mt-4">
-        <a href="#" class="text-purple-400 hover:text-purple-300 text-sm">View Full API Documentation →</a>
-      </div>
+  <!-- Revealed key -->
+  <div class="reveal-box" id="reveal-box">
+    <div class="reveal-label">Your new API key — copy now, shown only once</div>
+    <div class="reveal-val" id="reveal-val"></div>
+    <div class="reveal-warn">⚠ After dismissing this box, the full key cannot be retrieved.</div>
+    <div class="reveal-actions">
+      <button class="btn btn-cyan btn-sm" onclick="copyReveal()"><span class="md-icon" style="font-size:13px;">content_copy</span> Copy Key</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeReveal()">Dismiss</button>
     </div>
   </div>
 
-  <!-- Key Generated Modal -->
-  <div id="key-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 max-w-lg w-full mx-4 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">API Key Generated</h3>
-      <p class="text-gray-400 text-sm mb-4">Copy this key now. You won't be able to see it again!</p>
-      
-      <div class="bg-gray-900 p-4 rounded mb-4">
-        <code id="generated-key" class="text-green-400 break-all"></code>
-      </div>
-
-      <div class="flex space-x-3">
-        <button onclick="copyKey()" class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-          Copy to Clipboard
-        </button>
-        <button onclick="closeModal()" class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
-          Close
-        </button>
-      </div>
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-label">Total Keys</div>
+      <div class="stat-mini-val" id="cnt-total">0</div>
+      <div class="stat-mini-sub">across all scopes</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Active</div>
+      <div class="stat-mini-val" style="color:var(--neon-emerald);" id="cnt-active">0</div>
+      <div class="stat-mini-sub">in use</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Requests Today</div>
+      <div class="stat-mini-val" id="cnt-reqs">0</div>
+      <div class="stat-mini-sub">authenticated calls</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Expiring Soon</div>
+      <div class="stat-mini-val" style="color:var(--amber);" id="cnt-expiring">0</div>
+      <div class="stat-mini-sub">within 30 days</div>
     </div>
   </div>
 
-  <script>
-    let currentUser = null;
-    let apiKeys = [];
+  <!-- Keys table -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-label"><span class="dot"></span> Credentials Registry</div>
+      <button class="btn btn-ghost btn-sm" onclick="exportKeys()"><span class="md-icon" style="font-size:13px;">download</span> Export Audit</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Key</th>
+          <th>Scope</th>
+          <th>Usage (30d)</th>
+          <th>Expires</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="keys-tbody"></tbody>
+    </table>
+  </div>
 
-    async function initAPIKeys() {
-      currentUser = await requireRole(['DEVELOPER'], '../index.html');
-      if (!currentUser) return;
-      await loadKeys();
+  <!-- Security notes -->
+  <div style="background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;padding:18px 20px;">
+    <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:12px;">// Security Guidelines</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--neon-cyan);font-size:16px;margin-top:1px;">check_circle</span>Rotate keys every 90 days</div>
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--neon-cyan);font-size:16px;margin-top:1px;">check_circle</span>Use minimum required scope per integration</div>
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--neon-cyan);font-size:16px;margin-top:1px;">check_circle</span>Never commit keys to version control</div>
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--neon-cyan);font-size:16px;margin-top:1px;">check_circle</span>Store in environment variables or a secrets manager</div>
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--warning-crimson);font-size:16px;margin-top:1px;">warning</span>Revoke any key exposed in logs or code</div>
+      <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;"><span class="md-icon" style="color:var(--neon-cyan);font-size:16px;margin-top:1px;">check_circle</span>All API calls are logged and auditable</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- New Key Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">// Generate New API Key</div>
+    <div class="modal-field">
+      <label class="modal-label">Key Name</label>
+      <input class="modal-input" id="m-name" placeholder="e.g. Zoho CRM Integration"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Scope</label>
+      <select class="modal-select" id="m-scope">
+        <option value="read">read — query data only</option>
+        <option value="write">write — create and update</option>
+        <option value="full">full — unrestricted access</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Expiry</label>
+      <select class="modal-select" id="m-expiry">
+        <option value="90">90 days</option>
+        <option value="180">180 days</option>
+        <option value="365">1 year</option>
+        <option value="0">No expiry</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Description (optional)</label>
+      <input class="modal-input" id="m-desc" placeholder="What will this key be used for?"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-cyan" onclick="generateKey()">Generate Key</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="toast-msg"></span></div>
+
+<script>
+/* ── Auth ── */
+(async () => {
+  try {
+    await requireMinimumRole('DEVELOPER', '../login.html');
+    const user = await getCurrentUser();
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('topbarName').textContent = name;
     }
+  } catch(e) {}
+})();
 
-    async function loadKeys() {
-      renderKeys();
-    }
+/* ── Mock data ── */
+const KEYS = [
+  { id:1, name:'Zoho CRM Webhook',     key:'ck_live_z7f8Kp2mNq4rXv9', scope:'write', reqs:4218, created:'2026-03-01', expires:'2026-08-28', active:true,  desc:'Inbound lead events from Zoho CRM' },
+  { id:2, name:'LlamaParse Parser',    key:'ck_live_p2m9Wd7yJk3nBh6', scope:'read',  reqs:1840, created:'2026-02-14', expires:'2026-11-11', active:true,  desc:'Document parsing async handler' },
+  { id:3, name:'HubSpot Integration',  key:'ck_live_h4k1Tz8uLp5cVr2', scope:'full',  reqs:880,  created:'2026-01-08', expires:'2027-01-07', active:true,  desc:'Full CRM sync' },
+  { id:4, name:'Vapi Voice Dispatcher',key:'ck_live_v8n3Qe6fAj2mYw1', scope:'write', reqs:6420, created:'2026-04-10', expires:'2026-07-09', active:true,  desc:'Outbound AI call dispatcher', expiring:true },
+  { id:5, name:'Legacy Sync Key',      key:'ck_live_l1q5Xb9oSd4kGm7', scope:'read',  reqs:0,    created:'2025-11-20', expires:'2026-02-18', active:false, desc:'Decommissioned — safe to delete' },
+];
 
-    function renderKeys() {
-      const list = document.getElementById('keys-list');
-      if (apiKeys.length === 0) {
-        list.innerHTML = '<p class="text-gray-400 text-sm">No API keys generated yet.</p>';
-        return;
-      }
-
-      list.innerHTML = apiKeys.map(key => `
-        <div class="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-          <div>
-            <h4 class="font-medium">${key.name}</h4>
-            <p class="text-sm text-gray-400">Created ${key.created} • ${key.lastUsed ? 'Last used ' + key.lastUsed : 'Never used'}</p>
-          </div>
-          <div class="flex items-center space-x-3">
-            <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Active</span>
-            <button onclick="revokeKey('${key.id}')" class="text-red-400 hover:text-red-300">Revoke</button>
-          </div>
+function render() {
+  const tbody = document.getElementById('keys-tbody');
+  tbody.innerHTML = KEYS.map(k => {
+    const usagePct = Math.min(Math.round(k.reqs / 100), 100);
+    const usageColor = usagePct > 80 ? 'var(--neon-emerald)' : usagePct > 40 ? 'var(--neon-cyan)' : 'var(--slate-500)';
+    return `
+    <tr>
+      <td>
+        <div class="key-name">${k.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${k.desc||''}</div>
+      </td>
+      <td>
+        <span class="key-val" onclick="copyText('${k.key}')">
+          <span class="md-icon">content_copy</span>${k.key.substring(0,20)}…
+        </span>
+      </td>
+      <td><span class="scope ${k.scope}">${k.scope}</span></td>
+      <td>
+        <div style="font-family:var(--font-mono);font-size:12px;margin-bottom:4px;">${k.reqs.toLocaleString()} req</div>
+        <div class="usage-bar"><div class="usage-fill" style="width:${usagePct}%;background:${usageColor};"></div></div>
+      </td>
+      <td>
+        <div style="font-family:var(--font-mono);font-size:11px;">${k.expires}</div>
+        ${k.expiring ? '<div class="expiry-warn">⚠ expires in 14d</div>' : ''}
+      </td>
+      <td>
+        <div class="status-row">
+          <div class="status-dot ${k.active ? (k.expiring ? 'expiring' : 'active') : 'revoked'}"></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:${k.active ? (k.expiring ? 'var(--amber)' : 'var(--neon-emerald)') : 'var(--warning-crimson)'};">${k.active ? (k.expiring ? 'Expiring' : 'Active') : 'Revoked'}</span>
         </div>
-      `).join('');
-    }
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="rotateKey(${k.id})" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Rotate</button>
+          <button class="btn btn-danger btn-sm" onclick="revokeKey(${k.id})" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Revoke</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 
-    async function generateKey() {
-      const name = document.getElementById('key-name').value;
-      if (!name) {
-        alert('Please enter a key name');
-        return;
-      }
+  // Stats
+  const active   = KEYS.filter(k => k.active).length;
+  const expiring = KEYS.filter(k => k.expiring && k.active).length;
+  const totalReq = KEYS.reduce((s, k) => s + k.reqs, 0);
+  animCount('cnt-total',   KEYS.length);
+  animCount('cnt-active',  active);
+  animCount('cnt-reqs',    totalReq);
+  animCount('cnt-expiring',expiring);
+  if (expiring > 0) document.getElementById('rotation-banner').style.display = 'flex';
+}
 
-      const key = 'sk_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      
-      apiKeys.push({
-        id: Date.now().toString(),
-        name: name,
-        key: key,
-        created: 'Just now',
-        lastUsed: null
-      });
+function animCount(id, target) {
+  const el = document.getElementById(id);
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / 1000, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(e * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  })(performance.now());
+}
 
-      document.getElementById('generated-key').textContent = key;
-      document.getElementById('key-modal').classList.remove('hidden');
-      
-      renderKeys();
-      document.getElementById('key-name').value = '';
-    }
+/* ── Actions ── */
+function revokeKey(id) {
+  const k = KEYS.find(k => k.id === id);
+  if (!k) return;
+  k.active = false; k.expiring = false;
+  render();
+  toast('Key revoked — ' + k.name);
+}
 
-    async function revokeKey(id) {
-      if (confirm('Revoke this API key? This cannot be undone.')) {
-        apiKeys = apiKeys.filter(k => k.id !== id);
-        renderKeys();
-      }
-    }
+function rotateKey(id) {
+  const k = KEYS.find(k => k.id === id);
+  if (!k) return;
+  k.expiring = false;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const rand = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const newKey = 'ck_live_' + rand(16);
+  k.key = newKey;
+  // Compute new expiry
+  const expiry = document.getElementById('m-expiry')?.value || '90';
+  const d = new Date(); d.setDate(d.getDate() + 90);
+  k.expires = d.toISOString().split('T')[0];
+  render();
+  showReveal(newKey);
+  toast('Key rotated — ' + k.name);
+}
 
-    function copyKey() {
-      const key = document.getElementById('generated-key').textContent;
-      navigator.clipboard.writeText(key);
-      alert('API key copied to clipboard!');
-    }
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-    function closeModal() {
-      document.getElementById('key-modal').classList.add('hidden');
-    }
+function generateKey() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { toast('Enter a key name first'); return; }
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const rand = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const fullKey = 'ck_live_' + rand(24);
+  const scope   = document.getElementById('m-scope').value;
+  const expDays = parseInt(document.getElementById('m-expiry').value);
+  const d = new Date();
+  if (expDays > 0) d.setDate(d.getDate() + expDays);
+  const expires = expDays === 0 ? 'Never' : d.toISOString().split('T')[0];
+  const desc = document.getElementById('m-desc').value.trim();
 
-    document.addEventListener('DOMContentLoaded', initAPIKeys);
-  </script>
+  KEYS.unshift({ id: Date.now(), name, key: fullKey.substring(0,20), scope, reqs:0, created: new Date().toISOString().split('T')[0], expires, active:true, desc });
+  closeModal();
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-desc').value = '';
+  render();
+  showReveal(fullKey);
+}
+
+function showReveal(key) {
+  document.getElementById('reveal-val').textContent = key;
+  document.getElementById('reveal-box').style.display = 'block';
+  document.getElementById('reveal-box').scrollIntoView({behavior:'smooth'});
+}
+function closeReveal() {
+  document.getElementById('reveal-box').style.display = 'none';
+  document.getElementById('reveal-val').textContent = '';
+}
+function copyReveal() { copyText(document.getElementById('reveal-val').textContent); }
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  toast('Copied to clipboard');
+}
+
+function exportKeys() {
+  const rows = [['Name','Scope','Created','Expires','Status','Requests(30d)']];
+  KEYS.forEach(k => rows.push([k.name, k.scope, k.created, k.expires, k.active ? 'Active' : 'Revoked', k.reqs]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'api-keys-audit.csv';
+  a.click();
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+render();
+</script>
 </body>
 </html>

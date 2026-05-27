@@ -72,7 +72,18 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 .badge-completed{background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.2);}
 .badge-failed{background:rgba(239,68,68,0.1);color:#991b1b;border:1px solid rgba(239,68,68,0.2);}
 .badge-no-answer{background:rgba(245,158,11,0.1);color:#92400e;border:1px solid rgba(245,158,11,0.2);}
-.badge-in-progress{background:rgba(79,68,226,0.1);color:#4d41df;border:1px solid rgba(79,68,226,0.2);}
+.badge-in_progress,.badge-in-progress{background:rgba(79,68,226,0.1);color:#4d41df;border:1px solid rgba(79,68,226,0.2);}
+
+/* Transcript drawer */
+.drawer-overlay{position:fixed;inset:0;background:rgba(15,10,40,.45);backdrop-filter:blur(4px);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+.drawer-panel{position:fixed;top:0;right:0;bottom:0;width:min(540px,100vw);background:#fff;z-index:201;transform:translateX(100%);transition:transform .3s cubic-bezier(.25,1,.5,1);display:flex;flex-direction:column;overflow:hidden;box-shadow:-8px 0 40px rgba(77,65,223,.15);}
+.drawer-panel.open{transform:translateX(0);}
+
+/* Jurisdiction pill */
+.jur-IN{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;}
+.jur-US{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+.jur-AE{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
 
 .log-row{transition:background 0.15s ease;}
 .log-row:hover{background:rgba(108,99,255,0.03);}
@@ -185,11 +196,12 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 
   <!-- Logs table -->
   <div class="glass-card rounded-2xl overflow-hidden enter enter-4">
-    <div class="grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr_60px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40">
+    <div class="grid grid-cols-[2fr_1.2fr_1fr_0.8fr_0.8fr_0.8fr_60px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40">
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Contact</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Campaign</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Status</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Duration</span>
+      <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Cost</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Time</span>
       <span></span>
     </div>
@@ -212,138 +224,307 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 </main>
 </div>
 
-<!-- Detail modal -->
-<div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" style="background:rgba(15,12,41,0.4);backdrop-filter:blur(4px);">
-  <div id="modal-box" class="glass-card-solid rounded-3xl p-6 w-[460px] max-w-[95vw] shadow-2xl scale-95 transition-transform duration-200">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-[16px] font-bold text-on-surface">Call Detail</h3>
-      <button onclick="closeModal()" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
+<!-- Transcript drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="drawer-panel">
+  <div class="flex items-center justify-between px-6 py-5 border-b border-surface-container-high shrink-0">
+    <div>
+      <h2 class="text-[17px] font-bold text-on-surface" id="drawer-title">Call Detail</h2>
+      <p class="text-[12.5px] text-on-surface-variant mt-0.5" id="drawer-subtitle">—</p>
     </div>
-    <div id="modal-content" class="space-y-3 text-[13.5px] text-on-surface-variant"></div>
+    <button onclick="closeDrawer()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-snappy">
+      <span class="md-icon text-[18px] text-on-surface-variant">close</span>
+    </button>
   </div>
+  <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5" id="drawer-body"></div>
 </div>
 
 <script>
-const PAGE_SIZE=20;
-let allLogs=[],filtered=[],currentPage=1,currentFilter='all';
+const PAGE_SIZE = 20;
+let allLogs = [], filtered = [], currentPage = 1, currentFilter = 'all';
+let campaignMap = {}; // id → name cache
 
-const MOCK_LOGS=[
-  {id:'1',name:'Rajesh Gupta',     phone:'+91 98100 11222',campaign:'Q4 Tax Reminder',  status:'completed',  duration:'3:42',time:'Today 10:15 AM',notes:'Discussed GSTR filing deadline. Client confirmed receipt.'},
-  {id:'2',name:'Anita Menon',      phone:'+91 94455 67890',campaign:'Sales Outreach',   status:'no-answer',  duration:'—',   time:'Today 10:08 AM',notes:'No answer after 3 rings.'},
-  {id:'3',name:'Suresh Patil',     phone:'+91 90011 22334',campaign:'Doc Chaser',       status:'completed',  duration:'1:57',time:'Today 09:52 AM',notes:'Confirmed documents will be submitted by Friday.'},
-  {id:'4',name:'Kavitha Iyer',     phone:'+91 87654 32100',campaign:'Q4 Tax Reminder',  status:'failed',     duration:'—',   time:'Today 09:31 AM',notes:'Call failed — network error.'},
-  {id:'5',name:'Manish Kapoor',    phone:'+91 99887 76655',campaign:'Sales Outreach',   status:'completed',  duration:'5:11',time:'Today 09:20 AM',notes:'Interested in premium plan. Follow up Thursday.'},
-  {id:'6',name:'Deepa Nair',       phone:'+91 80000 55555',campaign:'Doc Chaser',       status:'in-progress',duration:'—',   time:'Now',           notes:'Call in progress.'},
-  {id:'7',name:'Aakash Verma',     phone:'+91 77777 44444',campaign:'Q4 Tax Reminder',  status:'completed',  duration:'2:30',time:'Yesterday 4:45 PM',notes:'Acknowledged deadline. Will upload by EOD.'},
-  {id:'8',name:'Pooja Agarwal',    phone:'+91 95555 33333',campaign:'Sales Outreach',   status:'completed',  duration:'4:05',time:'Yesterday 3:30 PM',notes:'Demo scheduled for next Monday.'},
-  {id:'9',name:'Sanjay Reddy',     phone:'+91 88888 22222',campaign:'Doc Chaser',       status:'no-answer',  duration:'—',   time:'Yesterday 2:10 PM',notes:'Voicemail left.'},
-  {id:'10',name:'Ritu Bhatt',      phone:'+91 96666 11111',campaign:'Q4 Tax Reminder',  status:'completed',  duration:'1:20',time:'Yesterday 11:00 AM',notes:'Confirmed docs already uploaded.'},
-  {id:'11',name:'Vikram Malhotra', phone:'+91 91111 22222',campaign:'Sales Outreach',   status:'failed',     duration:'—',   time:'2 days ago',    notes:'Wrong number.'},
-  {id:'12',name:'Sunita Joshi',    phone:'+91 85555 66666',campaign:'Doc Chaser',       status:'completed',  duration:'6:18',time:'2 days ago',    notes:'Long discussion about missing TDS certificate.'},
-];
-
-function statusBadge(s){
-  const m={completed:'<span class="badge badge-completed"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span>Completed</span>',failed:'<span class="badge badge-failed"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block;"></span>Failed</span>','no-answer':'<span class="badge badge-no-answer"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>No Answer</span>','in-progress':'<span class="badge badge-in-progress"><span style="width:6px;height:6px;border-radius:50%;background:#4d41df;display:inline-block;"></span>In Progress</span>'};
-  return m[s]||m.failed;
+// ── Helpers ──────────────────────────────────────────────────────
+function fmtDuration(secs) {
+  if (!secs) return '—';
+  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
 }
-function animCounter(el,v,d=800,suffix=''){let s=null;const f=t=>{if(!s)s=t;const p=Math.min((t-s)/d,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v)+suffix;if(p<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000)   return 'Just now';
+  if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`;
+  if (diff < 86400000)return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if (diff < 172800000) return 'Yesterday ' + d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+// Normalise DB underscore status to display form
+function normStatus(s) { return (s||'').replace(/_/g,'-'); }
 
-function updateStats(){
-  const comp=allLogs.filter(l=>l.status==='completed').length;
-  const fail=allLogs.filter(l=>l.status==='failed'||l.status==='no-answer').length;
-  animCounter(document.getElementById('stat-total'),    allLogs.length);
-  animCounter(document.getElementById('stat-completed'),comp);
-  animCounter(document.getElementById('stat-failed'),   fail);
-  const rateEl=document.getElementById('stat-rate');
-  const rate=allLogs.length?Math.round(comp/allLogs.length*100):0;
-  rateEl.textContent=rate+'%';
+function statusBadge(rawStatus) {
+  const s = normStatus(rawStatus);
+  const map = {
+    'completed':   `<span class="badge badge-completed"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block"></span>Completed</span>`,
+    'failed':      `<span class="badge badge-failed"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span>Failed</span>`,
+    'no-answer':   `<span class="badge badge-no-answer"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block"></span>No Answer</span>`,
+    'in-progress': `<span class="badge badge-in-progress"><span style="width:6px;height:6px;border-radius:50%;background:#4d41df;display:inline-block"></span>In Progress</span>`,
+  };
+  return map[s] || map['failed'];
 }
 
-function renderPage(){
-  const start=(currentPage-1)*PAGE_SIZE;
-  const page=filtered.slice(start,start+PAGE_SIZE);
-  const list=document.getElementById('logs-list');
-  document.getElementById('log-count').textContent=`${filtered.length} calls`;
-  document.getElementById('page-label').textContent=`${currentPage} / ${Math.max(1,Math.ceil(filtered.length/PAGE_SIZE))}`;
-  if(!page.length){list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">call_end</span><p class="text-[14px] font-medium">No calls found</p></div>`;return;}
-  list.innerHTML=page.map((l,i)=>`
-    <div class="log-row grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr_60px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0 cursor-pointer" onclick="openDetail('${l.id}')" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.035}s both;">
-      <div><div class="text-[13.5px] font-semibold text-on-surface">${l.name}</div><div class="text-[12px] text-on-surface-variant font-mono">${l.phone}</div></div>
-      <div class="hidden md:block text-[13px] text-on-surface-variant truncate pr-2">${l.campaign}</div>
+function jurPill(jur) {
+  if (!jur) return '';
+  const cls = `jur-${jur}`;
+  const flag = {IN:'🇮🇳',US:'🇺🇸',AE:'🇦🇪'}[jur] || '';
+  return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${cls} ml-1">${flag} ${jur}</span>`;
+}
+
+function animCounter(el, v, d=800) {
+  let s = null;
+  const f = t => {
+    if (!s) s = t;
+    const p = Math.min((t - s) / d, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(e * v);
+    if (p < 1) requestAnimationFrame(f);
+  };
+  requestAnimationFrame(f);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+function updateStats() {
+  const comp = allLogs.filter(l => normStatus(l.status) === 'completed').length;
+  const fail = allLogs.filter(l => ['failed','no-answer'].includes(normStatus(l.status))).length;
+  animCounter(document.getElementById('stat-total'),     allLogs.length);
+  animCounter(document.getElementById('stat-completed'), comp);
+  animCounter(document.getElementById('stat-failed'),    fail);
+  const rate = allLogs.length ? Math.round(comp / allLogs.length * 100) : 0;
+  document.getElementById('stat-rate').textContent = rate + '%';
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function renderPage() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+  const list  = document.getElementById('logs-list');
+  document.getElementById('log-count').textContent  = `${filtered.length} calls`;
+  document.getElementById('page-label').textContent = `${currentPage} / ${Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))}`;
+
+  if (!page.length) {
+    list.innerHTML = `
+      <div class="px-6 py-16 flex flex-col items-center gap-3 text-on-surface-variant">
+        <span class="md-icon text-[48px] opacity-30">call_end</span>
+        <p class="text-[14px] font-semibold text-on-surface">No calls yet</p>
+        <p class="text-[13px] opacity-70">Execute a campaign to start seeing calls here.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = page.map((l, i) => {
+    const campName = campaignMap[l.campaign_id] || '—';
+    const cost = l.cost_credits ? `₡${parseFloat(l.cost_credits).toFixed(3)}` : '—';
+    return `
+    <div class="log-row grid grid-cols-[2fr_1.2fr_1fr_0.8fr_0.8fr_0.8fr_60px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0 cursor-pointer"
+         onclick="openDrawer('${l.id}')" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.03}s both;">
+      <div>
+        <div class="flex items-center gap-1">
+          <span class="text-[13.5px] font-semibold text-on-surface">${l.contact_name || '—'}</span>
+          ${jurPill(l.jurisdiction)}
+        </div>
+        <div class="text-[12px] text-on-surface-variant font-mono">${l.contact_phone || '—'}</div>
+      </div>
+      <div class="hidden md:block text-[13px] text-on-surface-variant truncate pr-2">${campName}</div>
       <div>${statusBadge(l.status)}</div>
-      <div class="hidden md:block text-[13px] font-mono text-on-surface-variant">${l.duration}</div>
-      <div class="hidden md:block text-[12.5px] text-on-surface-variant">${l.time}</div>
-      <div class="flex justify-end"><button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">open_in_new</span></button></div>
-    </div>`).join('');
+      <div class="hidden md:block text-[13px] font-mono text-on-surface-variant">${fmtDuration(l.duration_seconds)}</div>
+      <div class="hidden md:block text-[12.5px] font-semibold text-on-surface-variant">${cost}</div>
+      <div class="hidden md:block text-[12.5px] text-on-surface-variant">${fmtTime(l.created_at)}</div>
+      <div class="flex justify-end">
+        <button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy">
+          <span class="md-icon text-[17px] text-on-surface-variant">chevron_right</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function setFilter(f){
-  currentFilter=f;currentPage=1;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('f-'+f).classList.add('active');
+// ── Filter ────────────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f; currentPage = 1;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  // Map filter id → button id (in-progress has hyphen)
+  const btnId = 'f-' + f;
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('active');
   filterLogs();
 }
-function filterLogs(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  filtered=allLogs.filter(l=>{
-    const mF=currentFilter==='all'||l.status===currentFilter;
-    const mQ=!q||l.name.toLowerCase().includes(q)||(l.phone||'').includes(q)||(l.campaign||'').toLowerCase().includes(q);
-    return mF&&mQ;
+function filterLogs() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  filtered = allLogs.filter(l => {
+    const s = normStatus(l.status);
+    const mF = currentFilter === 'all' || s === currentFilter;
+    const campName = (campaignMap[l.campaign_id] || '').toLowerCase();
+    const mQ = !q
+      || (l.contact_name || '').toLowerCase().includes(q)
+      || (l.contact_phone || '').includes(q)
+      || campName.includes(q)
+      || (l.vapi_call_id || '').includes(q);
+    return mF && mQ;
   });
-  currentPage=1;renderPage();
+  currentPage = 1; renderPage();
 }
-function changePage(d){const max=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));currentPage=Math.min(max,Math.max(1,currentPage+d));renderPage();}
+function changePage(d) {
+  const max = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  currentPage = Math.min(max, Math.max(1, currentPage + d));
+  renderPage();
+}
 
-function openDetail(id){
-  const l=allLogs.find(x=>x.id===id);if(!l)return;
-  const badge={completed:'text-emerald-600',failed:'text-red-500','no-answer':'text-amber-600','in-progress':'text-[#6C63FF]'};
-  document.getElementById('modal-content').innerHTML=`
+// ── Transcript drawer ─────────────────────────────────────────────
+function openDrawer(id) {
+  const l = allLogs.find(x => x.id === id); if (!l) return;
+  const campName = campaignMap[l.campaign_id] || '—';
+  const cost = l.cost_credits ? `₡${parseFloat(l.cost_credits).toFixed(4)}` : '—';
+
+  document.getElementById('drawer-title').textContent = l.contact_name || 'Unknown Contact';
+  document.getElementById('drawer-subtitle').textContent = `${l.contact_phone || '—'} · ${fmtTime(l.created_at)}`;
+
+  document.getElementById('drawer-body').innerHTML = `
+    <!-- Status + meta grid -->
     <div class="grid grid-cols-2 gap-3">
-      <div><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-0.5">Contact</p><p class="text-on-surface font-semibold">${l.name}</p><p class="text-[12px]">${l.phone}</p></div>
-      <div><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-0.5">Status</p>${statusBadge(l.status)}</div>
-      <div><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-0.5">Campaign</p><p class="text-on-surface">${l.campaign}</p></div>
-      <div><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-0.5">Duration</p><p class="font-mono text-on-surface">${l.duration}</p></div>
-      <div class="col-span-2"><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-0.5">Time</p><p class="text-on-surface">${l.time}</p></div>
-      <div class="col-span-2 glass-card rounded-xl p-3"><p class="text-[11.5px] font-semibold uppercase tracking-wider text-outline mb-1.5">AI Call Summary</p><p class="leading-relaxed">${l.notes}</p></div>
+      <div class="glass-card rounded-xl p-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Status</p>
+        ${statusBadge(l.status)}
+      </div>
+      <div class="glass-card rounded-xl p-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Jurisdiction</p>
+        <p class="text-[13.5px] font-semibold text-on-surface">${jurPill(l.jurisdiction)} ${l.jurisdiction || '—'}</p>
+      </div>
+      <div class="glass-card rounded-xl p-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Duration</p>
+        <p class="text-[15px] font-bold font-mono text-on-surface">${fmtDuration(l.duration_seconds)}</p>
+      </div>
+      <div class="glass-card rounded-xl p-3">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Cost</p>
+        <p class="text-[15px] font-bold text-on-surface">${cost}</p>
+      </div>
+    </div>
+
+    <!-- Campaign -->
+    <div class="glass-card rounded-xl p-4">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-outline mb-1">Campaign</p>
+      <p class="text-[13.5px] font-semibold text-on-surface">${campName}</p>
+      ${l.vapi_call_id ? `<p class="text-[11px] font-mono text-on-surface-variant mt-1 opacity-60">Vapi ID: ${l.vapi_call_id}</p>` : ''}
+    </div>
+
+    <!-- AI Transcript / Summary -->
+    <div class="glass-card rounded-xl p-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="md-icon text-[18px] text-[#6C63FF]">auto_awesome</span>
+        <p class="text-[12.5px] font-bold text-on-surface">AI Call Summary</p>
+      </div>
+      ${l.summary
+        ? `<p class="text-[13px] text-on-surface leading-relaxed">${l.summary}</p>`
+        : `<p class="text-[13px] text-on-surface-variant italic opacity-60">${
+            normStatus(l.status) === 'in-progress'
+              ? 'Call in progress — transcript will appear here when the call ends.'
+              : 'No summary available. Enable Vapi end-of-call reports to populate this field.'
+          }</p>`
+      }
+    </div>
+
+    <!-- Timestamps -->
+    <div class="glass-card rounded-xl p-4 text-[12.5px] text-on-surface-variant space-y-1.5">
+      <div class="flex justify-between"><span class="font-medium">Started</span><span class="font-mono">${l.created_at ? new Date(l.created_at).toLocaleString() : '—'}</span></div>
+      <div class="flex justify-between"><span class="font-medium">Last updated</span><span class="font-mono">${l.updated_at ? new Date(l.updated_at).toLocaleString() : '—'}</span></div>
     </div>`;
-  const ov=document.getElementById('modal-overlay'),box=document.getElementById('modal-box');
-  ov.style.opacity='1';ov.style.pointerEvents='all';box.style.transform='scale(1)';
-}
-function closeModal(){
-  const ov=document.getElementById('modal-overlay'),box=document.getElementById('modal-box');
-  ov.style.opacity='0';ov.style.pointerEvents='none';box.style.transform='scale(0.95)';
-}
-document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 
-function exportCSV(){
-  const rows=['Name,Phone,Campaign,Status,Duration,Time',...allLogs.map(l=>`${l.name},${l.phone},${l.campaign},${l.status},${l.duration},${l.time}`)];
-  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='call-logs.csv';a.click();
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('drawer-panel').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
-async function loadLogs(){
-  try{
-    const user=window._user;
-    if(!user)return;
-    const{data,error}=await window.supabase.from('call_logs').select('*').eq('organization_id',user.organization_id).order('created_at',{ascending:false}).limit(200);
-    if(!error&&data&&data.length){
-      allLogs=data.map(l=>({id:l.id,name:l.contact_name||'—',phone:l.phone_number||'—',campaign:l.campaign_name||'—',status:l.status||'completed',duration:l.duration_seconds?`${Math.floor(l.duration_seconds/60)}:${String(l.duration_seconds%60).padStart(2,'0')}`:'—',time:new Date(l.created_at).toLocaleString(),notes:l.ai_summary||'No summary available.'}));
-    }else{allLogs=MOCK_LOGS;}
-  }catch{allLogs=MOCK_LOGS;}
-  filtered=[...allLogs];renderPage();updateStats();
-  document.getElementById('last-refresh').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+// ── Export ────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = [
+    'Contact Name,Phone,Campaign,Status,Duration (s),Cost (credits),Jurisdiction,Vapi Call ID,Created At',
+    ...allLogs.map(l => [
+      `"${l.contact_name || ''}"`,
+      l.contact_phone || '',
+      `"${campaignMap[l.campaign_id] || ''}"`,
+      l.status || '',
+      l.duration_seconds || '',
+      l.cost_credits || '',
+      l.jurisdiction || '',
+      l.vapi_call_id || '',
+      l.created_at || '',
+    ].join(','))
+  ];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `call-logs-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
 
-function changeLanguage(){}
+// ── Load data ─────────────────────────────────────────────────────
+async function loadCampaignNames() {
+  try {
+    const { data } = await window.supabase
+      .from('outbound_campaigns')
+      .select('id, campaign_name');
+    if (data) data.forEach(c => { campaignMap[c.id] = c.campaign_name; });
+  } catch { /* non-critical */ }
+}
 
-async function init(){
-  const user=await protectPage();if(!user)return;
-  window._user=user;
-  document.getElementById('avatar-initials').textContent=user.display_name?user.display_name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase():user.email.slice(0,2).toUpperCase();
-  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
+async function loadLogs() {
+  const list = document.getElementById('logs-list');
+  try {
+    const { data, error } = await window.supabase
+      .from('call_logs')
+      .select('id, contact_name, contact_phone, campaign_id, vapi_call_id, status, duration_seconds, cost_credits, jurisdiction, summary, created_at, updated_at')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (error) throw error;
+    allLogs = data || [];
+  } catch (err) {
+    console.error('call-logs load error:', err);
+    allLogs = [];
+    list.innerHTML = `
+      <div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant">
+        <span class="md-icon text-[40px] text-error opacity-60">error</span>
+        <p class="text-[13.5px] font-medium text-error">Failed to load call logs</p>
+        <p class="text-[12px] opacity-70">${err.message}</p>
+        <button onclick="loadLogs()" class="mt-2 px-4 py-2 rounded-xl bg-primary-fixed text-primary font-semibold text-[13px]">Retry</button>
+      </div>`;
+    return;
+  }
+  filtered = [...allLogs];
+  filterLogs();
+  updateStats();
+  document.getElementById('last-refresh').textContent =
+    'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function changeLanguage() {}
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  const user = await protectPage(); if (!user) return;
+  document.getElementById('avatar-initials').textContent =
+    user.display_name
+      ? user.display_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+      : user.email.slice(0, 2).toUpperCase();
+  document.getElementById('user-email-short').textContent = user.email.split('@')[0];
+  await loadCampaignNames();
   await loadLogs();
-  // Auto-refresh every 30s
-  setInterval(loadLogs, 30000);
+  setInterval(loadLogs, 30000); // auto-refresh 30s
 }
 init();
 </script>

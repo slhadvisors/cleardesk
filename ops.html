@@ -733,193 +733,347 @@ body::after {
 </div>
 
 <script>
-// ── State ──
+// ── State ──────────────────────────────────────────────────────────
 let currentMfaAction = null;
-let allOrgs = [];
+let pendingMfaOrgId  = null;   // used by lock-org action
+let allOrgs          = [];
+let allCampaigns     = [];
 
-// ── Mock data ──
-const MOCK_ORGS = [
-  {id:'org-1',firm_name:'Gupta & Sons Accounting',country_code:'IN',billing_status:'active',  credit_balance:420.50, overdraft_allowed:true, overdraft_limit:500,created_at:'2024-01-15'},
-  {id:'org-2',firm_name:'Nair Exports Ltd',        country_code:'IN',billing_status:'active',  credit_balance:85.20,  overdraft_allowed:true, overdraft_limit:500,created_at:'2024-02-03'},
-  {id:'org-3',firm_name:'Kapoor Real Estate',      country_code:'IN',billing_status:'trial',   credit_balance:0,      overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-05-20'},
-  {id:'org-4',firm_name:'Bhatt Consultants LLC',   country_code:'US',billing_status:'active',  credit_balance:1200.00,overdraft_allowed:true, overdraft_limit:500,created_at:'2024-03-11'},
-  {id:'org-5',firm_name:'Al Fardan Group',         country_code:'AE',billing_status:'past_due',credit_balance:-120.00,overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-04-01'},
-  {id:'org-6',firm_name:'Demo Corp (Sandbox)',     country_code:'US',billing_status:'guest_trial',credit_balance:0,   overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-05-27'},
-];
-const MOCK_CAMPAIGNS = [
-  {id:'c1',campaign_name:'Q4 Tax Reminder',    org:'Gupta & Sons',  execution_mode:'automated',status:'processing',  budget_used:38.50, budget_cap:50},
-  {id:'c2',campaign_name:'Sales Outreach Q4',  org:'Nair Exports',  execution_mode:'manual',   status:'processing',  budget_used:12.20, budget_cap:50},
-  {id:'c3',campaign_name:'GSTR-1 Alert',       org:'Bhatt Consult', execution_mode:'automated',status:'scheduled',   budget_used:0,     budget_cap:30},
-  {id:'c4',campaign_name:'Enterprise Demo',    org:'Kapoor RE',     execution_mode:'manual',   status:'draft',       budget_used:0,     budget_cap:20},
-];
-const MOCK_AUDIT = [
-  {ts:'10:42:01', actor:'system',    action:'Circuit breaker fired — Al Fardan Group wallet depleted',type:'warn'},
-  {ts:'10:38:17', actor:'prasad@cd', action:'Credit adjusted +$200 — Bhatt Consultants LLC',         type:'info'},
-  {ts:'10:22:44', actor:'system',    action:'New org registered — Demo Corp (Sandbox)',               type:'info'},
-  {ts:'09:55:03', actor:'system',    action:'Campaign paused — past_due halt — Al Fardan Group',     type:'warn'},
-  {ts:'09:30:11', actor:'prasad@cd', action:'Vault login — TOTP verified',                           type:'ok'},
-  {ts:'Yesterday','actor':'system',  action:'Sandbox purge — 3 guest_trial records destroyed',       type:'info'},
-];
+const db = () => window.supabase;
 
-// ── Section nav ──
+// ── Section nav ────────────────────────────────────────────────────
 const SECTIONS = ['overview','orgs','billing','circuit','campaigns','vault'];
 function switchSection(name, el) {
   event && event.preventDefault();
   SECTIONS.forEach(s => {
-    const el = document.getElementById('section-'+s);
-    if(el) el.style.display = s===name?'block':'none';
+    const sec = document.getElementById('section-'+s);
+    if (sec) sec.style.display = s === name ? 'block' : 'none';
   });
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  // Load data for section
-  if(name==='orgs')      loadOrgs();
-  if(name==='billing')   loadBilling();
-  if(name==='circuit')   loadCircuit();
-  if(name==='campaigns') loadCampaigns();
+  if (el) el.classList.add('active');
+  if (name === 'orgs')      loadOrgs();
+  if (name === 'billing')   loadBilling();
+  if (name === 'circuit')   loadCircuit();
+  if (name === 'campaigns') loadCampaigns();
 }
 
-// ── Stat counters ──
+// ── Stat counter animation ──────────────────────────────────────────
 function animCount(el, v, suffix='') {
-  let s=null;
-  const f=t=>{if(!s)s=t;const p=Math.min((t-s)/900,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v)+suffix;if(p<1)requestAnimationFrame(f);};
+  let s = null;
+  const f = t => {
+    if (!s) s = t;
+    const p = Math.min((t - s) / 900, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(e * v) + suffix;
+    if (p < 1) requestAnimationFrame(f);
+  };
   requestAnimationFrame(f);
 }
 
-// ── Load overview ──
-async function loadOverview() {
-  try {
-    const { data, error } = await window.supabase.from('organizations').select('*');
-    allOrgs = (!error && data && data.length) ? data : MOCK_ORGS;
-  } catch { allOrgs = MOCK_ORGS; }
-
-  const active = allOrgs.filter(o=>o.billing_status==='active').length;
-  animCount(document.getElementById('s-orgs'),      allOrgs.length);
-  animCount(document.getElementById('s-active'),    active);
-  animCount(document.getElementById('s-campaigns'), MOCK_CAMPAIGNS.filter(c=>c.status==='processing').length);
-
-  // Gross margin mock calculation
-  const margin = 61; // mock: (retail - wholesale) / retail * 100
-  document.getElementById('s-margin').textContent = margin+'%';
-  document.getElementById('s-margin').style.color = margin < 35 ? '#f87171' : '#34d399';
-  const fill = document.getElementById('margin-fill');
-  fill.style.background = margin < 35 ? '#dc2626' : margin < 55 ? '#f59e0b' : '#34d399';
-  fill.style.width = margin+'%';
-  document.getElementById('margin-label').textContent = margin+'% '+(margin<35?'⚠ BELOW THRESHOLD':margin<55?'WATCH':'HEALTHY');
-  document.getElementById('margin-label').style.color = margin<35?'#f87171':margin<55?'#fbbf24':'#34d399';
-
-  // Audit log
-  document.getElementById('audit-log').innerHTML = MOCK_AUDIT.map(e=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.03);">
-      <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono);flex-shrink:0;">${e.ts}</span>
-      <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${e.type==='warn'?'#f59e0b':e.type==='ok'?'#34d399':'rgba(255,255,255,0.3)'}"></span>
-      <span style="font-size:12px;color:${e.type==='warn'?'#fbbf24':e.type==='ok'?'#34d399':'var(--text-secondary)'};">[${e.actor}] ${e.action}</span>
-    </div>`).join('');
+// ── Status pill helper ──────────────────────────────────────────────
+function statusPill(s) {
+  const m = { active:'pill-active', trial:'pill-trial', past_due:'pill-blocked', canceled:'pill-blocked', guest_trial:'pill-paused' };
+  return `<span class="pill ${m[s]||'pill-paused'}">${s.replace(/_/g,' ').toUpperCase()}</span>`;
 }
 
-// ── Load orgs ──
+// ── Load overview ───────────────────────────────────────────────────
+async function loadOverview() {
+  // 1. Orgs
+  try {
+    const { data, error } = await db().from('organizations').select('*');
+    allOrgs = (!error && data) ? data : [];
+  } catch { allOrgs = []; }
+
+  // 2. Campaigns
+  try {
+    const { data } = await db().from('outbound_campaigns').select('id, status');
+    allCampaigns = data || [];
+  } catch { allCampaigns = []; }
+
+  // 3. Stats
+  const active      = allOrgs.filter(o => o.billing_status === 'active').length;
+  const processing  = allCampaigns.filter(c => c.status === 'processing').length;
+  animCount(document.getElementById('s-orgs'),      allOrgs.length);
+  animCount(document.getElementById('s-active'),    active);
+  animCount(document.getElementById('s-campaigns'), processing);
+
+  // 4. Gross margin — real calc from call_logs
+  //    cost_credits = retail price (wholesale × 1.4)
+  //    wholesale    = cost_credits / 1.4
+  //    margin       = (retail - wholesale) / retail × 100
+  try {
+    const { data: logs } = await db()
+      .from('call_logs')
+      .select('cost_credits')
+      .eq('status', 'completed');
+
+    const retail    = (logs || []).reduce((sum, l) => sum + parseFloat(l.cost_credits || 0), 0);
+    const wholesale = retail / 1.4;
+    const margin    = retail > 0 ? Math.round(((retail - wholesale) / retail) * 100) : 0;
+
+    document.getElementById('s-margin').textContent = margin + '%';
+    document.getElementById('s-margin').style.color = margin < 35 ? '#f87171' : '#34d399';
+    const fill = document.getElementById('margin-fill');
+    fill.style.background = margin < 35 ? '#dc2626' : margin < 55 ? '#f59e0b' : '#34d399';
+    setTimeout(() => { fill.style.width = margin + '%'; }, 300);
+    document.getElementById('margin-label').textContent =
+      margin + '% ' + (margin < 35 ? '⚠ BELOW THRESHOLD' : margin < 55 ? 'WATCH' : 'HEALTHY');
+    document.getElementById('margin-label').style.color =
+      margin < 35 ? '#f87171' : margin < 55 ? '#fbbf24' : '#34d399';
+  } catch {
+    document.getElementById('s-margin').textContent = '—';
+  }
+
+  // 5. Audit feed — crm_webhook_logs + call_logs (failed/circuit) unified
+  await loadAuditFeed();
+}
+
+// ── Audit feed ──────────────────────────────────────────────────────
+async function loadAuditFeed() {
+  const el = document.getElementById('audit-log');
+  try {
+    // Webhook events
+    const { data: webhooks } = await db()
+      .from('crm_webhook_logs')
+      .select('created_at, event_type, trigger_condition, calls_queued, outcome, organization_id')
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    // Failed / circuit-breaker calls
+    const { data: failCalls } = await db()
+      .from('call_logs')
+      .select('created_at, contact_name, contact_phone, status, organization_id')
+      .in('status', ['failed', 'no-answer'])
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    // Merge + sort
+    const events = [
+      ...(webhooks || []).map(w => ({
+        ts:     w.created_at,
+        actor:  'crm-webhook',
+        action: `[${w.event_type}] trigger="${w.trigger_condition}" → ${w.calls_queued} calls queued (${w.outcome})`,
+        type:   w.outcome === 'dispatched' ? 'ok' : 'warn',
+      })),
+      ...(failCalls || []).map(c => ({
+        ts:     c.created_at,
+        actor:  'system',
+        action: `Call ${c.status.replace('_','-')} — ${c.contact_name || c.contact_phone}`,
+        type:   c.status === 'failed' ? 'warn' : 'info',
+      })),
+    ].sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 40);
+
+    if (!events.length) {
+      el.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">No activity yet.</div>';
+      return;
+    }
+
+    el.innerHTML = events.map(e => {
+      const ts = new Date(e.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dot = e.type === 'warn' ? '#f59e0b' : e.type === 'ok' ? '#34d399' : 'rgba(255,255,255,0.3)';
+      const txt = e.type === 'warn' ? '#fbbf24' : e.type === 'ok' ? '#34d399' : 'var(--text-secondary)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.03);">
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono);flex-shrink:0;">${ts}</span>
+        <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${dot}"></span>
+        <span style="font-size:12px;color:${txt};">[${e.actor}] ${e.action}</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    el.innerHTML = `<div style="padding:20px;color:#f87171;font-size:12px;">Error loading audit feed: ${err.message}</div>`;
+  }
+}
+
+// ── Load orgs ───────────────────────────────────────────────────────
 async function loadOrgs() {
   const tbody = document.getElementById('orgs-tbody');
-  const statusPill = s => {
-    const m = {active:'pill-active',trial:'pill-trial',past_due:'pill-blocked',canceled:'pill-blocked',guest_trial:'pill-paused'};
-    return `<span class="pill ${m[s]||'pill-paused'}">${s.replace('_',' ').toUpperCase()}</span>`;
-  };
-  tbody.innerHTML = allOrgs.map(o=>`
+  tbody.innerHTML = allOrgs.map(o => `
     <tr>
       <td class="bright">${o.firm_name}</td>
       <td>${statusPill(o.billing_status)}</td>
       <td>${o.country_code}</td>
-      <td class="${parseFloat(o.credit_balance)<0?'hot':'bright'}">$${parseFloat(o.credit_balance||0).toFixed(2)}</td>
-      <td>${o.created_at?o.created_at.slice(0,10):'—'}</td>
+      <td class="${parseFloat(o.credit_balance) < 0 ? 'hot' : 'bright'}">$${parseFloat(o.credit_balance || 0).toFixed(2)}</td>
+      <td>${o.created_at ? o.created_at.slice(0, 10) : '—'}</td>
       <td>
-        <button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;letter-spacing:0.05em;" onclick="lockOrg('${o.id}','${o.firm_name}')">LOCK</button>
+        <button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;letter-spacing:0.05em;"
+          onclick="lockOrg('${o.id}','${o.firm_name.replace(/'/g,"\\'")}')">LOCK</button>
       </td>
-    </tr>`).join('');
+    </tr>`).join('') || '<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:20px;">No organisations found.</td></tr>';
 }
 
 function filterOrgs(q) {
-  const rows = document.querySelectorAll('#orgs-tbody tr');
-  rows.forEach(r => { r.style.display = q ? (r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none') : ''; });
+  document.querySelectorAll('#orgs-tbody tr').forEach(r => {
+    r.style.display = q ? (r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none') : '';
+  });
 }
 
-// ── Load billing ──
+// ── Load billing ────────────────────────────────────────────────────
 async function loadBilling() {
-  document.getElementById('billing-tbody').innerHTML = allOrgs.map(o=>{
-    const statusPill = s => {const m={active:'pill-active',trial:'pill-trial',past_due:'pill-blocked',canceled:'pill-blocked',guest_trial:'pill-paused'};return `<span class="pill ${m[s]||'pill-paused'}">${s.replace('_',' ').toUpperCase()}</span>`;};
+  // Fetch accumulated spend per org from call_logs
+  const spendMap = {};
+  try {
+    const { data } = await db()
+      .from('call_logs')
+      .select('organization_id, cost_credits')
+      .eq('status', 'completed');
+    (data || []).forEach(l => {
+      spendMap[l.organization_id] = (spendMap[l.organization_id] || 0) + parseFloat(l.cost_credits || 0);
+    });
+  } catch { /* non-critical */ }
+
+  document.getElementById('billing-tbody').innerHTML = allOrgs.map(o => {
+    const spend = (spendMap[o.id] || 0).toFixed(2);
     return `<tr>
       <td class="bright">${o.firm_name}</td>
       <td>${statusPill(o.billing_status)}</td>
-      <td class="${parseFloat(o.credit_balance)<0?'hot':'bright'}">$${parseFloat(o.credit_balance||0).toFixed(2)}</td>
-      <td>${o.overdraft_allowed?`<span style="color:#34d399;">YES ($${o.overdraft_limit})</span>`:'<span style="color:var(--text-muted);">NO</span>'}</td>
-      <td>$${(o.monthly_budget_cap||100).toFixed(2)}</td>
-      <td>$${(Math.random()*80).toFixed(2)}</td>
+      <td class="${parseFloat(o.credit_balance) < 0 ? 'hot' : 'bright'}">$${parseFloat(o.credit_balance || 0).toFixed(2)}</td>
+      <td>${o.overdraft_allowed
+        ? `<span style="color:#34d399;">YES ($${o.overdraft_limit})</span>`
+        : '<span style="color:var(--text-muted);">NO</span>'}</td>
+      <td>$${parseFloat(o.monthly_budget_cap || 100).toFixed(2)}</td>
+      <td class="${parseFloat(spend) > parseFloat(o.monthly_budget_cap || 100) * 0.8 ? 'hot' : ''}">$${spend}</td>
     </tr>`;
   }).join('');
 }
 
-// ── Load circuit breaker ──
+// ── Load circuit ────────────────────────────────────────────────────
 async function loadCircuit() {
-  const open   = allOrgs.filter(o=>o.billing_status==='past_due'||parseFloat(o.credit_balance||0)<=0).length;
-  const halt   = allOrgs.filter(o=>o.billing_status==='past_due').length;
+  const open   = allOrgs.filter(o => o.billing_status === 'past_due' || parseFloat(o.credit_balance || 0) <= 0).length;
+  const halt   = allOrgs.filter(o => o.billing_status === 'past_due').length;
   const closed = allOrgs.length - open;
   document.getElementById('cb-open').textContent   = open;
   document.getElementById('cb-closed').textContent = closed;
   document.getElementById('cb-halt').textContent   = halt;
 
-  document.getElementById('circuit-tbody').innerHTML = allOrgs.map(o=>{
-    const bal = parseFloat(o.credit_balance||0);
-    const isOpen = o.billing_status==='past_due'||bal<=0;
-    const reason = o.billing_status==='past_due'?'Settlement required':bal<=0?'Wallet depleted':'Authorized';
-    const state = isOpen ? '<span class="pill pill-blocked">OPEN</span>' : '<span class="pill pill-active">CLOSED</span>';
+  document.getElementById('circuit-tbody').innerHTML = allOrgs.map(o => {
+    const bal    = parseFloat(o.credit_balance || 0);
+    const isOpen = o.billing_status === 'past_due' || bal <= 0;
+    const reason = o.billing_status === 'past_due' ? 'Settlement required' : bal <= 0 ? 'Wallet depleted' : 'Authorized';
+    const state  = isOpen
+      ? '<span class="pill pill-blocked">OPEN</span>'
+      : '<span class="pill pill-active">CLOSED</span>';
     return `<tr>
       <td class="bright">${o.firm_name}</td>
       <td>${state}</td>
-      <td class="${bal<0?'hot':'bright'}">$${bal.toFixed(2)}</td>
-      <td style="color:${isOpen?'#fbbf24':'var(--text-muted)'};">${reason}</td>
-      <td>${isOpen?`<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="resetBreaker('${o.id}')">RESET</button>`:'—'}</td>
+      <td class="${bal < 0 ? 'hot' : 'bright'}">$${bal.toFixed(2)}</td>
+      <td style="color:${isOpen ? '#fbbf24' : 'var(--text-muted)'};">${reason}</td>
+      <td>${isOpen
+        ? `<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="resetBreaker('${o.id}','${o.firm_name.replace(/'/g,"\\'")}')">RESET</button>`
+        : '—'}</td>
     </tr>`;
   }).join('');
 }
 
-// ── Load campaigns ──
+// ── Load campaigns ──────────────────────────────────────────────────
 async function loadCampaigns() {
-  document.getElementById('campaigns-tbody').innerHTML = MOCK_CAMPAIGNS.map(c=>{
-    const pct = c.budget_cap?Math.round(c.budget_used/c.budget_cap*100):0;
-    const statusPill = s=>{const m={processing:'pill-active',scheduled:'pill-paused',draft:'pill-trial',paused:'pill-blocked'};return `<span class="pill ${m[s]||'pill-paused'}">${s.toUpperCase()}</span>`;};
+  try {
+    const { data, error } = await db()
+      .from('outbound_campaigns')
+      .select('id, campaign_name, organization_id, execution_mode, status, allocated_budget_cap')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    allCampaigns = data || [];
+  } catch (err) {
+    showToast('Campaigns load error: ' + err.message, 'error');
+    allCampaigns = [];
+  }
+
+  // Build org name lookup
+  const orgMap = {};
+  allOrgs.forEach(o => { orgMap[o.id] = o.firm_name; });
+
+  const cpStatusPill = s => {
+    const m = { processing:'pill-active', scheduled:'pill-paused', draft:'pill-trial', paused:'pill-blocked', completed:'pill-trial' };
+    return `<span class="pill ${m[s] || 'pill-paused'}">${s.toUpperCase()}</span>`;
+  };
+
+  document.getElementById('campaigns-tbody').innerHTML = allCampaigns.map(c => {
+    const budget = parseFloat(c.allocated_budget_cap || 50);
+    // Can't show real spend here without join — show budget cap only
     return `<tr>
       <td class="bright">${c.campaign_name}</td>
-      <td>${c.org}</td>
+      <td style="color:var(--text-secondary);font-size:11.5px;">${orgMap[c.organization_id] || c.organization_id.slice(0,8)+'…'}</td>
       <td>${c.execution_mode.toUpperCase()}</td>
-      <td>${statusPill(c.status)}</td>
+      <td>${cpStatusPill(c.status)}</td>
       <td>
         <div style="display:flex;align-items:center;gap:8px;">
-          <div style="width:80px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct>80?'#dc2626':pct>60?'#f59e0b':'#34d399'};border-radius:2px;"></div></div>
-          <span style="font-size:11px;color:var(--text-muted);">$${c.budget_used}/$${c.budget_cap}</span>
+          <div style="width:80px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:${c.status==='completed'?'100':c.status==='processing'?'55':'10'}%;background:#34d399;border-radius:2px;"></div>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);">cap $${budget.toFixed(0)}</span>
         </div>
       </td>
       <td>
-        ${c.status==='processing'?`<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="pauseCampaign('${c.id}')">PAUSE</button>`:'—'}
+        ${c.status === 'processing'
+          ? `<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="pauseCampaign('${c.id}')">PAUSE</button>`
+          : '—'}
       </td>
     </tr>`;
-  }).join('');
+  }).join('') || '<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:20px;">No campaigns.</td></tr>';
 }
 
-// ── Credit adjustment ──
+// ── Credit adjustment ───────────────────────────────────────────────
 function adjustCredit() {
   const org = document.getElementById('credit-org').value.trim();
   const amt = document.getElementById('credit-amount').value;
-  if(!org||!amt) { showToast('Fill org + amount first.','warning'); return; }
-  document.getElementById('credit-confirm-row').style.display='block';
+  if (!org || !amt) { showToast('Fill org ID + amount first.', 'warn'); return; }
+  document.getElementById('credit-confirm-row').style.display = 'block';
   document.getElementById('credit-confirm-text').focus();
 }
-function executeCreditAdjust() {
-  const txt = document.getElementById('credit-confirm-text').value;
-  if(txt !== 'CONFIRM OVERRIDE') { showToast('Type exact phrase: CONFIRM OVERRIDE','error'); return; }
-  showToast('Credit adjustment queued — requires Supabase Edge Function hook.','ok');
-  document.getElementById('credit-confirm-row').style.display='none';
-  document.getElementById('credit-confirm-text').value='';
+async function executeCreditAdjust() {
+  const txt   = document.getElementById('credit-confirm-text').value;
+  const orgId = document.getElementById('credit-org').value.trim();
+  const amt   = parseFloat(document.getElementById('credit-amount').value);
+  if (txt !== 'CONFIRM OVERRIDE') { showToast('Type exact: CONFIRM OVERRIDE', 'error'); return; }
+  if (!orgId || isNaN(amt))       { showToast('Invalid org ID or amount.', 'error'); return; }
+
+  // Find org to compute new balance
+  const org = allOrgs.find(o => o.id === orgId || o.firm_name.toLowerCase().includes(orgId.toLowerCase()));
+  if (!org) { showToast('Org not found. Use exact UUID.', 'error'); return; }
+
+  const newBalance = parseFloat(org.credit_balance || 0) + amt;
+  const { error } = await db()
+    .from('organizations')
+    .update({ credit_balance: newBalance })
+    .eq('id', org.id);
+
+  if (error) { showToast('DB error: ' + error.message, 'error'); return; }
+
+  showToast(`Credit ${amt >= 0 ? '+' : ''}${amt.toFixed(2)} applied to ${org.firm_name}`, 'ok');
+  document.getElementById('credit-confirm-row').style.display = 'none';
+  document.getElementById('credit-confirm-text').value = '';
+  document.getElementById('credit-org').value = '';
+  document.getElementById('credit-amount').value = '';
+  // Refresh
+  await loadOverview();
 }
 
-// ── Vault modal ──
+// ── Campaign pause (real DB) ────────────────────────────────────────
+async function pauseCampaign(id) {
+  const { error } = await db()
+    .from('outbound_campaigns')
+    .update({ status: 'paused' })
+    .eq('id', id);
+  if (error) { showToast('Pause failed: ' + error.message, 'error'); return; }
+  showToast('Campaign paused.', 'ok');
+  loadCampaigns();
+}
+
+// ── Circuit breaker reset (real DB) ────────────────────────────────
+async function resetBreaker(id, name) {
+  // Clear past_due → active; wallet stays as-is (admin manually topped up)
+  const { error } = await db()
+    .from('organizations')
+    .update({ billing_status: 'active' })
+    .eq('id', id)
+    .eq('billing_status', 'past_due');
+  if (error) { showToast('Reset failed: ' + error.message, 'error'); return; }
+  showToast(`Breaker reset — ${name || id} → active`, 'ok');
+  await loadOverview();
+  loadCircuit();
+}
+
+// ── Vault modal ─────────────────────────────────────────────────────
 const OP_LABELS = {
   'purge-sandbox'  : 'FORCE PURGE — guest_trial records',
   'kill-campaigns' : 'EMERGENCY KILL — all processing campaigns',
@@ -931,73 +1085,130 @@ function openVaultModal(op) {
   document.getElementById('mfa-op-label').textContent = OP_LABELS[op] || op;
   document.getElementById('mfa-confirm-text').value = '';
   document.getElementById('mfa-error').textContent = '';
-  [0,1,2,3,4,5].forEach(i => document.getElementById('t'+i).value='');
+  [0,1,2,3,4,5].forEach(i => document.getElementById('t'+i).value = '');
   document.getElementById('mfa-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('mfa-confirm-text').focus(), 100);
+  setTimeout(() => document.getElementById('mfa-confirm-text').focus(), 100);
 }
 function closeMfaModal() {
   document.getElementById('mfa-modal').classList.remove('open');
   currentMfaAction = null;
+  pendingMfaOrgId  = null;
 }
-
-// TOTP navigation
 function totpNav(idx, el) {
-  el.value = el.value.replace(/\D/,'');
-  if(el.value && idx < 5) document.getElementById('t'+(idx+1)).focus();
-  if(idx===5 && el.value) checkTotpComplete();
+  el.value = el.value.replace(/\D/, '');
+  if (el.value && idx < 5) document.getElementById('t' + (idx + 1)).focus();
+  if (idx === 5 && el.value) checkTotpComplete();
 }
 function totpBack(idx, e) {
-  if(e.key==='Backspace' && !document.getElementById('t'+idx).value && idx>0) {
-    document.getElementById('t'+(idx-1)).focus();
-  }
+  if (e.key === 'Backspace' && !document.getElementById('t' + idx).value && idx > 0)
+    document.getElementById('t' + (idx - 1)).focus();
 }
 function checkTotpComplete() {
-  const code = [0,1,2,3,4,5].map(i=>document.getElementById('t'+i).value).join('');
-  if(code.length===6) executeMfaAction();
+  const code = [0,1,2,3,4,5].map(i => document.getElementById('t'+i).value).join('');
+  if (code.length === 6) executeMfaAction();
 }
 
 async function executeMfaAction() {
-  const txt  = document.getElementById('mfa-confirm-text').value;
-  const code = [0,1,2,3,4,5].map(i=>document.getElementById('t'+i).value).join('');
-  const errEl = document.getElementById('mfa-error');
-  if(txt !== 'CONFIRM OVERRIDE') { errEl.textContent = 'Type: CONFIRM OVERRIDE exactly.'; return; }
-  if(code.length !== 6 || !/^\d{6}$/.test(code)) { errEl.textContent = 'Enter 6-digit TOTP code.'; return; }
+  const txt    = document.getElementById('mfa-confirm-text').value;
+  const code   = [0,1,2,3,4,5].map(i => document.getElementById('t'+i).value).join('');
+  const errEl  = document.getElementById('mfa-error');
 
-  // In production: verify AAL2 via supabase.auth.mfa.verify()
-  // Simulating success here:
-  errEl.textContent = '';
-  closeMfaModal();
-  const opName = OP_LABELS[currentMfaAction] || currentMfaAction;
-  showToast(`Executed: ${opName}`,'ok');
+  if (txt !== 'CONFIRM OVERRIDE') { errEl.textContent = 'Type: CONFIRM OVERRIDE exactly.'; return; }
+  if (!/^\d{6}$/.test(code))      { errEl.textContent = 'Enter 6-digit TOTP code.'; return; }
+
+  // ── Real AAL2 verification ──────────────────────────────────────
+  errEl.textContent = 'Verifying MFA…';
+  try {
+    const { data: aal } = await db().auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+      // Need to complete MFA challenge
+      const { data: factors } = await db().auth.mfa.listFactors();
+      const totp = factors?.totp?.[0];
+      if (!totp) {
+        errEl.textContent = 'No MFA factor enrolled. Enroll TOTP in Account Settings first.';
+        return;
+      }
+      const { data: challenge, error: chErr } = await db().auth.mfa.challenge({ factorId: totp.id });
+      if (chErr) { errEl.textContent = 'MFA challenge error: ' + chErr.message; return; }
+      const { error: verErr } = await db().auth.mfa.verify({
+        factorId:    totp.id,
+        challengeId: challenge.id,
+        code,
+      });
+      if (verErr) { errEl.textContent = 'Invalid TOTP code.'; return; }
+    }
+    // AAL2 confirmed — execute action
+    errEl.textContent = '';
+    await dispatchVaultAction(currentMfaAction);
+    closeMfaModal();
+  } catch (err) {
+    errEl.textContent = 'MFA error: ' + err.message;
+  }
 }
 
-// ── Helpers ──
-function lockOrg(id, name) { openVaultModal('lock-org'); document.getElementById('lock-org-id').value=id; }
-function resetBreaker(id) { showToast('Breaker reset queued for org '+id,'ok'); }
-function pauseCampaign(id) { showToast('Campaign '+id+' paused.','ok'); }
+async function dispatchVaultAction(op) {
+  if (op === 'kill-campaigns') {
+    const { error } = await db()
+      .from('outbound_campaigns')
+      .update({ status: 'paused' })
+      .eq('status', 'processing');
+    if (error) { showToast('Kill failed: ' + error.message, 'error'); return; }
+    showToast('All processing campaigns paused.', 'ok');
+    loadCampaigns();
+  }
+  else if (op === 'lock-org') {
+    const orgId = document.getElementById('lock-org-id').value.trim();
+    if (!orgId) { showToast('No org ID set.', 'error'); return; }
+    const { error } = await db()
+      .from('organizations')
+      .update({ billing_status: 'past_due' })
+      .eq('id', orgId);
+    if (error) { showToast('Lock failed: ' + error.message, 'error'); return; }
+    showToast('Organisation locked (past_due).', 'ok');
+    await loadOverview();
+  }
+  else if (op === 'purge-sandbox') {
+    // Delete guest_trial records older than 2 hours
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+    const { error } = await db()
+      .from('organizations')
+      .delete()
+      .eq('billing_status', 'guest_trial')
+      .lt('created_at', cutoff);
+    if (error) { showToast('Purge failed: ' + error.message, 'error'); return; }
+    showToast('Sandbox guest_trial records purged.', 'ok');
+    await loadOverview();
+  }
+  else {
+    showToast(`Executed: ${OP_LABELS[op] || op}`, 'ok');
+  }
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────
+function lockOrg(id, name) {
+  pendingMfaOrgId = id;
+  document.getElementById('lock-org-id').value = id;
+  openVaultModal('lock-org');
+}
 function confirmPauseAll() { openVaultModal('kill-campaigns'); }
 
 function showToast(msg, type='info') {
-  const toast=document.getElementById('ops-toast'), ic=document.getElementById('toast-icon'), ms=document.getElementById('toast-msg');
-  const colors={ok:'#34d399',warn:'#fbbf24',error:'#f87171',info:'rgba(255,255,255,0.5)'};
-  const icons={ok:'check_circle',warn:'warning',error:'error',info:'info'};
-  ic.textContent=icons[type]; ic.style.color=colors[type]; ms.textContent=msg;
+  const toast = document.getElementById('ops-toast');
+  const ic    = document.getElementById('toast-icon');
+  const ms    = document.getElementById('toast-msg');
+  const colors = { ok:'#34d399', warn:'#fbbf24', error:'#f87171', info:'rgba(255,255,255,0.5)' };
+  const icons  = { ok:'check_circle', warn:'warning', error:'error', info:'info' };
+  ic.textContent = icons[type]; ic.style.color = colors[type]; ms.textContent = msg;
   toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'),3500);
+  setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-// ── Init ──
+// ── Init ─────────────────────────────────────────────────────────────
 async function init() {
-  // Require DEVELOPER role
   const user = await requireMinimumRole('DEVELOPER', '/login.html');
-  if(!user) return;
-  document.getElementById('ops-user-label').textContent = (user.display_name||user.email).toUpperCase();
+  if (!user) return;
+  document.getElementById('ops-user-label').textContent = (user.display_name || user.email).toUpperCase();
   await loadOverview();
-  // animate margin bar after paint
-  setTimeout(()=>{
-    const m=61;
-    document.getElementById('margin-fill').style.width=m+'%';
-  }, 300);
 }
 init();
 </script>

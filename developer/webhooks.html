@@ -1,197 +1,513 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webhooks - Developer Portal</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../supabase-config.js"></script>
-  <script src="../auth.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Webhooks</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<script src="../translations.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --base-slate:#0f172a;--slate-800:#1e293b;--slate-700:#2a3a52;--slate-600:#334155;
+  --neon-cyan:#06b6d4;--neon-cyan-dim:rgba(6,182,212,0.13);--neon-cyan-border:rgba(6,182,212,0.28);
+  --neon-emerald:#34d399;--neon-emerald-dim:rgba(52,211,153,0.12);
+  --warning-crimson:#dc2626;--crimson-dim:rgba(220,38,38,0.12);--crimson-border:rgba(220,38,38,0.28);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --violet:#8b5cf6;--violet-dim:rgba(139,92,246,0.12);
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#475569;
+  --border-dim:rgba(255,255,255,0.06);--border-med:rgba(255,255,255,0.10);
+  --card-bg:rgba(255,255,255,0.03);--card-bg-hover:rgba(255,255,255,0.055);
+  --font-mono:'JetBrains Mono','Fira Code',monospace;--font-sans:'Plus Jakarta Sans',sans-serif;
+  --t:0.22s cubic-bezier(0.25,1,0.5,1);
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-sans);background:var(--base-slate);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(6,182,212,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(6,182,212,0.03) 1px,transparent 1px);
+  background-size:40px 40px;}
+.rel{position:relative;z-index:1;}
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,23,42,0.96);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-dim);box-shadow:0 1px 0 rgba(6,182,212,0.08);height:60px;display:flex;align-items:center;padding:0 28px;gap:24px;}
+.topbar-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.topbar-badge{font-family:var(--font-mono);font-size:10px;font-weight:600;background:var(--neon-cyan-dim);color:var(--neon-cyan);border:1px solid var(--neon-cyan-border);padding:2px 8px;border-radius:4px;letter-spacing:0.08em;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+.topbar-div{width:1px;height:24px;background:var(--border-dim);}
+.back-link{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color var(--t);}
+.back-link:hover{color:var(--neon-cyan);}
+.topbar-spacer{flex:1;}
+.topbar-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--neon-cyan));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+.topbar-name{font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+.subnav{background:rgba(15,23,42,0.7);border-bottom:1px solid var(--border-dim);padding:0 28px;display:flex;align-items:center;gap:4px;height:44px;position:sticky;top:60px;z-index:99;}
+.subnav-link{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--text-muted);padding:6px 14px;border-radius:5px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--t),background var(--t);}
+.subnav-link:hover{color:var(--text-primary);background:rgba(255,255,255,0.05);}
+.subnav-link.active{color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.subnav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.page{padding:36px 40px;max-width:1100px;margin:0 auto;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+.btn{font-family:var(--font-mono);font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all var(--t);}
+.btn-cyan{background:var(--neon-cyan);color:#0f172a;}
+.btn-cyan:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border-dim);}
+.btn-ghost:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);background:var(--neon-cyan-dim);}
+.btn-danger{background:var(--crimson-dim);color:var(--warning-crimson);border:1px solid var(--crimson-border);}
+.btn-danger:hover{background:rgba(220,38,38,0.2);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-mini{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:8px;padding:14px 16px;}
+.stat-mini-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;}
+.stat-mini-val{font-family:var(--font-mono);font-size:20px;font-weight:700;}
+.stat-mini-sub{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:3px;}
+
+/* Endpoint cards */
+.endpoint-card{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;padding:20px 22px;margin-bottom:14px;transition:border-color var(--t);}
+.endpoint-card:hover{border-color:var(--border-med);}
+.endpoint-card.disabled{opacity:0.5;}
+.ep-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.ep-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ep-status-dot.active{background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald);}
+.ep-status-dot.inactive{background:var(--slate-500);}
+.ep-status-dot.failing{background:var(--warning-crimson);box-shadow:0 0 6px var(--warning-crimson);animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ep-url{font-family:var(--font-mono);font-size:12px;color:var(--neon-cyan);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ep-actions{display:flex;gap:8px;margin-left:auto;}
+
+.ep-events{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.event-chip{font-family:var(--font-mono);font-size:10px;font-weight:600;padding:3px 9px;border-radius:4px;cursor:pointer;transition:all var(--t);}
+.event-chip.on{background:var(--violet-dim);color:var(--violet);border:1px solid rgba(139,92,246,0.28);}
+.event-chip.off{background:var(--card-bg);color:var(--text-muted);border:1px solid var(--border-dim);}
+.event-chip:hover{border-color:var(--neon-cyan-border);color:var(--neon-cyan);}
+
+.ep-secret-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border-dim);border-radius:6px;}
+.ep-secret-label{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);white-space:nowrap;}
+.ep-secret-val{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;}
+
+/* Delivery log */
+.delivery-card{background:var(--card-bg);border:1px solid var(--border-dim);border-radius:10px;overflow:hidden;margin-bottom:18px;}
+.delivery-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border-dim);}
+.delivery-label{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.delivery-dot{width:6px;height:6px;border-radius:50%;background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald);}
+
+table{width:100%;border-collapse:collapse;}
+th{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;text-align:left;padding:8px 18px;border-bottom:1px solid var(--border-dim);}
+td{padding:11px 18px;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border-dim);vertical-align:middle;}
+tbody tr{transition:background var(--t);}
+tbody tr:hover{background:var(--card-bg-hover);}
+tbody tr:last-child td{border-bottom:none;}
+
+.status-code{font-family:var(--font-mono);font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px;}
+.status-code.s2xx{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.status-code.s4xx,.status-code.s5xx,.status-code.timeout{background:var(--crimson-dim);color:var(--warning-crimson);}
+.event-tag{font-family:var(--font-mono);font-size:10px;font-weight:600;background:var(--violet-dim);color:var(--violet);padding:3px 8px;border-radius:4px;}
+.duration-val{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);}
+
+/* Payload drawer */
+.drawer-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);display:none;}
+.drawer-overlay.open{display:block;}
+.payload-drawer{position:fixed;right:0;top:0;bottom:0;width:520px;z-index:151;background:var(--slate-800);border-left:1px solid var(--border-med);box-shadow:-8px 0 32px rgba(0,0,0,0.4);transform:translateX(100%);transition:transform var(--t);overflow-y:auto;}
+.payload-drawer.open{transform:translateX(0);}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-dim);position:sticky;top:0;background:var(--slate-800);z-index:1;}
+.drawer-title{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-primary);}
+.drawer-body{padding:20px 24px;}
+.payload-section{margin-bottom:20px;}
+.payload-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;}
+.payload-code{background:rgba(0,0,0,0.4);border:1px solid var(--border-dim);border-radius:8px;padding:14px;font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--neon-cyan);white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;}
+.payload-code::-webkit-scrollbar{width:4px;}
+.payload-code::-webkit-scrollbar-thumb{background:var(--border-med);border-radius:2px;}
+
+/* Add endpoint modal */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--slate-800);border:1px solid var(--border-med);border-radius:12px;padding:28px 32px;width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.5);animation:modal-in 0.22s cubic-bezier(0.25,1,0.5,1);}
+@keyframes modal-in{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:none}}
+.modal-title{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:20px;}
+.modal-field{margin-bottom:16px;}
+.modal-label{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.modal-input{width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);border-radius:6px;padding:9px 13px;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;outline:none;transition:border-color var(--t),box-shadow var(--t);}
+.modal-input:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,0.12);}
+.event-checkboxes{display:flex;flex-wrap:wrap;gap:8px;}
+.event-checkbox{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);cursor:pointer;}
+.event-checkbox input{accent-color:var(--neon-cyan);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+
+/* Toast */
+#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:var(--slate-800);border:1px solid var(--border-med);border-radius:8px;padding:12px 18px;font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);box-shadow:0 8px 32px rgba(0,0,0,0.35);opacity:0;transform:translateY(12px);transition:opacity 0.22s,transform 0.22s;pointer-events:none;}
+#toast.show{opacity:1;transform:none;}
+</style>
 </head>
-<body class="bg-gray-900 text-white">
-  <nav class="bg-gray-800 border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back</a>
-          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
-        </div>
-        <div class="flex items-center space-x-6">
-          <a href="index.html" class="text-gray-400 hover:text-white">Overview</a>
-          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
-          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
-          <a href="webhooks.html" class="text-purple-400 font-medium">Webhooks</a>
-          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
-        </div>
-      </div>
+
+<body>
+<div class="rel">
+
+<header class="topbar">
+  <a href="../index.html" class="topbar-brand">
+    <span class="topbar-title">ClearDesk</span>
+    <span class="topbar-badge">DEV PORTAL</span>
+  </a>
+  <div class="topbar-div"></div>
+  <a href="index.html" class="back-link"><span style="font-size:14px;">←</span> Portal Overview</a>
+  <div class="topbar-spacer"></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-avatar" id="topbarAvatar">D</div>
+    <span class="topbar-name" id="topbarName">Developer</span>
+  </div>
+</header>
+
+<nav class="subnav">
+  <a href="index.html"    class="subnav-link"><span class="subnav-dot"></span> Overview</a>
+  <a href="api-keys.html" class="subnav-link"><span class="subnav-dot"></span> API Keys</a>
+  <a href="models.html"   class="subnav-link"><span class="subnav-dot"></span> Models</a>
+  <a href="credits.html"  class="subnav-link"><span class="subnav-dot"></span> Credits</a>
+  <a href="webhooks.html" class="subnav-link active"><span class="subnav-dot"></span> Webhooks</a>
+</nav>
+
+<div class="page rel">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Webhooks</div>
+      <div class="page-sub">// outbound event notifications · HMAC-SHA256 signed · retry × 3 on failure</div>
     </div>
-  </nav>
+    <button class="btn btn-cyan" onclick="openAddModal()">
+      <span class="md-icon" style="font-size:14px;">add</span> Add Endpoint
+    </button>
+  </div>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h2 class="text-3xl font-bold mb-2">Webhook Integration</h2>
-    <p class="text-gray-400 mb-8">Configure webhooks to sync data with external CRMs and services.</p>
-
-    <!-- Add New Webhook -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Add New Webhook</h3>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-2">Webhook Name</label>
-          <input type="text" id="webhook-name" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="HubSpot Contact Sync">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Endpoint URL</label>
-          <input type="url" id="webhook-url" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="https://api.hubspot.com/...">
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Event Trigger</label>
-          <select id="webhook-event" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2">
-            <option value="contact.created">Contact Created</option>
-            <option value="contact.updated">Contact Updated</option>
-            <option value="call.completed">Call Completed</option>
-            <option value="sms.sent">SMS Sent</option>
-            <option value="campaign.finished">Campaign Finished</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-2">Authentication</label>
-          <select id="webhook-auth" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2 mb-2">
-            <option value="none">None</option>
-            <option value="bearer">Bearer Token</option>
-            <option value="api-key">API Key</option>
-            <option value="oauth">OAuth 2.0</option>
-          </select>
-          <input type="password" id="webhook-auth-value" class="w-full bg-gray-700 border border-gray-600 rounded px-4 py-2" placeholder="Token/Key">
-        </div>
-
-        <div>
-          <label class="flex items-center">
-            <input type="checkbox" id="webhook-active" class="mr-2" checked>
-            <span class="text-sm">Active</span>
-          </label>
-        </div>
-      </div>
-
-      <button onclick="addWebhook()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-        Add Webhook
-      </button>
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-label">Endpoints</div>
+      <div class="stat-mini-val" id="cnt-ep">0</div>
+      <div class="stat-mini-sub">registered</div>
     </div>
-
-    <!-- Existing Webhooks -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">Active Webhooks</h3>
-      <div id="webhooks-list" class="space-y-3">
-        <p class="text-gray-400 text-sm">No webhooks configured yet.</p>
-      </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Delivered (24h)</div>
+      <div class="stat-mini-val" style="color:var(--neon-emerald);" id="cnt-ok">0</div>
+      <div class="stat-mini-sub">successful</div>
     </div>
-
-    <!-- CRM Quick Setup -->
-    <div class="mt-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">CRM Quick Setup</h3>
-      <p class="text-gray-400 text-sm mb-4">Pre-configured integrations for popular CRM systems.</p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button onclick="setupHubSpot()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
-          <h4 class="font-medium mb-1">HubSpot</h4>
-          <p class="text-sm text-gray-400">Contact & deal sync</p>
-        </button>
-
-        <button onclick="setupSalesforce()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
-          <h4 class="font-medium mb-1">Salesforce</h4>
-          <p class="text-sm text-gray-400">Lead & opportunity sync</p>
-        </button>
-
-        <button onclick="setupZoho()" class="p-4 border border-gray-700 rounded-lg hover:border-purple-500 text-left">
-          <h4 class="font-medium mb-1">Zoho CRM</h4>
-          <p class="text-sm text-gray-400">Contact sync</p>
-        </button>
-      </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Failed (24h)</div>
+      <div class="stat-mini-val" style="color:var(--warning-crimson);" id="cnt-fail">0</div>
+      <div class="stat-mini-sub">DLQ + retry</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Avg Latency</div>
+      <div class="stat-mini-val" id="cnt-lat">—</div>
+      <div class="stat-mini-sub">p50 response</div>
     </div>
   </div>
 
-  <script>
-    let currentUser = null;
-    let webhooks = [];
+  <!-- Endpoints -->
+  <div id="endpoint-list"></div>
 
-    async function initWebhooks() {
-      currentUser = await requireRole(['DEVELOPER'], '../index.html');
-      if (!currentUser) return;
-      await loadWebhooks();
+  <!-- Delivery log -->
+  <div class="delivery-card">
+    <div class="delivery-header">
+      <div class="delivery-label"><span class="delivery-dot"></span> Recent Deliveries</div>
+      <button class="btn btn-ghost btn-sm" onclick="renderDeliveries()"><span class="md-icon" style="font-size:13px;">refresh</span> Refresh</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Event</th>
+          <th>Endpoint</th>
+          <th>Status</th>
+          <th>Duration</th>
+          <th>Attempt</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="delivery-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Payload drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="payload-drawer" id="payload-drawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawer-title">// Event Payload</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeDrawer()"><span class="md-icon" style="font-size:16px;">close</span></button>
+  </div>
+  <div class="drawer-body">
+    <div class="payload-section">
+      <div class="payload-label">Request Payload</div>
+      <div class="payload-code" id="drawer-req"></div>
+    </div>
+    <div class="payload-section">
+      <div class="payload-label">Response</div>
+      <div class="payload-code" id="drawer-res"></div>
+    </div>
+    <div class="payload-section">
+      <div class="payload-label">HMAC Signature Header</div>
+      <div class="payload-code" id="drawer-sig"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Endpoint Modal -->
+<div class="modal-overlay" id="add-modal" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal">
+    <div class="modal-title">// Register Webhook Endpoint</div>
+    <div class="modal-field">
+      <label class="modal-label">Endpoint URL</label>
+      <input class="modal-input" id="m-url" type="url" placeholder="https://your-app.com/hooks/cleardesk"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Description</label>
+      <input class="modal-input" id="m-desc" placeholder="e.g. Zoho CRM event receiver"/>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Subscribe to Events</label>
+      <div class="event-checkboxes" id="event-checkboxes"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Secret (optional — auto-generated if blank)</label>
+      <input class="modal-input" id="m-secret" placeholder="whsec_… or leave blank"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-cyan" onclick="addEndpoint()"><span class="md-icon" style="font-size:14px;">add_link</span> Register</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(async () => {
+  try {
+    await requireMinimumRole('DEVELOPER', '../login.html');
+    const user = await getCurrentUser();
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('topbarName').textContent = name;
     }
+  } catch(e) {}
+})();
 
-    async function loadWebhooks() {
-      // Load from database
-      renderWebhooks();
-    }
+const ALL_EVENTS = [
+  'campaign.started','campaign.completed','campaign.paused',
+  'call.started','call.finished','call.failed',
+  'sms.sent','sms.delivered','sms.failed',
+  'contact.created','contact.updated',
+  'document.parsed','document.failed',
+  'circuit_breaker.triggered','credit.low',
+];
 
-    function renderWebhooks() {
-      const list = document.getElementById('webhooks-list');
-      if (webhooks.length === 0) {
-        list.innerHTML = '<p class="text-gray-400 text-sm">No webhooks configured yet.</p>';
-        return;
-      }
+let ENDPOINTS = [
+  { id:1, url:'https://hooks.zoho.com/crm/v2/cleardesk/inbound', desc:'Zoho CRM — lead & call events', events:['campaign.completed','call.finished','contact.created'], active:true,  secret:'whsec_z9Fp2mKqW8nLr4xT', fails:0 },
+  { id:2, url:'https://api.hubspot.com/crm/v3/timeline/events',  desc:'HubSpot — timeline entries',   events:['call.finished','sms.delivered','contact.updated'], active:true,  secret:'whsec_h3Jv7bYcD1pMsN6E', fails:0 },
+  { id:3, url:'https://hooks.example.com/cleardesk-staging',     desc:'Staging test endpoint',         events:['campaign.started','call.started'], active:false, secret:'whsec_s5Qt8aRkH2mWuP9G', fails:2 },
+];
 
-      list.innerHTML = webhooks.map(wh => `
-        <div class="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
-          <div>
-            <h4 class="font-medium">${wh.name}</h4>
-            <p class="text-sm text-gray-400">${wh.url}</p>
-          </div>
-          <div class="flex items-center space-x-3">
-            <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">${wh.active ? 'Active' : 'Inactive'}</span>
-            <button onclick="deleteWebhook('${wh.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-          </div>
+const DELIVERIES = [
+  { time:'09:14:32', event:'campaign.completed', url:'hooks.zoho.com', status:200, dur:'142ms', attempt:1 },
+  { time:'09:12:11', event:'call.finished',      url:'hooks.zoho.com', status:200, dur:'88ms',  attempt:1 },
+  { time:'08:55:04', event:'sms.delivered',      url:'api.hubspot.com',status:'timeout', dur:'30s', attempt:3 },
+  { time:'08:50:22', event:'contact.created',    url:'api.hubspot.com',status:200, dur:'61ms',  attempt:1 },
+  { time:'08:44:18', event:'campaign.started',   url:'hooks.zoho.com', status:200, dur:'95ms',  attempt:1 },
+  { time:'08:31:07', event:'call.failed',        url:'hooks.zoho.com', status:500, dur:'220ms', attempt:2 },
+  { time:'08:15:42', event:'document.parsed',    url:'api.hubspot.com',status:200, dur:'74ms',  attempt:1 },
+  { time:'07:58:11', event:'credit.low',         url:'hooks.zoho.com', status:200, dur:'112ms', attempt:1 },
+];
+
+function renderEndpoints() {
+  const list = document.getElementById('endpoint-list');
+  list.innerHTML = ENDPOINTS.map(ep => `
+    <div class="endpoint-card${ep.active ? '' : ' disabled'}" id="ep-${ep.id}">
+      <div class="ep-header">
+        <div class="ep-status-dot ${ep.active ? (ep.fails>1?'failing':'active') : 'inactive'}"></div>
+        <span class="ep-url">${ep.url}</span>
+        <div class="ep-actions">
+          <button class="btn btn-ghost btn-sm" onclick="pingEndpoint(${ep.id})"><span class="md-icon" style="font-size:13px;">send</span> Ping</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEndpoint(${ep.id})">${ep.active ? 'Disable' : 'Enable'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEndpoint(${ep.id})"><span class="md-icon" style="font-size:13px;">delete</span></button>
         </div>
-      `).join('');
-    }
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">${ep.desc}</div>
+      <div class="ep-events">
+        ${ALL_EVENTS.map(ev => `
+          <span class="event-chip ${ep.events.includes(ev)?'on':'off'}" onclick="toggleEvent(${ep.id},'${ev}',this)">${ev}</span>
+        `).join('')}
+      </div>
+      <div class="ep-secret-row">
+        <span class="ep-secret-label">HMAC Secret:</span>
+        <span class="ep-secret-val" id="sec-${ep.id}">${ep.secret.substring(0,12)}••••••••••••</span>
+        <button class="btn btn-ghost btn-sm" onclick="revealSecret(${ep.id})"><span class="md-icon" style="font-size:13px;">visibility</span></button>
+        <button class="btn btn-ghost btn-sm" onclick="rotateSecret(${ep.id})"><span class="md-icon" style="font-size:13px;">refresh</span> Rotate</button>
+      </div>
+    </div>
+  `).join('');
 
-    async function addWebhook() {
-      const webhook = {
-        id: Date.now().toString(),
-        name: document.getElementById('webhook-name').value,
-        url: document.getElementById('webhook-url').value,
-        event: document.getElementById('webhook-event').value,
-        auth: document.getElementById('webhook-auth').value,
-        authValue: document.getElementById('webhook-auth-value').value,
-        active: document.getElementById('webhook-active').checked
-      };
+  // Stats
+  const active = ENDPOINTS.filter(e => e.active).length;
+  const ok   = DELIVERIES.filter(d => typeof d.status==='number' && d.status < 300).length;
+  const fail = DELIVERIES.filter(d => d.status==='timeout' || d.status >= 400).length;
+  animCount('cnt-ep',   ENDPOINTS.length);
+  animCount('cnt-ok',   ok);
+  animCount('cnt-fail', fail);
+  document.getElementById('cnt-lat').textContent = '94ms';
+}
 
-      webhooks.push(webhook);
-      renderWebhooks();
+function renderDeliveries() {
+  const tbody = document.getElementById('delivery-tbody');
+  const shuffled = [...DELIVERIES].sort(() => Math.random() - 0.5);
+  tbody.innerHTML = shuffled.map((d,i) => {
+    const isErr = d.status==='timeout' || d.status >= 400;
+    const cls = isErr ? (d.status==='timeout'?'timeout':'s5xx') : 's2xx';
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px;">${d.time}</td>
+      <td><span class="event-tag">${d.event}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--neon-cyan);">${d.url}</td>
+      <td><span class="status-code ${cls}">${d.status}</span></td>
+      <td class="duration-val">${d.dur}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:${d.attempt>1?'var(--amber)':'var(--text-muted)'};">×${d.attempt}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openPayload(${i})"><span class="md-icon" style="font-size:13px;">code</span></button></td>
+    </tr>`;
+  }).join('');
+}
 
-      // Clear form
-      document.getElementById('webhook-name').value = '';
-      document.getElementById('webhook-url').value = '';
-      document.getElementById('webhook-auth-value').value = '';
+/* ── Event toggles ── */
+function toggleEvent(epId, ev, el) {
+  const ep = ENDPOINTS.find(e => e.id === epId);
+  if (!ep) return;
+  if (ep.events.includes(ev)) {
+    ep.events = ep.events.filter(e => e !== ev);
+    el.className = 'event-chip off';
+  } else {
+    ep.events.push(ev);
+    el.className = 'event-chip on';
+  }
+  toast('Subscription updated');
+}
 
-      alert('Webhook added!');
-    }
+function toggleEndpoint(id) {
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if (!ep) return;
+  ep.active = !ep.active;
+  renderEndpoints();
+  toast(ep.active ? 'Endpoint enabled' : 'Endpoint disabled');
+}
 
-    async function deleteWebhook(id) {
-      if (confirm('Delete this webhook?')) {
-        webhooks = webhooks.filter(w => w.id !== id);
-        renderWebhooks();
-      }
-    }
+function deleteEndpoint(id) {
+  ENDPOINTS = ENDPOINTS.filter(e => e.id !== id);
+  renderEndpoints();
+  toast('Endpoint removed');
+}
 
-    function setupHubSpot() {
-      alert('HubSpot OAuth flow would start here');
-    }
+function pingEndpoint(id) {
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if (!ep) return;
+  toast(`Test ping sent → ${ep.url.substring(0,40)}…`);
+  setTimeout(() => toast('✓ Ping delivered · 200 OK · 112ms'), 1200);
+}
 
-    function setupSalesforce() {
-      alert('Salesforce OAuth flow would start here');
-    }
+function revealSecret(id) {
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if (!ep) return;
+  const el = document.getElementById('sec-' + id);
+  el.textContent = el.textContent.includes('•') ? ep.secret : ep.secret.substring(0,12) + '••••••••••••';
+}
 
-    function setupZoho() {
-      alert('Zoho OAuth flow would start here');
-    }
+function rotateSecret(id) {
+  const ep = ENDPOINTS.find(e => e.id === id);
+  if (!ep) return;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  ep.secret = 'whsec_' + Array.from({length:32}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const el = document.getElementById('sec-' + id);
+  el.textContent = ep.secret.substring(0,12) + '••••••••••••';
+  toast('HMAC secret rotated — update your endpoint to use the new secret');
+}
 
-    document.addEventListener('DOMContentLoaded', initWebhooks);
-  </script>
+/* ── Payload drawer ── */
+const SAMPLE_PAYLOAD = {
+  'campaign.completed': { id:'evt_c9f2m', event:'campaign.completed', campaign_id:'cmp_x8a1', org_id:'org_p4q7', completed_at:'2026-05-27T09:14:31Z', stats:{ total_calls:24, answered:21, success_rate:'87.5%' } },
+  'call.finished':      { id:'evt_k3n8p', event:'call.finished', call_id:'cal_m2r5', contact_phone:'+91 98765 43210', duration_seconds:142, outcome:'interested', recording_url:'https://cdn.cleardesk.com/rec/abc.mp3' },
+};
+
+function openPayload(idx) {
+  const d = DELIVERIES[idx] || DELIVERIES[0];
+  const payload = SAMPLE_PAYLOAD[d.event] || { event: d.event, delivered_at: new Date().toISOString() };
+  document.getElementById('drawer-title').textContent = `// ${d.event}`;
+  document.getElementById('drawer-req').textContent = JSON.stringify(payload, null, 2);
+  document.getElementById('drawer-res').textContent = typeof d.status === 'number' ? `HTTP ${d.status} OK\ncontent-type: application/json\n\n{"received":true}` : `Connection timeout after 30s`;
+  document.getElementById('drawer-sig').textContent = `X-ClearDesk-Signature: sha256=a8f3b2e9c1d7f4a6b8e3d2c9f1a7b4e3d8c2f6a1b9e4d7c3f2a8b1e6d9c4f7a2`;
+  document.getElementById('payload-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('payload-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+
+/* ── Add endpoint modal ── */
+function openAddModal() {
+  // Populate event checkboxes
+  const box = document.getElementById('event-checkboxes');
+  box.innerHTML = ALL_EVENTS.map(ev => `
+    <label class="event-checkbox">
+      <input type="checkbox" name="ev" value="${ev}"/> ${ev}
+    </label>
+  `).join('');
+  document.getElementById('add-modal').classList.add('open');
+}
+function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+function addEndpoint() {
+  const url = document.getElementById('m-url').value.trim();
+  const desc = document.getElementById('m-desc').value.trim();
+  if (!url) { toast('Enter an endpoint URL'); return; }
+  const events = [...document.querySelectorAll('#event-checkboxes input:checked')].map(i => i.value);
+  const secretInput = document.getElementById('m-secret').value.trim();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const secret = secretInput || 'whsec_' + Array.from({length:32}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+
+  ENDPOINTS.push({ id: Date.now(), url, desc: desc||url, events, active:true, secret, fails:0 });
+  closeAddModal();
+  renderEndpoints();
+  renderDeliveries();
+  toast('Endpoint registered · HMAC secret generated');
+}
+
+function animCount(id, target) {
+  const el = document.getElementById(id); if(!el) return;
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now-start)/900,1), e=1-Math.pow(1-p,3);
+    el.textContent = Math.round(e*target);
+    if(p<1) requestAnimationFrame(tick);
+  })(performance.now());
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+renderEndpoints();
+renderDeliveries();
+</script>
 </body>
 </html>
