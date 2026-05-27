@@ -1,322 +1,662 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Sign In</title>
 
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>ClearDesk - Staff Login</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      "on-background": "#1b1b24",
-                      "inverse-on-surface": "#f3effc",
-                      "tertiary-fixed-dim": "#ffb785",
-                      "on-secondary-fixed-variant": "#004492",
-                      "surface-tint": "#4f44e2",
-                      "secondary-container": "#5694fe",
-                      "surface-dim": "#dcd8e5",
-                      "on-primary-container": "#fffbff",
-                      "tertiary-fixed": "#ffdcc6",
-                      "surface-variant": "#e4e1ee",
-                      "on-error": "#ffffff",
-                      "on-primary-fixed-variant": "#3622ca",
-                      "primary-fixed-dim": "#c4c0ff",
-                      "on-tertiary-container": "#fffbff",
-                      "surface-container-high": "#eae6f3",
-                      "surface-container-low": "#f6f2ff",
-                      "on-secondary-fixed": "#001a40",
-                      "on-tertiary-fixed": "#301400",
-                      "secondary": "#005bbf",
-                      "tertiary": "#914800",
-                      "on-primary-fixed": "#100069",
-                      "on-primary": "#ffffff",
-                      "tertiary-container": "#b65c00",
-                      "on-error-container": "#93000a",
-                      "on-secondary": "#ffffff",
-                      "primary": "#4d41df",
-                      "secondary-fixed-dim": "#acc7ff",
-                      "outline": "#777587",
-                      "surface-bright": "#fcf8ff",
-                      "surface-container-highest": "#e4e1ee",
-                      "background": "#fcf8ff",
-                      "primary-fixed": "#e3dfff",
-                      "on-secondary-container": "#002d64",
-                      "inverse-surface": "#302f39",
-                      "on-tertiary": "#ffffff",
-                      "error": "#ba1a1a",
-                      "secondary-fixed": "#d7e2ff",
-                      "surface-container": "#f0ecf9",
-                      "on-surface-variant": "#464555",
-                      "surface-container-lowest": "#ffffff",
-                      "on-surface": "#1b1b24",
-                      "error-container": "#ffdad6",
-                      "on-tertiary-fixed-variant": "#713700",
-                      "surface": "#fcf8ff",
-                      "inverse-primary": "#c4c0ff",
-                      "primary-container": "#675df9",
-                      "outline-variant": "#c7c4d8"
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {
-                      "unit": "8px",
-                      "container-max": "1280px",
-                      "margin-mobile": "16px",
-                      "gutter": "24px",
-                      "margin-desktop": "48px"
-              },
-              "fontFamily": {
-                      "headline-md": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "body-md": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "label-sm": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "headline-lg-mobile": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "headline-lg": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "body-lg": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "label-xs": [
-                              "Plus Jakarta Sans"
-                      ],
-                      "display-lg": [
-                              "Plus Jakarta Sans"
-                      ]
-              },
-              "fontSize": {
-                      "headline-md": [
-                              "24px",
-                              {
-                                      "lineHeight": "1.3",
-                                      "fontWeight": "600"
-                              }
-                      ],
-                      "body-md": [
-                              "16px",
-                              {
-                                      "lineHeight": "1.6",
-                                      "fontWeight": "400"
-                              }
-                      ],
-                      "label-sm": [
-                              "14px",
-                              {
-                                      "lineHeight": "1.4",
-                                      "letterSpacing": "0.01em",
-                                      "fontWeight": "600"
-                              }
-                      ],
-                      "headline-lg-mobile": [
-                              "28px",
-                              {
-                                      "lineHeight": "1.2",
-                                      "fontWeight": "700"
-                              }
-                      ],
-                      "headline-lg": [
-                              "32px",
-                              {
-                                      "lineHeight": "1.2",
-                                      "letterSpacing": "-0.01em",
-                                      "fontWeight": "700"
-                              }
-                      ],
-                      "body-lg": [
-                              "18px",
-                              {
-                                      "lineHeight": "1.6",
-                                      "fontWeight": "400"
-                              }
-                      ],
-                      "label-xs": [
-                              "12px",
-                              {
-                                      "lineHeight": "1.4",
-                                      "fontWeight": "500"
-                              }
-                      ],
-                      "display-lg": [
-                              "48px",
-                              {
-                                      "lineHeight": "1.1",
-                                      "letterSpacing": "-0.02em",
-                                      "fontWeight": "700"
-                              }
-                      ]
-              }
-      },
-          },
-        }
-      </script>
-<style>
-        body {
-            background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-            min-height: 100vh;
-        }
-        .glass-card {
-            background-color: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-        }
-        .glass-nav {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        .glass-input {
-            background-color: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-        .glass-input:focus {
-            border-color: #6C63FF;
-            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1);
-            background-color: rgba(255, 255, 255, 0.8);
-            outline: none;
-        }
-        .btn-primary {
-            background-color: #6C63FF;
-            transition: all 0.2s ease;
-        }
-        .btn-primary:hover {
-            background-color: #5b54d6;
-            transform: translateY(-1px);
-        }
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-        .nav-link {
-            transition: all 0.2s ease;
-        }
-        .nav-link:hover {
-            color: #6C63FF;
-        }
-    </style>
-</head>
-<body class="text-on-surface">
-<!-- Navigation Bar -->
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg overflow-hidden shadow-sm bg-white/80 p-1.5 flex items-center justify-center">
-          <img alt="ClearDesk Logo" class="w-full h-full object-contain mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olhSWS3kpZoxMkwvVfiqgRQsyfPjHjKUfJANxv5CKrMFnL-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="font-headline-md text-headline-md text-on-surface hidden sm:block">ClearDesk</span>
-      </a>
-      <div class="hidden md:flex items-center gap-6">
-        <a href="index.html" class="nav-link font-label-sm text-label-sm text-on-surface-variant">Dashboard</a>
-        <a href="team-management.html" class="nav-link font-label-sm text-label-sm text-on-surface-variant">Teams</a>
-        <a href="agent-detail.html" class="nav-link font-label-sm text-label-sm text-on-surface-variant">Agents</a>
-        <a href="developer-portal.html" class="nav-link font-label-sm text-label-sm text-on-surface-variant">Developer</a>
-        <a href="style-guide.html" class="nav-link font-label-sm text-label-sm text-on-surface-variant">Style Guide</a>
-      </div>
-      <a href="login.html" class="btn-primary px-5 py-2 rounded-full text-white font-label-sm text-label-sm shadow-md hover:shadow-lg flex items-center gap-2">
-        <span>Staff Login</span>
-        <span class="material-symbols-outlined text-[16px]">login</span>
-      </a>
-    </div>
-  </div>
-</nav>
-<div class="pt-20 flex items-center justify-center p-margin-mobile md:p-margin-desktop text-on-surface">
-<main class="w-full max-w-[420px]">
-<div class="glass-card rounded-xl p-8 md:p-10 flex flex-col items-center">
-<!-- Logo & Brand -->
-<div class="flex flex-col items-center mb-8 text-center">
-<div class="w-20 h-20 mb-4 rounded-xl overflow-hidden shadow-sm bg-white/80 p-2 flex items-center justify-center">
-<img alt="ClearDesk Logo" class="w-full h-full object-contain mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olhSWS3kpZoxMkwvVfiqgRQsyfPjHjKUfJANxv5CKrMFnL-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-</div>
-<h1 class="font-headline-md text-headline-md text-on-surface mb-2 tracking-tight">ClearDesk Staff</h1>
-<p class="font-body-md text-body-md text-on-surface-variant">Your Compliance, Simplified</p>
-</div>
-<!-- Login Form -->
-<form class="w-full flex flex-col gap-5">
-<div class="flex flex-col gap-1.5">
-<label class="font-label-sm text-label-sm text-on-surface-variant" for="email">Staff Email</label>
-<div class="relative">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline-variant pointer-events-none">mail</span>
-<input class="glass-input w-full pl-10 pr-4 py-3 rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline-variant" id="email" name="email" placeholder="name@cleardesk.com" required="" type="email"/>
-</div>
-</div>
-<div class="flex flex-col gap-1.5">
-<div class="flex justify-between items-center">
-<label class="font-label-sm text-label-sm text-on-surface-variant" for="password">Password</label>
-<a class="font-label-xs text-label-xs text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
-</div>
-<div class="relative">
-<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline-variant pointer-events-none">lock</span>
-<input class="glass-input w-full pl-10 pr-10 py-3 rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline-variant" id="password" name="password" placeholder="••••••••" required="" type="password"/>
-<button aria-label="Toggle password visibility" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface-variant transition-colors" type="button">
-<span class="material-symbols-outlined text-[20px]">visibility_off</span>
-</button>
-</div>
-</div>
-<button class="btn-primary w-full mt-4 py-3.5 rounded-full text-white font-label-sm text-label-sm shadow-md hover:shadow-lg flex items-center justify-center gap-2" type="submit">
-<span>Login to Dashboard</span>
-<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-</button>
-</form>
-<div class="mt-8 flex items-center gap-2 text-outline-variant font-label-xs text-label-xs">
-<span class="material-symbols-outlined text-[16px]">verified_user</span>
-<span>Secure internal access only</span>
-</div>
-</div>
-</main>
-<!-- Add before </body> -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root {
+  --primary:       #4d41df;
+  --primary-mid:   #675df9;
+  --primary-light: #6C63FF;
+  --cyan:          #06b6d4;
+  --emerald:       #34d399;
+  --error:         #dc2626;
+  --error-bg:      rgba(220,38,38,0.07);
+  --error-border:  rgba(220,38,38,0.2);
+  --font:          'Plus Jakarta Sans', sans-serif;
+  --t:             0.22s cubic-bezier(0.25,1,0.5,1);
+}
+
+html, body {
+  min-height: 100%;
+  font-family: var(--font);
+  overflow: hidden;
+}
+
+/* ── Ambient animated background ── */
+.ambient {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(135deg, #ede9ff 0%, #e8e4f8 35%, #dff4fb 70%, #e8f5e9 100%);
+  animation: hue-drift 20s ease-in-out infinite alternate;
+}
+@keyframes hue-drift {
+  from { filter: hue-rotate(0deg) brightness(1); }
+  to   { filter: hue-rotate(18deg) brightness(1.03); }
+}
+
+/* Floating orbs */
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(70px); pointer-events: none; z-index: 0;
+  animation: orb-drift var(--d, 16s) ease-in-out infinite alternate;
+}
+.orb-1 { width:500px;height:500px;top:-120px;left:-80px;
+  background:radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%);
+  --d:18s; }
+.orb-2 { width:420px;height:420px;bottom:-80px;right:-60px;
+  background:radial-gradient(circle, rgba(6,182,212,0.14) 0%, transparent 70%);
+  --d:14s; animation-direction:alternate-reverse; }
+.orb-3 { width:300px;height:300px;top:40%;left:30%;
+  background:radial-gradient(circle, rgba(52,211,153,0.10) 0%, transparent 70%);
+  --d:22s; }
+@keyframes orb-drift {
+  from { transform: translate(0,0) scale(1); }
+  to   { transform: translate(30px,20px) scale(1.06); }
+}
+
+/* Subtle dot grid */
+.grid-overlay {
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image: radial-gradient(circle, rgba(77,65,223,0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 0%, transparent 100%);
+}
+
+/* ── Card stage ── */
+.stage {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ── Shared card base ── */
+.card {
+  width: 100%; max-width: 420px;
+  background: rgba(255,255,255,0.68);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 28px;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,0.03),
+    0 12px 40px rgba(77,65,223,0.10),
+    0 32px 64px rgba(77,65,223,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  position: absolute;
+  transition: opacity var(--t), transform var(--t);
+}
+.card.hidden {
+  opacity: 0;
+  transform: scale(0.94);
+  pointer-events: none;
+}
+.card.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* ── Welcome card ── */
+#card-welcome {
+  padding: 52px 44px 48px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+.logo-mark {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(108,99,255,0.3), 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+  animation: logo-float 4s ease-in-out infinite;
+}
+@keyframes logo-float {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.logo-mark svg { width: 36px; height: 36px; }
+
+.welcome-product {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--primary); opacity: 0.7;
+  margin-bottom: 10px;
+}
+.welcome-title {
+  font-size: 30px; font-weight: 800; color: #1b1b24;
+  letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px;
+}
+.welcome-sub {
+  font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 36px;
+  max-width: 300px;
+}
+
+/* Jurisdiction pills */
+.jurisdiction-row {
+  display: flex; gap: 8px; margin-bottom: 36px;
+}
+.j-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(77,65,223,0.07); border: 1px solid rgba(77,65,223,0.14);
+  border-radius: 20px; padding: 4px 12px 4px 8px;
+  font-size: 12px; font-weight: 600; color: #464555;
+}
+.j-flag { font-size: 16px; }
+
+.btn-access {
+  width: 100%; padding: 16px 24px;
+  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 45%, #06b6d4 100%);
+  border: none; border-radius: 16px; cursor: pointer;
+  font-family: var(--font); font-size: 16px; font-weight: 700; color: #fff;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.35), 0 1px 3px rgba(0,0,0,0.1);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all var(--t);
+  position: relative; overflow: hidden;
+}
+.btn-access::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-access:hover::before { transform: translateX(100%); }
+.btn-access:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(108,99,255,0.42), 0 2px 6px rgba(0,0,0,0.12);
+}
+.btn-access:active { transform: scale(0.98); }
+
+.md-icon {
+  font-family: 'Material Symbols Outlined'; font-style: normal;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1; user-select: none;
+}
+
+.welcome-footer {
+  margin-top: 24px; display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #94a3b8;
+}
+
+/* ── Credentials card ── */
+#card-creds {
+  padding: 44px 44px 40px;
+}
+
+.creds-back {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: #94a3b8;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font); padding: 0; margin-bottom: 28px;
+  transition: color var(--t);
+}
+.creds-back:hover { color: var(--primary); }
+.creds-back .md-icon { font-size: 18px; }
+
+.creds-header { margin-bottom: 28px; }
+.creds-title { font-size: 24px; font-weight: 800; color: #1b1b24; letter-spacing: -0.01em; margin-bottom: 4px; }
+.creds-sub { font-size: 14px; color: #777587; }
+
+/* Fields */
+.field { margin-bottom: 18px; }
+.field-label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: #464555; letter-spacing: 0.04em; text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.field-wrap { position: relative; }
+.field-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: #94a3b8; font-size: 19px; pointer-events: none;
+}
+.field-input {
+  width: 100%; padding: 12px 14px 12px 44px;
+  background: rgba(255,255,255,0.6);
+  border: 1.5px solid rgba(199,196,216,0.7);
+  border-radius: 12px;
+  font-family: var(--font); font-size: 14.5px; color: #1b1b24;
+  outline: none;
+  transition: border-color var(--t), background var(--t), box-shadow var(--t);
+}
+.field-input::placeholder { color: #b0adc0; }
+.field-input:focus {
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 0 0 4px rgba(77,65,223,0.1);
+}
+.field-input.error {
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px var(--error-bg);
+}
+.field-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 7px;
+}
+.forgot-link {
+  font-size: 12px; font-weight: 600; color: var(--primary);
+  text-decoration: none; transition: opacity var(--t);
+}
+.forgot-link:hover { opacity: 0.75; }
+.pw-toggle {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: #94a3b8;
+  font-size: 19px; padding: 2px; transition: color var(--t);
+}
+.pw-toggle:hover { color: #464555; }
+
+/* Error alert */
+.alert-err {
+  display: flex; align-items: flex-start; gap: 9px;
+  background: var(--error-bg); border: 1px solid var(--error-border);
+  border-radius: 10px; padding: 11px 14px;
+  font-size: 13.5px; color: var(--error); margin-bottom: 18px;
+  animation: shake 0.35s cubic-bezier(0.25,1,0.5,1);
+}
+.alert-err .md-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+@keyframes shake {
+  0%,100%{ transform:translateX(0) }
+  20%    { transform:translateX(-5px) }
+  40%    { transform:translateX(5px) }
+  60%    { transform:translateX(-3px) }
+  80%    { transform:translateX(3px) }
+}
+
+/* Success/forgot alert */
+.alert-ok {
+  display: flex; align-items: flex-start; gap: 9px;
+  background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.25);
+  border-radius: 10px; padding: 11px 14px;
+  font-size: 13.5px; color: #047857; margin-bottom: 18px;
+}
+.alert-ok .md-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* Submit button */
+.btn-signin {
+  width: 100%; padding: 14px 20px; border: none; border-radius: 14px;
+  font-family: var(--font); font-size: 15px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.32);
+  cursor: pointer; transition: all var(--t);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 6px;
+}
+.btn-signin:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(108,99,255,0.4);
+}
+.btn-signin:active:not(:disabled) { transform: scale(0.98); }
+.btn-signin:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Spinner inside button */
+.btn-spinner {
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.creds-footer {
+  margin-top: 22px; text-align: center;
+  font-size: 12px; color: #94a3b8;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+/* ── Reset password card ── */
+#card-reset {
+  padding: 44px 44px 40px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Ambient layers -->
+<div class="ambient"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="grid-overlay"></div>
+
+<div class="stage">
+
+  <!-- ── Welcome card ── -->
+  <div class="card visible" id="card-welcome">
+
+    <div class="logo-mark">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 4L4 11.5V24.5L18 32L32 24.5V11.5L18 4Z" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M4 11.5L18 19L32 11.5" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M18 19V32" stroke="white" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="18" cy="19" r="3.5" fill="white" opacity="0.85"/>
+      </svg>
+    </div>
+
+    <div class="welcome-product">AI Tax Operations Hub</div>
+    <h1 class="welcome-title">Welcome to<br/>ClearDesk</h1>
+    <p class="welcome-sub">Automate client outreach, document chasing, and compliance workflows — across every jurisdiction.</p>
+
+    <div class="jurisdiction-row">
+      <div class="j-pill"><span class="j-flag">🇮🇳</span> India</div>
+      <div class="j-pill"><span class="j-flag">🇺🇸</span> US</div>
+      <div class="j-pill"><span class="j-flag">🇦🇪</span> UAE</div>
+    </div>
+
+    <button class="btn-access" onclick="openCredentials()">
+      <span class="md-icon">lock_open</span>
+      Access Workspace
+    </button>
+
+    <div class="welcome-footer">
+      <span class="md-icon" style="font-size:15px;color:#c7c4d8;">verified_user</span>
+      Secure · Multi-tenant · Role-gated
+    </div>
+
+  </div>
+
+  <!-- ── Credentials card ── -->
+  <div class="card hidden" id="card-creds">
+
+    <button class="creds-back" onclick="backToWelcome()">
+      <span class="md-icon">arrow_back</span> Back
+    </button>
+
+    <div class="creds-header">
+      <div class="creds-title">Sign in</div>
+      <div class="creds-sub">Enter your workspace credentials to continue.</div>
+    </div>
+
+    <div id="creds-alert"></div>
+
+    <form id="signin-form" onsubmit="handleSignIn(event)">
+      <div class="field">
+        <label class="field-label" for="email">Email</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">mail</span>
+          <input class="field-input" id="email" type="email"
+            placeholder="you@cleardesk.com" autocomplete="email" required/>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <label class="field-label" for="password" style="margin-bottom:0;">Password</label>
+          <a class="forgot-link" href="#" onclick="openReset(event)">Forgot password?</a>
+        </div>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">lock</span>
+          <input class="field-input" id="password" type="password"
+            placeholder="••••••••" autocomplete="current-password" required/>
+          <button type="button" class="pw-toggle" onclick="togglePw()" id="pw-toggle-btn">
+            <span class="md-icon" id="pw-toggle-icon">visibility_off</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-signin" type="submit" id="signin-btn">
+        <span id="signin-label">Sign In</span>
+        <span class="md-icon" id="signin-arrow" style="font-size:19px;">arrow_forward</span>
+      </button>
+    </form>
+
+    <div class="creds-footer">
+      <span class="md-icon" style="font-size:14px;color:#c7c4d8;">shield</span>
+      Protected by Supabase Auth · Row-level security
+    </div>
+
+  </div>
+
+  <!-- ── Reset password card ── -->
+  <div class="card hidden" id="card-reset">
+
+    <button class="creds-back" onclick="backToCredentials()">
+      <span class="md-icon">arrow_back</span> Back to Sign In
+    </button>
+
+    <div class="creds-header">
+      <div class="creds-title">Reset password</div>
+      <div class="creds-sub">Enter your email and we'll send a reset link.</div>
+    </div>
+
+    <div id="reset-alert"></div>
+
+    <form id="reset-form" onsubmit="handleReset(event)">
+      <div class="field">
+        <label class="field-label" for="reset-email">Email</label>
+        <div class="field-wrap">
+          <span class="md-icon field-icon">mail</span>
+          <input class="field-input" id="reset-email" type="email"
+            placeholder="you@cleardesk.com" autocomplete="email" required/>
+        </div>
+      </div>
+
+      <button class="btn-signin" type="submit" id="reset-btn">
+        <span id="reset-label">Send Reset Link</span>
+        <span class="md-icon" id="reset-arrow" style="font-size:19px;">send</span>
+      </button>
+    </form>
+
+    <div class="creds-footer">
+      <span class="md-icon" style="font-size:14px;color:#c7c4d8;">timer</span>
+      Link expires in 60 minutes
+    </div>
+
+  </div>
+
+</div><!-- /stage -->
+
 <script>
-// Handle login form
-document.querySelector('form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  const btn = e.target.querySelector('button[type="submit"]');
-  
-  btn.disabled = true;
-  btn.innerHTML = '<span>Logging in...</span>';
-  
+/* ── Already authenticated? Redirect. ── */
+(async () => {
   try {
-    await signIn(email, password);
-    window.location.href = 'index.html';
-  } catch (error) {
-    alert('Login failed: ' + error.message);
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (session) window.location.href = 'index.html';
+  } catch(e) { /* supabase not ready yet */ }
+})();
+
+/* ── Card transitions ── */
+const T = 220; // ms — must match --t in CSS
+
+function swapCards(hideId, showId) {
+  const hide = document.getElementById(hideId);
+  const show = document.getElementById(showId);
+  hide.classList.remove('visible');
+  hide.classList.add('hidden');
+  setTimeout(() => {
+    show.classList.remove('hidden');
+    // Force reflow so transition fires
+    show.offsetHeight;
+    show.classList.add('visible');
+  }, T);
+}
+
+function openCredentials() {
+  // Pre-fill email if user previously typed one
+  swapCards('card-welcome', 'card-creds');
+  setTimeout(() => document.getElementById('email').focus(), T + 60);
+}
+
+function backToWelcome() {
+  clearAlert('creds-alert');
+  swapCards('card-creds', 'card-welcome');
+}
+
+function openReset(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  if (email) document.getElementById('reset-email').value = email;
+  clearAlert('reset-alert');
+  swapCards('card-creds', 'card-reset');
+  setTimeout(() => document.getElementById('reset-email').focus(), T + 60);
+}
+
+function backToCredentials() {
+  clearAlert('reset-alert');
+  swapCards('card-reset', 'card-creds');
+  setTimeout(() => document.getElementById('password').focus(), T + 60);
+}
+
+/* ── Password toggle ── */
+function togglePw() {
+  const input = document.getElementById('password');
+  const icon  = document.getElementById('pw-toggle-icon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.textContent = 'visibility';
+  } else {
+    input.type = 'password';
+    icon.textContent = 'visibility_off';
+  }
+}
+
+/* ── Sign in ── */
+async function handleSignIn(e) {
+  e.preventDefault();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('signin-btn');
+  const label    = document.getElementById('signin-label');
+  const arrow    = document.getElementById('signin-arrow');
+
+  clearAlert('creds-alert');
+  document.getElementById('email').classList.remove('error');
+  document.getElementById('password').classList.remove('error');
+
+  // Loading state
+  btn.disabled = true;
+  label.textContent = 'Signing in…';
+  arrow.style.display = 'none';
+  btn.insertAdjacentHTML('beforeend', '<div class="btn-spinner" id="spinner"></div>');
+
+  try {
+    const { data, error } = await window.supabase.auth.signInWithPassword({ email, password });
+
+    if (error) throw error;
+
+    // Success — brief green flash then redirect
+    label.textContent = 'Welcome back!';
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.remove();
+    btn.insertAdjacentHTML('beforeend', '<span class="md-icon" style="font-size:19px;">check_circle</span>');
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+
+    setTimeout(() => { window.location.href = 'index.html'; }, 600);
+
+  } catch(err) {
     btn.disabled = false;
-    btn.innerHTML = '<span>Login to Dashboard</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+    label.textContent = 'Sign In';
+    arrow.style.display = '';
+    const spinner = document.getElementById('spinner');
+    if (spinner) spinner.remove();
+
+    const msg = friendlyError(err.message);
+    showAlert('creds-alert', msg, 'err');
+
+    // Highlight relevant field
+    if (err.message.toLowerCase().includes('email')) {
+      document.getElementById('email').classList.add('error');
+      document.getElementById('email').focus();
+    } else {
+      document.getElementById('password').classList.add('error');
+      document.getElementById('password').focus();
+    }
+  }
+}
+
+/* ── Reset password ── */
+async function handleReset(e) {
+  e.preventDefault();
+  const email  = document.getElementById('reset-email').value.trim();
+  const btn    = document.getElementById('reset-btn');
+  const label  = document.getElementById('reset-label');
+  const arrow  = document.getElementById('reset-arrow');
+
+  clearAlert('reset-alert');
+  btn.disabled = true;
+  label.textContent = 'Sending…';
+  arrow.style.display = 'none';
+  btn.insertAdjacentHTML('beforeend', '<div class="btn-spinner" id="r-spinner"></div>');
+
+  try {
+    const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password.html',
+    });
+    if (error) throw error;
+
+    const spinner = document.getElementById('r-spinner');
+    if (spinner) spinner.remove();
+    label.textContent = 'Link Sent';
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+    btn.insertAdjacentHTML('beforeend', '<span class="md-icon" style="font-size:19px;">check_circle</span>');
+
+    showAlert('reset-alert',
+      `Reset link sent to <strong>${email}</strong>. Check your inbox — expires in 60 minutes.`,
+      'ok');
+
+    setTimeout(() => {
+      btn.disabled = false;
+      label.textContent = 'Send Reset Link';
+      arrow.style.display = '';
+      btn.style.background = '';
+      const lastIcon = btn.querySelector('.md-icon:last-child');
+      if (lastIcon && lastIcon.textContent === 'check_circle') lastIcon.remove();
+    }, 5000);
+
+  } catch(err) {
+    const spinner = document.getElementById('r-spinner');
+    if (spinner) spinner.remove();
+    btn.disabled = false;
+    label.textContent = 'Send Reset Link';
+    arrow.style.display = '';
+    showAlert('reset-alert', friendlyError(err.message), 'err');
+  }
+}
+
+/* ── Alert helpers ── */
+function showAlert(containerId, msg, type) {
+  const el = document.getElementById(containerId);
+  if (type === 'err') {
+    el.innerHTML = `<div class="alert-err"><span class="md-icon">error</span><span>${msg}</span></div>`;
+  } else {
+    el.innerHTML = `<div class="alert-ok"><span class="md-icon">check_circle</span><span>${msg}</span></div>`;
+  }
+}
+function clearAlert(containerId) {
+  document.getElementById(containerId).innerHTML = '';
+}
+
+/* ── Friendly error messages ── */
+function friendlyError(raw) {
+  const r = (raw || '').toLowerCase();
+  if (r.includes('invalid login') || r.includes('invalid credentials'))
+    return 'Incorrect email or password. Please try again.';
+  if (r.includes('email not confirmed'))
+    return 'Please verify your email address before signing in.';
+  if (r.includes('too many requests') || r.includes('rate limit'))
+    return 'Too many attempts. Please wait a moment and try again.';
+  if (r.includes('network') || r.includes('fetch'))
+    return 'Network error. Check your connection and try again.';
+  if (r.includes('user not found'))
+    return 'No account found with that email address.';
+  return raw || 'Something went wrong. Please try again.';
+}
+
+/* ── Keyboard: Enter on welcome card triggers access ── */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const welcome = document.getElementById('card-welcome');
+    if (welcome.classList.contains('visible')) openCredentials();
   }
 });
-
-// Check if already logged in
-(async () => {
-  const authenticated = await isAuthenticated();
-  if (authenticated) {
-    window.location.href = 'index.html';
-  }
-})();
 </script>
 </body>
 </html>
-</body></html>
