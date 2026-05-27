@@ -1,352 +1,421 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk - Contacts</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Contacts</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="translations.js"></script>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-background":"#1b1b24","surface-tint":"#4f44e2","secondary-container":"#5694fe",
+        "surface-dim":"#dcd8e5","surface-variant":"#e4e1ee","on-error":"#ffffff",
+        "primary-fixed-dim":"#c4c0ff","surface-container-high":"#eae6f3",
+        "surface-container-low":"#f6f2ff","secondary":"#005bbf","tertiary":"#914800",
+        "on-primary":"#ffffff","tertiary-container":"#b65c00","on-secondary":"#ffffff",
+        "primary":"#4d41df","outline":"#777587","surface-bright":"#fcf8ff",
+        "surface-container-highest":"#e4e1ee","background":"#fcf8ff",
+        "primary-fixed":"#e3dfff","inverse-surface":"#302f39","error":"#ba1a1a",
+        "secondary-fixed":"#d7e2ff","surface-container":"#f0ecf9",
+        "on-surface-variant":"#464555","surface-container-lowest":"#ffffff",
+        "on-surface":"#1b1b24","error-container":"#ffdad6","surface":"#fcf8ff",
+        "inverse-primary":"#c4c0ff","primary-container":"#675df9","outline-variant":"#c7c4d8"
+      },
+      fontFamily: { sans: ["Plus Jakarta Sans","sans-serif"] },
+      borderRadius: { DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem","2xl":"1rem","3xl":"1.5rem",full:"9999px" }
+    }
+  }
+}
+</script>
+
 <style>
-body {
-    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-    min-height: 100vh;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Plus Jakarta Sans",sans-serif; background:#f0ecf9; min-height:100vh; overflow-x:hidden; }
+
+.ambient-bg {
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(108,99,255,0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 100%, rgba(79,68,226,0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(198,194,255,0.08) 0%, transparent 60%),
+    linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);
+  animation:ambientShift 20s ease-in-out infinite alternate;
 }
-.glass-card {
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-}
-.glass-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(32px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-}
+@keyframes ambientShift { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(15deg)} }
+
+.glass-nav { background:rgba(255,255,255,0.82); backdrop-filter:blur(28px) saturate(140%); -webkit-backdrop-filter:blur(28px) saturate(140%); border-bottom:1px solid rgba(255,255,255,0.5); box-shadow:0 1px 0 rgba(77,65,223,0.06); }
+.glass-card { background:rgba(255,255,255,0.62); backdrop-filter:blur(20px) saturate(130%); -webkit-backdrop-filter:blur(20px) saturate(130%); border:1px solid rgba(255,255,255,0.5); box-shadow:0 4px 24px rgba(77,65,223,0.07),0 1px 0 rgba(255,255,255,0.8) inset; }
+.glass-card-solid { background:rgba(255,255,255,0.88); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.6); box-shadow:0 4px 24px rgba(77,65,223,0.08); }
+
+.transition-snappy { transition:all 0.22s cubic-bezier(0.25,1,0.5,1); }
+.card-hover { transition:transform 0.22s cubic-bezier(0.25,1,0.5,1),box-shadow 0.22s cubic-bezier(0.25,1,0.5,1); }
+.card-hover:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(77,65,223,0.14),0 1px 0 rgba(255,255,255,0.8) inset; }
+
+.nav-item { position:relative; transition:color 0.18s ease,background 0.18s ease; }
+.nav-item::after { content:''; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%) scaleX(0); width:80%; height:2px; background:#6C63FF; border-radius:2px; transition:transform 0.22s cubic-bezier(0.25,1,0.5,1); }
+.nav-item:hover::after,.nav-item.active::after { transform:translateX(-50%) scaleX(1); }
+.nav-item.active { color:#6C63FF; }
+
+@keyframes slideUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.enter { opacity:0; animation:slideUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards; }
+.enter-1{animation-delay:.05s}.enter-2{animation-delay:.10s}.enter-3{animation-delay:.15s}.enter-4{animation-delay:.20s}.enter-5{animation-delay:.25s}
+
+.md-icon { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; user-select:none; }
+.credit-stripe { background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%); }
+
+.drawer-overlay { position:fixed; inset:0; background:rgba(15,12,41,0.35); backdrop-filter:blur(4px); z-index:100; opacity:0; pointer-events:none; transition:opacity 0.25s ease; }
+.drawer-overlay.open { opacity:1; pointer-events:all; }
+.drawer { position:fixed; right:0; top:0; height:100%; width:500px; max-width:95vw; z-index:101; transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.25,1,0.5,1); }
+.drawer.open { transform:translateX(0); }
+
+.drop-zone { border:2px dashed rgba(108,99,255,0.3); background:rgba(108,99,255,0.04); border-radius:16px; transition:all 0.22s ease; cursor:pointer; }
+.drop-zone:hover,.drop-zone.drag-over { border-color:#6C63FF; background:rgba(108,99,255,0.09); }
+
+.tag { display:inline-flex; align-items:center; padding:2px 10px; border-radius:999px; font-size:11.5px; font-weight:600; }
+.tag-client { background:rgba(6,182,212,0.1); color:#0e7490; border:1px solid rgba(6,182,212,0.2); }
+.tag-lead { background:rgba(108,99,255,0.1); color:#4d41df; border:1px solid rgba(108,99,255,0.2); }
+.tag-vendor { background:rgba(245,158,11,0.1); color:#92400e; border:1px solid rgba(245,158,11,0.2); }
+
+.contact-row { transition:background 0.15s ease; }
+.contact-row:hover { background:rgba(108,99,255,0.03); }
+.tag-btn { background:transparent; cursor:pointer; }
+.tag-btn.active { background:rgba(108,99,255,0.1); color:#6C63FF; border-color:rgba(108,99,255,0.2)!important; }
+
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(108,99,255,0.35)}
+@media(max-width:768px){.nav-scroll{overflow-x:auto}}
 </style>
 </head>
-<body>
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
-          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olerror code: 504-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="text-xl font-semibold">ClearDesk</span>
+
+<body class="text-on-surface">
+<div class="ambient-bg"></div>
+<div class="relative z-10 min-h-screen flex flex-col">
+
+<!-- NAVBAR -->
+<nav class="glass-nav sticky top-0 z-50">
+  <div class="max-w-[1320px] mx-auto px-6 md:px-10">
+    <div class="flex items-center justify-between h-16 gap-6">
+      <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
+        <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm"><span class="md-icon text-white text-[17px]">receipt_long</span></div>
+        <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
       </a>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="text-sm hover:text-[#4d41df]">Dashboard</a>
-        <a href="campaigns.html" class="text-sm hover:text-[#4d41df]">Campaigns</a>
-        <a href="contacts.html" class="text-sm text-[#4d41df] font-semibold">Contacts</a>
-        <a href="settings.html" class="text-sm hover:text-[#4d41df]">Settings</a>
-        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-[#4d41df] text-white rounded-full text-sm">Logout</button>
+      <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto">
+        <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
+        <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
+        <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
+        <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
+        <a href="contacts.html"        class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
+        <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
+        <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
+        <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <select id="language-selector" onchange="changeLanguage()" class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none transition-snappy">
+          <option value="ENGLISH">🌐 EN</option><option value="HINDI">🇮🇳 HI</option><option value="MARATHI">🇮🇳 MR</option>
+        </select>
+        <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+          <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+          <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
+        </button>
       </div>
     </div>
   </div>
 </nav>
 
-<main class="pt-24 pb-12 px-6">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-4xl font-bold mb-2">Contacts</h1>
-        <p class="text-lg text-gray-600">Manage your contact database</p>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="showUploadModal()" class="px-6 py-3 bg-white border-2 border-[#4d41df] text-[#4d41df] rounded-lg font-semibold hover:bg-gray-50 flex items-center gap-2">
-          <span class="material-symbols-outlined">upload</span>
-          <span>Upload CSV</span>
-        </button>
-        <button onclick="showAddModal()" class="px-6 py-3 bg-[#4d41df] text-white rounded-lg font-semibold hover:bg-[#3d31cf] flex items-center gap-2">
-          <span class="material-symbols-outlined">add</span>
-          <span>Add Contact</span>
-        </button>
+<!-- MAIN -->
+<main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4 enter enter-1">
+    <div>
+      <h1 class="text-[26px] font-bold text-on-surface tracking-tight">Contacts</h1>
+      <p class="text-[14px] text-on-surface-variant mt-0.5">Your client and lead contact database</p>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <button onclick="openImportDrawer()" class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40">
+        <span class="md-icon text-[18px] text-[#6C63FF]">upload_file</span>Import CSV
+      </button>
+      <button onclick="openAddDrawer()" class="flex items-center gap-2 px-4 py-2.5 credit-stripe text-white rounded-xl text-[13.5px] font-semibold shadow-sm hover:shadow-md transition-snappy">
+        <span class="md-icon text-[18px]">person_add</span>Add Contact
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 enter enter-2">
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center"><span class="md-icon text-[20px] text-[#6C63FF]">contacts</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Total Contacts</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-total">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#cffafe] flex items-center justify-center"><span class="md-icon text-[20px] text-cyan-700">business_center</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Clients</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-clients">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#dcfce7] flex items-center justify-center"><span class="md-icon text-[20px] text-emerald-600">trending_up</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Leads</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-leads">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#fef3c7] flex items-center justify-center"><span class="md-icon text-[20px] text-amber-600">local_shipping</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Vendors</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-vendors">0</div>
+    </div>
+  </div>
+
+  <!-- Search + filters -->
+  <div class="flex flex-wrap items-center gap-3 enter enter-3">
+    <div class="relative flex-1 min-w-[220px]">
+      <span class="md-icon absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+      <input id="search-input" oninput="filterContacts()" type="text" placeholder="Search by name, phone, email…"
+        class="w-full pl-9 pr-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="setTag('all')"    id="tag-all"    class="tag-btn active px-3.5 py-2 text-[12.5px] font-semibold rounded-xl border border-transparent transition-snappy">All</button>
+      <button onclick="setTag('client')" id="tag-client" class="tag-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl border border-transparent text-on-surface-variant transition-snappy">Clients</button>
+      <button onclick="setTag('lead')"   id="tag-lead"   class="tag-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl border border-transparent text-on-surface-variant transition-snappy">Leads</button>
+      <button onclick="setTag('vendor')" id="tag-vendor" class="tag-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl border border-transparent text-on-surface-variant transition-snappy">Vendors</button>
+    </div>
+  </div>
+
+  <!-- Contacts table -->
+  <div class="glass-card rounded-2xl overflow-hidden enter enter-4">
+    <div class="grid grid-cols-[2fr_1fr_1.2fr_1fr_60px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40">
+      <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Contact</span>
+      <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Type</span>
+      <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Phone</span>
+      <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Last Contact</span>
+      <span></span>
+    </div>
+    <div id="contacts-list">
+      <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
+        <span class="md-icon text-[20px] animate-spin">progress_activity</span>
+        <span class="text-[13.5px]">Loading contacts…</span>
       </div>
     </div>
-    
-    <div class="glass-card rounded-xl p-6 mb-6">
-      <div class="flex gap-4">
-        <input type="text" id="search" placeholder="Search contacts..." class="flex-1 p-3 border rounded-lg" onkeyup="filterContacts()"/>
-        <select id="filter-status" class="p-3 border rounded-lg" onchange="filterContacts()">
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+    <div class="flex items-center justify-between px-6 py-3 border-t border-outline-variant/30">
+      <span class="text-[12.5px] text-on-surface-variant" id="contacts-count">—</span>
+      <div class="flex items-center gap-1">
+        <button onclick="changePage(-1)" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">chevron_left</span></button>
+        <span class="text-[12.5px] font-medium text-on-surface px-2" id="page-label">1 / 1</span>
+        <button onclick="changePage(1)" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">chevron_right</span></button>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- Overlays -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawers()"></div>
+
+<!-- Add Contact Drawer -->
+<div id="add-drawer" class="drawer glass-card-solid">
+  <div class="h-full flex flex-col p-6 overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <div><h2 class="text-[18px] font-bold text-on-surface">Add Contact</h2><p class="text-[13px] text-on-surface-variant mt-0.5">Manually add a contact to your database</p></div>
+      <button onclick="closeDrawers()" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[20px] text-on-surface-variant">close</span></button>
+    </div>
+    <div class="space-y-4 flex-1">
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">First Name</label><input id="add-fname" type="text" placeholder="Priya" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy"/></div>
+        <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Last Name</label><input id="add-lname" type="text" placeholder="Sharma" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy"/></div>
+      </div>
+      <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Phone Number</label><input id="add-phone" type="tel" placeholder="+91 98765 43210" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy"/></div>
+      <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Email (optional)</label><input id="add-email" type="email" placeholder="priya@company.com" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy"/></div>
+      <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Type</label>
+        <select id="add-type" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
+          <option value="client">Client</option><option value="lead">Lead</option><option value="vendor">Vendor</option>
         </select>
       </div>
+      <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Company (optional)</label><input id="add-company" type="text" placeholder="Sharma Enterprises" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy"/></div>
+      <div><label class="block text-[13px] font-semibold text-on-surface mb-1.5">Notes</label><textarea id="add-notes" placeholder="Any relevant notes…" rows="3" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy resize-none"></textarea></div>
     </div>
-    
-    <div id="contacts-container" class="space-y-3">
-      <div class="glass-card rounded-xl p-6 animate-pulse">
-        <div class="h-6 bg-gray-200 rounded mb-4 w-1/3"></div>
-        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<!-- Upload CSV Modal -->
-<div id="upload-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-  <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4">
-    <h2 class="text-2xl font-bold mb-6">Upload Contacts CSV</h2>
-    
-    <div class="mb-4">
-      <p class="text-sm text-gray-600 mb-4">CSV format: name, phone, email, company</p>
-      <input type="file" id="csv-file" accept=".csv" class="w-full p-3 border rounded-lg"/>
-    </div>
-    
-    <div class="flex gap-3">
-      <button onclick="uploadCSV()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Upload</button>
-      <button onclick="hideUploadModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
+    <div class="pt-5 border-t border-outline-variant/40 mt-5 flex gap-3">
+      <button onclick="closeDrawers()" class="flex-1 px-4 py-2.5 text-[13.5px] font-medium text-on-surface-variant bg-surface-container rounded-xl hover:bg-surface-container-high transition-snappy">Cancel</button>
+      <button onclick="saveContact()" class="flex-1 px-4 py-2.5 text-[13.5px] font-semibold text-white credit-stripe rounded-xl shadow-sm hover:shadow-md transition-snappy flex items-center justify-center gap-2"><span class="md-icon text-[17px]">save</span>Save Contact</button>
     </div>
   </div>
 </div>
 
-<!-- Add Contact Modal -->
-<div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-  <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4">
-    <h2 class="text-2xl font-bold mb-6">Add Contact</h2>
-    
-    <div class="space-y-4">
-      <div>
-        <label class="block mb-2 text-sm font-medium">Name</label>
-        <input type="text" id="contact-name" placeholder="John Doe" class="w-full p-3 border rounded-lg"/>
+<!-- Import CSV Drawer -->
+<div id="import-drawer" class="drawer glass-card-solid">
+  <div class="h-full flex flex-col p-6 overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <div><h2 class="text-[18px] font-bold text-on-surface">Import from CSV</h2><p class="text-[13px] text-on-surface-variant mt-0.5">Bulk upload contacts via spreadsheet</p></div>
+      <button onclick="closeDrawers()" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[20px] text-on-surface-variant">close</span></button>
+    </div>
+    <div class="space-y-5 flex-1">
+      <div id="drop-zone" class="drop-zone p-8 text-center" onclick="document.getElementById('csv-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleDrop(event)">
+        <span class="md-icon text-[40px] text-[#6C63FF] opacity-60">upload_file</span>
+        <p class="mt-3 text-[14px] font-semibold text-on-surface">Drop your CSV here</p>
+        <p class="text-[12.5px] text-on-surface-variant mt-1">or click to browse</p>
+        <input id="csv-file" type="file" accept=".csv" class="hidden" onchange="handleFileSelect(event)"/>
       </div>
-      <div>
-        <label class="block mb-2 text-sm font-medium">Phone</label>
-        <input type="tel" id="contact-phone" placeholder="+1 555 123 4567" class="w-full p-3 border rounded-lg"/>
+      <div id="csv-preview" class="hidden glass-card rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-1"><span class="md-icon text-[18px] text-emerald-600">check_circle</span><span class="text-[13px] font-semibold text-on-surface" id="csv-filename">—</span></div>
+        <p class="text-[12.5px] text-on-surface-variant" id="csv-rows">—</p>
       </div>
-      <div>
-        <label class="block mb-2 text-sm font-medium">Email</label>
-        <input type="email" id="contact-email" placeholder="john@example.com" class="w-full p-3 border rounded-lg"/>
-      </div>
-      <div>
-        <label class="block mb-2 text-sm font-medium">Company</label>
-        <input type="text" id="contact-company" placeholder="Acme Corp" class="w-full p-3 border rounded-lg"/>
+      <div class="glass-card rounded-xl p-4">
+        <p class="text-[12.5px] font-semibold text-on-surface mb-2">Expected CSV columns</p>
+        <p class="font-mono text-[11.5px] text-on-surface-variant">name, phone, email, type, company, notes</p>
+        <p class="font-mono text-[11px] text-outline mt-1">type: client | lead | vendor</p>
       </div>
     </div>
-    
-    <div class="flex gap-3 mt-6">
-      <button onclick="addContact()" class="flex-1 px-4 py-3 bg-[#4d41df] text-white rounded-lg font-semibold">Add</button>
-      <button onclick="hideAddModal()" class="px-4 py-3 border rounded-lg">Cancel</button>
+    <div class="pt-5 border-t border-outline-variant/40 mt-5 flex gap-3">
+      <button onclick="closeDrawers()" class="flex-1 px-4 py-2.5 text-[13.5px] font-medium text-on-surface-variant bg-surface-container rounded-xl hover:bg-surface-container-high transition-snappy">Cancel</button>
+      <button onclick="importCSV()" class="flex-1 px-4 py-2.5 text-[13.5px] font-semibold text-white credit-stripe rounded-xl shadow-sm hover:shadow-md transition-snappy flex items-center justify-center gap-2"><span class="md-icon text-[17px]">upload</span>Import Contacts</button>
     </div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="supabase-config.js"></script>
-<script src="auth.js"></script>
+<!-- Toast -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] pointer-events-none">
+  <div id="toast-inner" class="glass-card-solid rounded-2xl px-5 py-3 flex items-center gap-3 shadow-lg opacity-0 translate-y-4 transition-all duration-300">
+    <span id="toast-icon" class="md-icon text-[20px]">check_circle</span>
+    <span id="toast-msg" class="text-[13.5px] font-medium text-on-surface"></span>
+  </div>
+</div>
+
 <script>
-let currentUser = null;
-let allContacts = [];
+const AVATAR_COLORS=['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+const PAGE_SIZE=15;
+let allContacts=[],filtered=[],currentPage=1,currentTag='all',csvParsed=[];
 
-function showUploadModal() {
-  document.getElementById('upload-modal').classList.remove('hidden');
+const MOCK=[
+  {id:'1',name:'Rajesh Gupta',     phone:'+91 98100 11222',email:'rajesh@gupta.com',  type:'client',company:'Gupta & Sons',      last_contact:'2 days ago'},
+  {id:'2',name:'Anita Menon',      phone:'+91 94455 67890',email:'anita@menon.in',    type:'lead',  company:'Menon Exports',      last_contact:'Today'},
+  {id:'3',name:'Suresh Patil',     phone:'+91 90011 22334',email:'spatil@patil.co',   type:'client',company:'Patil Pvt Ltd',      last_contact:'1 week ago'},
+  {id:'4',name:'Kavitha Iyer',     phone:'+91 87654 32100',email:'k.iyer@firm.com',   type:'vendor',company:'Iyer Supplies',      last_contact:'3 days ago'},
+  {id:'5',name:'Manish Kapoor',    phone:'+91 99887 76655',email:'mkapoor@kapoor.net',type:'client',company:'Kapoor Real Estate', last_contact:'Today'},
+  {id:'6',name:'Deepa Nair',       phone:'+91 80000 55555',email:'deepa@nair.org',    type:'lead',  company:'Nair Technologies',  last_contact:'5 days ago'},
+  {id:'7',name:'Aakash Verma',     phone:'+91 77777 44444',email:'aakash@verma.com',  type:'client',company:'Verma Holdings',     last_contact:'Yesterday'},
+  {id:'8',name:'Pooja Agarwal',    phone:'+91 95555 33333',email:'pooja@agarwal.biz', type:'lead',  company:'Agarwal Traders',    last_contact:'Today'},
+  {id:'9',name:'Sanjay Reddy',     phone:'+91 88888 22222',email:'sanjay@reddy.in',   type:'vendor',company:'Reddy Distributors', last_contact:'2 weeks ago'},
+  {id:'10',name:'Ritu Bhatt',      phone:'+91 96666 11111',email:'ritu@bhatt.co',     type:'client',company:'Bhatt Consultants',  last_contact:'Today'},
+  {id:'11',name:'Vikram Malhotra', phone:'+91 91111 22222',email:'v@malhotra.in',     type:'lead',  company:'Malhotra Group',     last_contact:'Yesterday'},
+  {id:'12',name:'Sunita Joshi',    phone:'+91 85555 66666',email:'sunita@joshi.com',  type:'client',company:'Joshi Accounting',   last_contact:'3 days ago'},
+];
+
+function getInitials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function avatarColor(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
+function tagChip(t){const m={client:'<span class="tag tag-client">Client</span>',lead:'<span class="tag tag-lead">Lead</span>',vendor:'<span class="tag tag-vendor">Vendor</span>'};return m[t]||m.client;}
+function animCounter(el,v,d=800){let s=null;const f=t=>{if(!s)s=t;const p=Math.min((t-s)/d,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v);if(p<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+
+function updateStats(){
+  animCounter(document.getElementById('stat-total'),  allContacts.length);
+  animCounter(document.getElementById('stat-clients'),allContacts.filter(c=>c.type==='client').length);
+  animCounter(document.getElementById('stat-leads'),  allContacts.filter(c=>c.type==='lead').length);
+  animCounter(document.getElementById('stat-vendors'),allContacts.filter(c=>c.type==='vendor').length);
 }
 
-function hideUploadModal() {
-  document.getElementById('upload-modal').classList.add('hidden');
-  document.getElementById('csv-file').value = '';
-}
-
-function showAddModal() {
-  document.getElementById('add-modal').classList.remove('hidden');
-}
-
-function hideAddModal() {
-  document.getElementById('add-modal').classList.add('hidden');
-  document.getElementById('contact-name').value = '';
-  document.getElementById('contact-phone').value = '';
-  document.getElementById('contact-email').value = '';
-  document.getElementById('contact-company').value = '';
-}
-
-async function uploadCSV() {
-  const file = document.getElementById('csv-file').files[0];
-  if (!file) {
-    alert('Please select a file');
-    return;
-  }
-  
-  const text = await file.text();
-  const lines = text.split('\n').filter(l => l.trim());
-  
-  // Skip header if present
-  const start = lines[0].toLowerCase().includes('name') ? 1 : 0;
-  
-  const contacts = [];
-  for (let i = start; i < lines.length; i++) {
-    const [name, phone, email, company] = lines[i].split(',').map(s => s.trim());
-    if (name && phone) {
-      contacts.push({
-        user_id: currentUser.id,
-        name,
-        phone,
-        email: email || null,
-        company: company || null
-      });
-    }
-  }
-  
-  try {
-    const { error } = await supabaseClient
-      .from('contacts')
-      .insert(contacts);
-    
-    if (error) throw error;
-    
-    hideUploadModal();
-    await loadContacts();
-    alert(`✅ Uploaded ${contacts.length} contacts`);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('❌ Error uploading: ' + error.message);
-  }
-}
-
-async function addContact() {
-  const name = document.getElementById('contact-name').value;
-  const phone = document.getElementById('contact-phone').value;
-  const email = document.getElementById('contact-email').value;
-  const company = document.getElementById('contact-company').value;
-  
-  if (!name || !phone) {
-    alert('Name and phone are required');
-    return;
-  }
-  
-  try {
-    const { error } = await supabaseClient
-      .from('contacts')
-      .insert({
-        user_id: currentUser.id,
-        name,
-        phone,
-        email: email || null,
-        company: company || null
-      });
-    
-    if (error) throw error;
-    
-    hideAddModal();
-    await loadContacts();
-    alert('✅ Contact added!');
-  } catch (error) {
-    console.error('Error:', error);
-    alert('❌ Error: ' + error.message);
-  }
-}
-
-async function loadContacts() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('contacts')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    allContacts = data || [];
-    renderContacts(allContacts);
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-function filterContacts() {
-  const search = document.getElementById('search').value.toLowerCase();
-  const status = document.getElementById('filter-status').value;
-  
-  let filtered = allContacts;
-  
-  if (search) {
-    filtered = filtered.filter(c => 
-      c.name.toLowerCase().includes(search) ||
-      c.phone.includes(search) ||
-      (c.email && c.email.toLowerCase().includes(search)) ||
-      (c.company && c.company.toLowerCase().includes(search))
-    );
-  }
-  
-  if (status !== 'all') {
-    filtered = filtered.filter(c => c.status === status);
-  }
-  
-  renderContacts(filtered);
-}
-
-function renderContacts(contacts) {
-  const container = document.getElementById('contacts-container');
-  
-  if (contacts.length === 0) {
-    container.innerHTML = `
-      <div class="glass-card rounded-xl p-6 text-center">
-        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">contacts</span>
-        <h3 class="text-xl font-semibold mb-2">No contacts yet</h3>
-        <p class="text-gray-600">Add contacts or upload a CSV to get started</p>
-      </div>
-    `;
-    return;
-  }
-  
-  container.innerHTML = contacts.map(contact => `
-    <div class="glass-card rounded-xl p-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-full bg-[#4d41df] flex items-center justify-center text-white font-semibold text-lg">
-          ${contact.name.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <h3 class="font-semibold">${contact.name}</h3>
-          <p class="text-sm text-gray-600">${contact.phone}</p>
-          ${contact.email ? `<p class="text-sm text-gray-500">${contact.email}</p>` : ''}
-          ${contact.company ? `<p class="text-sm text-gray-500">${contact.company}</p>` : ''}
-        </div>
-      </div>
+function renderPage(){
+  const start=(currentPage-1)*PAGE_SIZE;
+  const page=filtered.slice(start,start+PAGE_SIZE);
+  const list=document.getElementById('contacts-list');
+  document.getElementById('contacts-count').textContent=`${filtered.length} contacts`;
+  document.getElementById('page-label').textContent=`${currentPage} / ${Math.max(1,Math.ceil(filtered.length/PAGE_SIZE))}`;
+  if(!page.length){list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">contacts</span><p class="text-[14px] font-medium">No contacts found</p></div>`;return;}
+  list.innerHTML=page.map((c,i)=>`
+    <div class="contact-row grid grid-cols-[2fr_1fr_1.2fr_1fr_60px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
       <div class="flex items-center gap-3">
-        <span class="px-3 py-1 rounded-full text-xs font-semibold ${contact.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}">
-          ${contact.status}
-        </span>
-        <button onclick="deleteContact('${contact.id}')" class="p-2 hover:bg-red-50 rounded-lg">
-          <span class="material-symbols-outlined text-red-600">delete</span>
-        </button>
+        <div style="width:38px;height:38px;border-radius:999px;background:${avatarColor(c.name)};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;">${getInitials(c.name)}</div>
+        <div><div class="text-[13.5px] font-semibold text-on-surface">${c.name}</div><div class="text-[12px] text-on-surface-variant">${c.company||c.email||''}</div></div>
       </div>
-    </div>
-  `).join('');
+      <div>${tagChip(c.type)}</div>
+      <div class="hidden md:block text-[13px] text-on-surface-variant">${c.phone}</div>
+      <div class="hidden md:block text-[12.5px] text-on-surface-variant">${c.last_contact}</div>
+      <div class="flex justify-end"><button onclick="deleteContact('${c.id}')" class="w-8 h-8 rounded-lg hover:bg-error-container flex items-center justify-center transition-snappy"><span class="md-icon text-[17px] text-on-surface-variant">delete</span></button></div>
+    </div>`).join('');
 }
 
-async function deleteContact(id) {
-  if (!confirm('Delete this contact?')) return;
-  
-  try {
-    const { error } = await supabaseClient
-      .from('contacts')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
-    
-    await loadContacts();
-    alert('✅ Contact deleted');
-  } catch (error) {
-    console.error('Error:', error);
-    alert('❌ Error: ' + error.message);
-  }
+function setTag(t){
+  currentTag=t;currentPage=1;
+  document.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tag-'+t).classList.add('active');
+  filterContacts();
 }
 
-(async () => {
-  const session = await getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-    return;
-  }
-  
-  currentUser = session.user;
-  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
-  
-  await loadContacts();
-})();
+function filterContacts(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  filtered=allContacts.filter(c=>{
+    const mTag=currentTag==='all'||c.type===currentTag;
+    const mQ=!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q);
+    return mTag&&mQ;
+  });
+  currentPage=1;renderPage();
+}
+
+function changePage(d){const max=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));currentPage=Math.min(max,Math.max(1,currentPage+d));renderPage();}
+function openAddDrawer(){document.getElementById('drawer-overlay').classList.add('open');document.getElementById('add-drawer').classList.add('open');}
+function openImportDrawer(){document.getElementById('drawer-overlay').classList.add('open');document.getElementById('import-drawer').classList.add('open');}
+function closeDrawers(){document.getElementById('drawer-overlay').classList.remove('open');document.getElementById('add-drawer').classList.remove('open');document.getElementById('import-drawer').classList.remove('open');}
+
+function showToast(msg,icon='check_circle',color='#10b981'){
+  const inner=document.getElementById('toast-inner');
+  document.getElementById('toast-msg').textContent=msg;
+  const ic=document.getElementById('toast-icon');ic.textContent=icon;ic.style.color=color;
+  inner.style.opacity='1';inner.style.transform='translateY(0)';
+  setTimeout(()=>{inner.style.opacity='0';inner.style.transform='translateY(8px)';},3200);
+}
+
+async function saveContact(){
+  const name=(document.getElementById('add-fname').value.trim()+' '+document.getElementById('add-lname').value.trim()).trim();
+  const phone=document.getElementById('add-phone').value.trim();
+  if(!name||!phone){showToast('Name and phone required.','warning','#f59e0b');return;}
+  const c={id:Date.now().toString(),name,phone,email:document.getElementById('add-email').value,type:document.getElementById('add-type').value,company:document.getElementById('add-company').value,last_contact:'Just now'};
+  allContacts.unshift(c);filterContacts();updateStats();
+  showToast(`${name} added`,'person_add','#6C63FF');closeDrawers();
+}
+
+function deleteContact(id){allContacts=allContacts.filter(c=>c.id!==id);filterContacts();updateStats();showToast('Contact removed','delete','#ef4444');}
+
+function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)processCSV(f);}
+function handleFileSelect(e){const f=e.target.files[0];if(f)processCSV(f);}
+function processCSV(file){
+  document.getElementById('csv-filename').textContent=file.name;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const rows=ev.target.result.split('\n').filter(r=>r.trim()).slice(1);
+    csvParsed=rows.map(row=>{const[name,phone,email,type,company]=row.split(',').map(s=>s.trim());return{id:Date.now()+Math.random(),name:name||'',phone:phone||'',email:email||'',type:type||'client',company:company||'',last_contact:'Imported'};}).filter(r=>r.name);
+    document.getElementById('csv-rows').textContent=`${csvParsed.length} contacts detected`;
+    document.getElementById('csv-preview').classList.remove('hidden');
+  };
+  r.readAsText(file);
+}
+function importCSV(){
+  if(!csvParsed.length){showToast('Please select a CSV file first.','warning','#f59e0b');return;}
+  allContacts=[...csvParsed,...allContacts];filterContacts();updateStats();
+  showToast(`${csvParsed.length} contacts imported`,'upload_file','#6C63FF');closeDrawers();csvParsed=[];
+}
+
+function changeLanguage(){}
+
+async function init(){
+  const user=await protectPage();if(!user)return;
+  const name=user.display_name||user.email;
+  document.getElementById('avatar-initials').textContent=getInitials(name);
+  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
+  try{
+    const{data,error}=await window.supabase.from('contacts').select('*').eq('organization_id',user.organization_id).order('created_at',{ascending:false});
+    if(!error&&data&&data.length){allContacts=data.map(c=>({...c,last_contact:'Recently'}));}else{allContacts=MOCK;}
+  }catch{allContacts=MOCK;}
+  filtered=[...allContacts];renderPage();updateStats();
+}
+init();
 </script>
 </body>
 </html>

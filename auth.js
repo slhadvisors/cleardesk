@@ -213,6 +213,69 @@ function formatRole(role) {
   }
 }
 
+// ── Invite flow ──────────────────────────────────────────────────────────
+
+/**
+ * Send an invite to a new team member via the send-invite Edge Function.
+ * Must be called by an authenticated ORG_ADMIN or DEVELOPER.
+ *
+ * @param {string} email
+ * @param {string} displayName
+ * @param {'ORG_ADMIN'|'ORG_STAFF'} role
+ * @returns {Promise<{success:boolean, user_id?:string, error?:string}>}
+ */
+async function sendTeamInvite(email, displayName, role) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const SUPABASE_URL = supabase.supabaseUrl || 'https://grudvsgmbyobilqnvoof.supabase.co';
+  const ANON_KEY = supabase.supabaseKey || '';
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-invite`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': ANON_KEY,
+    },
+    body: JSON.stringify({ email, display_name: displayName, role }),
+  });
+
+  const payload = await res.json();
+  if (!res.ok) throw new Error(payload.error || `Invite failed (${res.status})`);
+  return payload;
+}
+
+/**
+ * Accept an invite token from the URL hash on invite.html.
+ * Exchanges the token for a session. Returns the user's metadata.
+ */
+async function acceptInviteToken(accessToken, refreshToken = '') {
+  const { data, error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Complete the invite by setting password + updating display name.
+ * Call this after acceptInviteToken() when the user submits the form.
+ */
+async function completeInviteSignup(password, displayName) {
+  const { error } = await supabase.auth.updateUser({
+    password,
+    data: {
+      display_name: displayName,
+      full_name: displayName,
+      invite_accepted: true,
+      invite_accepted_at: new Date().toISOString(),
+    },
+  });
+  if (error) throw error;
+}
+
 // Check if user is authenticated
 async function isAuthenticated() {
   const { data: { session } } = await supabase.auth.getSession();

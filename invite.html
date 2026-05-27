@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Accept Invitation — ClearDesk</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root {
+  --primary: #4d41df;
+  --primary-light: #675df9;
+  --neon-emerald: #34d399;
+  --warning: #dc2626;
+  --amber: #f59e0b;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --t-snappy: 0.22s cubic-bezier(0.25,1,0.5,1);
+}
+
+html,body{min-height:100%;font-family:var(--font);}
+
+/* ── Ambient background (Pillar A) ── */
+.ambient-bg {
+  position:fixed;inset:0;z-index:-1;overflow:hidden;
+  background:linear-gradient(135deg,#f0ecf9 0%,#e8e4f8 40%,#ede9ff 100%);
+  animation:hue-drift 18s ease-in-out infinite alternate;
+}
+@keyframes hue-drift{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(15deg)}}
+.ambient-bg::before {
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(108,99,255,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(6,182,212,0.08) 0%, transparent 70%);
+}
+
+/* ── Main card ── */
+.card-wrap {
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+}
+
+.invite-card {
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(24px) saturate(140%);
+  border:1px solid rgba(255,255,255,0.5);
+  border-radius:24px;
+  box-shadow:0 8px 40px rgba(77,65,223,0.12),0 2px 12px rgba(0,0,0,0.06);
+  padding:44px 48px;
+  width:100%;max-width:460px;
+  transition:opacity 0.3s,transform 0.3s;
+}
+
+/* ── Logo ── */
+.logo-wrap {
+  display:flex;align-items:center;gap:10px;margin-bottom:28px;
+}
+.logo-mark {
+  width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,#6C63FF,#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-mark svg { width:22px;height:22px;fill:#fff; }
+.logo-name { font-size:18px;font-weight:800;color:#1b1b24;letter-spacing:-0.01em; }
+.logo-sub  { font-size:11px;font-weight:500;color:#777587;letter-spacing:0.03em; }
+
+/* ── States ── */
+#state-loading, #state-error, #state-form, #state-success {
+  display:none;
+}
+#state-loading.show,#state-error.show,#state-form.show,#state-success.show {
+  display:block;
+}
+
+/* ── Loading spinner ── */
+.spinner-wrap { text-align:center;padding:20px 0; }
+.spinner {
+  width:44px;height:44px;border-radius:50%;
+  border:3px solid rgba(77,65,223,0.15);
+  border-top-color:var(--primary);
+  animation:spin 0.8s linear infinite;
+  margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-text{font-size:14px;color:#777587;}
+
+/* ── Avatar preview ── */
+.invite-avatar {
+  width:64px;height:64px;border-radius:20px;
+  background:linear-gradient(135deg,var(--primary),#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:700;color:#fff;
+  margin:0 auto 18px;
+}
+.invite-headline { font-size:22px;font-weight:700;color:#1b1b24;margin-bottom:6px;text-align:center; }
+.invite-sub { font-size:14px;color:#777587;text-align:center;margin-bottom:28px;line-height:1.5; }
+.invite-chip {
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(77,65,223,0.08);border:1px solid rgba(77,65,223,0.18);
+  color:var(--primary);border-radius:6px;padding:3px 10px;
+  font-size:12px;font-weight:600;margin:0 auto 28px;display:flex;width:fit-content;
+}
+
+/* ── Form fields ── */
+.field { margin-bottom:18px; }
+.field-label {
+  display:block;font-size:12px;font-weight:600;color:#464555;
+  letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;
+}
+.field-input {
+  width:100%;padding:10px 14px;border-radius:10px;
+  border:1.5px solid #c7c4d8;background:rgba(255,255,255,0.8);
+  font-size:14px;font-family:var(--font);color:#1b1b24;
+  outline:none;transition:border-color var(--t-snappy),box-shadow var(--t-snappy);
+}
+.field-input:focus {
+  border-color:var(--primary);
+  box-shadow:0 0 0 4px rgba(77,65,223,0.1);
+}
+.field-input[readonly] { background:rgba(240,236,249,0.7);color:#464555;cursor:not-allowed; }
+.field-hint { font-size:12px;color:#777587;margin-top:5px; }
+
+/* ── Password strength ── */
+.strength-bar {
+  height:4px;border-radius:2px;margin-top:8px;
+  background:#e4e1ee;overflow:hidden;
+}
+.strength-fill {
+  height:100%;border-radius:2px;width:0%;
+  transition:width 0.3s,background 0.3s;
+}
+
+/* ── Submit button ── */
+.btn-submit {
+  width:100%;padding:13px 20px;border:none;border-radius:12px;cursor:pointer;
+  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);
+  box-shadow:0 4px 16px rgba(77,65,223,0.3);
+  transition:all var(--t-snappy);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:10px;
+}
+.btn-submit:hover:not(:disabled) { filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 6px 24px rgba(77,65,223,0.38); }
+.btn-submit:disabled { opacity:0.55;cursor:not-allowed;transform:none; }
+.md-icon { font-family:'Material Symbols Outlined';font-style:normal;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;line-height:1; }
+
+/* ── Error alert ── */
+.alert {
+  border-radius:10px;padding:12px 16px;font-size:13.5px;margin-bottom:14px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.alert.err { background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);color:#dc2626; }
+.alert.ok  { background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:#047857; }
+.alert.warn{ background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#92400e; }
+
+/* ── Success ── */
+.success-icon {
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(52,211,153,0.12);border:2px solid rgba(52,211,153,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin:0 auto 20px;
+  animation:pop-in 0.5s cubic-bezier(0.25,1,0.5,1);
+}
+@keyframes pop-in{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+.success-title{font-size:22px;font-weight:700;color:#1b1b24;text-align:center;margin-bottom:8px;}
+.success-sub{font-size:14px;color:#777587;text-align:center;margin-bottom:28px;line-height:1.5;}
+.btn-go {
+  width:100%;padding:13px 20px;border:none;border-radius:12px;cursor:pointer;
+  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,#6C63FF 0%,#06b6d4 100%);
+  transition:all var(--t-snappy);
+}
+.btn-go:hover{filter:brightness(1.08);transform:translateY(-2px);}
+
+/* ── Error state ── */
+.error-icon{font-size:48px;text-align:center;margin-bottom:16px;}
+.error-title{font-size:20px;font-weight:700;color:#1b1b24;text-align:center;margin-bottom:8px;}
+.error-sub{font-size:14px;color:#777587;text-align:center;margin-bottom:24px;line-height:1.5;}
+.btn-retry{
+  width:100%;padding:12px;border:1.5px solid #c7c4d8;border-radius:10px;
+  background:transparent;font-family:var(--font);font-size:14px;font-weight:600;
+  color:#1b1b24;cursor:pointer;transition:all var(--t-snappy);
+}
+.btn-retry:hover{border-color:var(--primary);color:var(--primary);}
+</style>
+</head>
+
+<body>
+<div class="ambient-bg"></div>
+
+<div class="card-wrap">
+  <div class="invite-card" id="invite-card">
+
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">ClearDesk</div>
+        <div class="logo-sub">AI Tax Operations Hub</div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="state-loading" class="show">
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+        <div class="spinner-text">Verifying your invitation…</div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="state-error">
+      <div class="error-icon">🔗</div>
+      <div class="error-title" id="err-title">Invalid Invitation</div>
+      <div class="error-sub" id="err-sub">This invite link is invalid or has expired. Please ask your administrator to resend the invitation.</div>
+      <a href="login.html"><button class="btn-retry">Go to Login</button></a>
+    </div>
+
+    <!-- Form state -->
+    <div id="state-form">
+      <div class="invite-avatar" id="form-avatar">?</div>
+      <div class="invite-headline" id="form-headline">Welcome to ClearDesk</div>
+      <div class="invite-sub" id="form-sub">Set your password to activate your account.</div>
+      <div class="invite-chip" id="form-role-chip">
+        <span class="md-icon" style="font-size:14px;">shield</span>
+        <span id="form-role-label">Staff Member</span>
+      </div>
+
+      <div id="form-alert" style="display:none;"></div>
+
+      <div class="field">
+        <label class="field-label">Full Name</label>
+        <input class="field-input" id="field-name" type="text" placeholder="Your full name" />
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" id="field-email" type="email" readonly />
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" id="field-password" type="password"
+          placeholder="At least 8 characters" oninput="checkStrength(this.value)" />
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="field-hint" id="strength-label">Enter a password</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Confirm Password</label>
+        <input class="field-input" id="field-confirm" type="password" placeholder="Repeat password" />
+      </div>
+
+      <button class="btn-submit" id="submit-btn" onclick="submitInvite()">
+        <span class="md-icon">check_circle</span> Activate Account
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div id="state-success">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Account Activated!</div>
+      <div class="success-sub" id="success-sub">
+        Your ClearDesk account is ready. Redirecting to your dashboard…
+      </div>
+      <button class="btn-go" onclick="goToDashboard()">Open Dashboard →</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Parse invite token from URL hash ──────────────────────────────────────
+const hash     = window.location.hash.substring(1);
+const hashParams = Object.fromEntries(new URLSearchParams(hash));
+const accessToken  = hashParams.access_token;
+const refreshToken = hashParams.refresh_token || '';
+const tokenType    = hashParams.type; // should be 'invite' or 'signup'
+
+let invitedUserEmail = '';
+let invitedUserMeta  = {};
+
+async function init() {
+  if (!accessToken || (tokenType !== 'invite' && tokenType !== 'signup')) {
+    showState('error');
+    return;
+  }
+
+  try {
+    // Exchange the invite token for a session so we can read user metadata
+    const { data: sessionData, error: sessionErr } = await window.supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (sessionErr || !sessionData?.user) {
+      setError('Invitation Expired', 'This invite link may have already been used or has expired (links expire after 24 hours). Contact your administrator for a new invitation.');
+      showState('error');
+      return;
+    }
+
+    const user = sessionData.user;
+    invitedUserEmail = user.email;
+    invitedUserMeta  = user.user_metadata || {};
+
+    // If user already has a password set, they accepted before — redirect
+    if (user.last_sign_in_at && user.user_metadata?.invite_accepted) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    // Populate form
+    const displayName = invitedUserMeta.display_name || '';
+    const role        = invitedUserMeta.user_role || 'ORG_STAFF';
+
+    document.getElementById('field-email').value = invitedUserEmail;
+    document.getElementById('field-name').value  = displayName;
+
+    // Avatar initial
+    const initial = displayName ? displayName.charAt(0).toUpperCase() : invitedUserEmail.charAt(0).toUpperCase();
+    document.getElementById('form-avatar').textContent = initial;
+
+    // Headline
+    document.getElementById('form-headline').textContent = displayName
+      ? `Welcome, ${displayName.split(' ')[0]}!`
+      : 'Welcome to ClearDesk';
+    document.getElementById('form-sub').textContent =
+      `You've been invited to join as ${formatRole(role)}. Set your password to get started.`;
+
+    // Role chip
+    const roleMap = {
+      DEVELOPER: { label: 'Developer', icon: 'terminal' },
+      ORG_ADMIN:  { label: 'Admin',     icon: 'admin_panel_settings' },
+      ORG_STAFF:  { label: 'Staff',     icon: 'person' },
+    };
+    const rInfo = roleMap[role] || roleMap.ORG_STAFF;
+    document.getElementById('form-role-label').textContent = rInfo.label;
+
+    showState('form');
+  } catch(e) {
+    console.error(e);
+    setError('Something went wrong', 'Unable to verify your invitation. Please try again or contact support.');
+    showState('error');
+  }
+}
+
+// ── Password strength ─────────────────────────────────────────────────────
+function checkStrength(pw) {
+  const fill  = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (/[A-Z]/.test(pw))  score++;
+  if (/[0-9]/.test(pw))  score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  const map = [
+    { w:'0%',  c:'#dc2626', l:'Too short' },
+    { w:'25%', c:'#dc2626', l:'Weak' },
+    { w:'50%', c:'#f59e0b', l:'Fair' },
+    { w:'75%', c:'#06b6d4', l:'Good' },
+    { w:'100%',c:'#34d399', l:'Strong' },
+  ];
+  const s = map[Math.min(score, map.length-1)];
+  fill.style.width      = s.w;
+  fill.style.background = s.c;
+  label.textContent     = s.l;
+  label.style.color     = s.c;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+async function submitInvite() {
+  const name     = document.getElementById('field-name').value.trim();
+  const password = document.getElementById('field-password').value;
+  const confirm  = document.getElementById('field-confirm').value;
+
+  if (!name)             return showFormAlert('Please enter your full name.', 'err');
+  if (password.length < 8) return showFormAlert('Password must be at least 8 characters.', 'err');
+  if (password !== confirm)  return showFormAlert('Passwords do not match.', 'err');
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Activating…';
+  clearFormAlert();
+
+  try {
+    // Update password + display name in one call
+    const { error: updateErr } = await window.supabase.auth.updateUser({
+      password,
+      data: {
+        display_name: name,
+        full_name:    name,
+        invite_accepted: true,
+        invite_accepted_at: new Date().toISOString(),
+      },
+    });
+
+    if (updateErr) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="md-icon">check_circle</span> Activate Account';
+      return showFormAlert(updateErr.message, 'err');
+    }
+
+    // Update display name in user_profiles if table exists
+    try {
+      const { data: { user } } = await window.supabase.auth.getUser();
+      if (user) {
+        await window.supabase.from('user_profiles').upsert({
+          id: user.id,
+          display_name: name,
+          role: invitedUserMeta.user_role || 'ORG_STAFF',
+          organization_id: invitedUserMeta.organization_id,
+          email: invitedUserEmail,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch(e) {
+      // table may not exist yet — non-fatal
+      console.warn('user_profiles upsert skipped:', e);
+    }
+
+    // Mark pending_invite resolved
+    try {
+      await window.supabase.from('pending_invites')
+        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+        .eq('email', invitedUserEmail);
+    } catch(e) { /* non-fatal */ }
+
+    document.getElementById('success-sub').textContent =
+      `Welcome to ClearDesk, ${name.split(' ')[0]}! Your account is active. Redirecting…`;
+    showState('success');
+    setTimeout(goToDashboard, 2800);
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="md-icon">check_circle</span> Activate Account';
+    showFormAlert('Unexpected error — please try again.', 'err');
+    console.error(e);
+  }
+}
+
+function goToDashboard() {
+  window.location.href = 'index.html';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function formatRole(role) {
+  return { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff Member' }[role] || role;
+}
+function showState(name) {
+  ['loading','error','form','success'].forEach(s => {
+    document.getElementById('state-'+s).classList.toggle('show', s === name);
+  });
+}
+function setError(title, sub) {
+  document.getElementById('err-title').textContent = title;
+  document.getElementById('err-sub').textContent   = sub;
+}
+function showFormAlert(msg, type) {
+  const el = document.getElementById('form-alert');
+  el.style.display = 'block';
+  el.innerHTML = `<div class="alert ${type}"><span class="md-icon" style="font-size:18px;">${type==='err'?'error':'info'}</span>${msg}</div>`;
+}
+function clearFormAlert() {
+  const el = document.getElementById('form-alert');
+  el.style.display = 'none';
+  el.innerHTML = '';
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

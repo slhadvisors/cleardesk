@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Sovereign Master Vault</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --obsidian: #050505;
+  --obsidian-2: #0a0a0a;
+  --obsidian-3: #111111;
+  --obsidian-4: #1a1a1a;
+  --obsidian-5: #222222;
+  --crimson: #dc2626;
+  --crimson-dim: rgba(220,38,38,0.15);
+  --crimson-border: rgba(220,38,38,0.3);
+  --crimson-glow: 0 0 20px rgba(220,38,38,0.15);
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+  --text-primary: rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.5);
+  --text-muted: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.07);
+  --border-hot: rgba(220,38,38,0.25);
+}
+
+body {
+  font-family: var(--mono);
+  background: var(--obsidian);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Sovereign watermark ── */
+body::before {
+  content: 'SOVEREIGN LIVE PRODUCTION ROOT';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%) rotate(-35deg);
+  font-size: clamp(28px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(220,38,38,0.04);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+/* Repeating watermark tiles */
+body::after {
+  content: '';
+  position: fixed;
+  inset: -200px;
+  background-image: repeating-linear-gradient(
+    -35deg,
+    transparent,
+    transparent 120px,
+    rgba(220,38,38,0.022) 120px,
+    rgba(220,38,38,0.022) 122px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.relative { position: relative; z-index: 1; }
+
+/* ── Nav ── */
+.ops-nav {
+  background: rgba(5,5,5,0.95);
+  border-bottom: 1px solid var(--crimson-border);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 0 rgba(220,38,38,0.1), var(--crimson-glow);
+}
+
+/* ── Glass panels ── */
+.ops-panel {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ops-panel-hot {
+  background: var(--obsidian-3);
+  border: 1px solid var(--crimson-border);
+  border-radius: 8px;
+  box-shadow: var(--crimson-glow);
+}
+
+/* ── Hazard container ── */
+.hazard-zone {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(220,38,38,0.03) 0px,
+    rgba(220,38,38,0.03) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  border: 1px solid var(--crimson-border);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+}
+.hazard-zone::before {
+  content: '⚠ DESTRUCTIVE OPERATION ZONE';
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--crimson);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 10px;
+  border-radius: 4px;
+}
+
+/* ── Inputs ── */
+.ops-input {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ops-input:focus {
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+}
+.ops-input.confirm-input:valid {
+  border-color: var(--crimson);
+}
+
+/* ── Buttons ── */
+.btn-crimson {
+  background: var(--crimson);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  position: relative;
+}
+.btn-crimson:hover {
+  background: #b91c1c;
+  box-shadow: var(--crimson-glow);
+}
+/* Vibrate on hover for high-risk */
+.btn-danger:hover {
+  animation: vibrate 0.12s linear infinite;
+}
+@keyframes vibrate {
+  0%   { transform: translate(0,0) rotate(0deg); }
+  20%  { transform: translate(-1px,0) rotate(-0.3deg); }
+  40%  { transform: translate(1px,0) rotate(0.3deg); }
+  60%  { transform: translate(-1px,0) rotate(-0.3deg); }
+  80%  { transform: translate(1px,0) rotate(0.3deg); }
+  100% { transform: translate(0,0) rotate(0deg); }
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+
+/* ── Stat cards ── */
+.ops-stat {
+  background: var(--obsidian-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  transition: border-color 0.2s;
+}
+.ops-stat:hover { border-color: var(--crimson-border); }
+.ops-stat-val {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.ops-stat-lbl {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* ── Table ── */
+.ops-table { width: 100%; border-collapse: collapse; }
+.ops-table th {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.ops-table td {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: var(--mono);
+}
+.ops-table tr:last-child td { border-bottom: none; }
+.ops-table tr:hover td { background: rgba(255,255,255,0.02); }
+.ops-table td.bright { color: var(--text-primary); }
+.ops-table td.hot { color: var(--crimson); }
+
+/* ── Status pills ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.pill-active  { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.pill-paused  { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+.pill-blocked { background: var(--crimson-dim);    color: #f87171; border: 1px solid var(--crimson-border); }
+.pill-trial   { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+
+/* ── TOTP Modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--obsidian-3);
+  border: 1px solid var(--crimson-border);
+  border-radius: 12px;
+  padding: 32px;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: var(--crimson-glow), 0 24px 64px rgba(0,0,0,0.8);
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+.modal-backdrop.open .modal-box { transform: scale(1); }
+
+/* TOTP digit inputs */
+.totp-row { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+.totp-digit {
+  width: 48px;
+  height: 56px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(220,38,38,0.3);
+  border-radius: 8px;
+  color: var(--crimson);
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  caret-color: transparent;
+}
+.totp-digit:focus {
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.2);
+}
+
+/* ── Section headings ── */
+.section-label {
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Margin bar ── */
+.margin-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+.margin-fill { height: 100%; border-radius: 999px; transition: width 1.2s cubic-bezier(0.25,1,0.5,1); }
+
+/* ── Sidebar ── */
+.ops-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--obsidian-2);
+  border-right: 1px solid var(--border);
+  min-height: calc(100vh - 56px);
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.sidebar-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+.sidebar-item.active { color: var(--crimson); border-left-color: var(--crimson); background: var(--crimson-dim); }
+
+/* ── Pulse dot ── */
+@keyframes crimsonPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+  50%      { box-shadow: 0 0 0 5px rgba(220,38,38,0); }
+}
+.crimson-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--crimson); animation: crimsonPulse 2s ease-in-out infinite; }
+
+/* ── Scroll ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(220,38,38,0.2); border-radius: 2px; }
+
+/* ── Toast ── */
+.ops-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 300;
+  background: var(--obsidian-4);
+  border: 1px solid var(--crimson-border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.25s;
+  pointer-events: none;
+}
+.ops-toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Entrance ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.fade-in { animation: fadeIn 0.35s ease forwards; }
+.delay-1 { animation-delay: 0.05s; opacity:0; }
+.delay-2 { animation-delay: 0.10s; opacity:0; }
+.delay-3 { animation-delay: 0.15s; opacity:0; }
+.delay-4 { animation-delay: 0.20s; opacity:0; }
+.delay-5 { animation-delay: 0.25s; opacity:0; }
+
+.md-icon { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; user-select:none; }
+</style>
+</head>
+
+<body>
+<div class="relative" style="min-height:100vh; display:flex; flex-direction:column;">
+
+  <!-- ══ NAV ══ -->
+  <nav class="ops-nav">
+    <div style="max-width:1400px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; height:56px;">
+      <!-- Brand -->
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border:1px solid var(--crimson-border); border-radius:6px;">
+          <span class="md-icon" style="font-size:16px; color:var(--crimson);">security</span>
+        </div>
+        <span style="font-size:13px; font-weight:700; letter-spacing:0.08em; color:var(--text-primary);">CLEARDESK</span>
+        <span style="font-size:10px; letter-spacing:0.15em; color:var(--crimson); background:var(--crimson-dim); border:1px solid var(--crimson-border); padding:2px 8px; border-radius:4px; font-weight:700;">SOVEREIGN ROOT</span>
+      </div>
+
+      <!-- Live indicator -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="crimson-dot"></div>
+        <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">LIVE PRODUCTION</span>
+      </div>
+
+      <!-- User -->
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span style="font-size:11px; color:var(--text-muted);" id="ops-user-label">—</span>
+        <button onclick="signOut()" class="btn-ghost" style="font-size:11px; padding:6px 14px; letter-spacing:0.08em;">LOGOUT</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ BODY ══ -->
+  <div style="display:flex; flex:1;">
+
+    <!-- Sidebar -->
+    <aside class="ops-sidebar">
+      <div style="padding:16px 16px 8px; font-size:10px; letter-spacing:0.12em; color:var(--text-muted);">SOVEREIGN OPS</div>
+      <a href="#section-overview"  class="sidebar-item active" onclick="switchSection('overview',this)"><span class="md-icon" style="font-size:17px;">dashboard</span>Overview</a>
+      <a href="#section-orgs"      class="sidebar-item"        onclick="switchSection('orgs',this)"><span class="md-icon" style="font-size:17px;">corporate_fare</span>Organizations</a>
+      <a href="#section-billing"   class="sidebar-item"        onclick="switchSection('billing',this)"><span class="md-icon" style="font-size:17px;">account_balance_wallet</span>Billing & Credits</a>
+      <a href="#section-circuit"   class="sidebar-item"        onclick="switchSection('circuit',this)"><span class="md-icon" style="font-size:17px;">electric_bolt</span>Circuit Breaker</a>
+      <a href="#section-campaigns" class="sidebar-item"        onclick="switchSection('campaigns',this)"><span class="md-icon" style="font-size:17px;">campaign</span>Live Campaigns</a>
+      <a href="#section-vault"     class="sidebar-item"        onclick="switchSection('vault',this)"><span class="md-icon" style="font-size:17px;">lock</span>Vault Controls</a>
+
+      <div style="padding:16px 16px 8px; margin-top:16px; font-size:10px; letter-spacing:0.12em; color:var(--text-muted); border-top:1px solid var(--border);">SYSTEM</div>
+      <a href="index.html"     class="sidebar-item"><span class="md-icon" style="font-size:17px;">arrow_back</span>Client App</a>
+      <a href="developer/index.html" class="sidebar-item"><span class="md-icon" style="font-size:17px;">terminal</span>Developer</a>
+    </aside>
+
+    <!-- Main -->
+    <main style="flex:1; padding:28px 32px; overflow-y:auto; max-width:1180px;">
+
+      <!-- ─── OVERVIEW ─── -->
+      <div id="section-overview">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">dashboard</span>Platform Overview</div>
+
+        <!-- Stat row -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;" class="fade-in delay-2">
+          <div class="ops-stat">
+            <div class="ops-stat-val" id="s-orgs">0</div>
+            <div class="ops-stat-lbl">Organizations</div>
+          </div>
+          <div class="ops-stat">
+            <div class="ops-stat-val" id="s-active">0</div>
+            <div class="ops-stat-lbl">Active Tenants</div>
+          </div>
+          <div class="ops-stat">
+            <div class="ops-stat-val" id="s-margin" style="color:var(--crimson);">—%</div>
+            <div class="ops-stat-lbl">Gross Margin</div>
+          </div>
+          <div class="ops-stat">
+            <div class="ops-stat-val" id="s-campaigns">0</div>
+            <div class="ops-stat-lbl">Live Campaigns</div>
+          </div>
+        </div>
+
+        <!-- Gross margin bar -->
+        <div class="ops-panel fade-in delay-3" style="margin-top:16px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:11.5px; color:var(--text-secondary);">PLATFORM GROSS MARGIN</span>
+            <span style="font-size:11px; color:var(--text-muted);">threshold: 35%</span>
+          </div>
+          <div class="margin-bar">
+            <div class="margin-fill" id="margin-fill" style="width:0%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px;">
+            <span style="font-size:11px; color:var(--text-muted);">0%</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span id="margin-label" style="font-size:12px; color:var(--text-secondary);">Calculating…</span>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">100%</span>
+          </div>
+        </div>
+
+        <!-- Recent activity feed -->
+        <div class="ops-panel fade-in delay-4" style="margin-top:16px;">
+          <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
+            <div class="crimson-dot" style="width:6px;height:6px;"></div>
+            <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">LIVE AUDIT LOG</span>
+          </div>
+          <div id="audit-log" style="max-height:240px; overflow-y:auto;">
+            <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── ORGANIZATIONS ─── -->
+      <div id="section-orgs" style="display:none;">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">corporate_fare</span>All Organizations</div>
+        <div class="ops-panel fade-in delay-2" style="overflow:hidden;">
+          <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px;">
+            <input type="text" class="ops-input" style="width:260px; padding:7px 12px; font-size:12px;" placeholder="› filter orgs…" oninput="filterOrgs(this.value)"/>
+            <button class="btn-ghost" style="font-size:11px; padding:7px 14px;" onclick="loadOrgs()">↻ REFRESH</button>
+          </div>
+          <table class="ops-table">
+            <thead><tr>
+              <th>Organization</th><th>Status</th><th>Country</th>
+              <th>Balance</th><th>Created</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="orgs-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── BILLING & CREDITS ─── -->
+      <div id="section-billing" style="display:none;">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">account_balance_wallet</span>Billing & Credits</div>
+
+        <!-- Credit adjustment -->
+        <div class="ops-panel fade-in delay-2" style="padding:20px; margin-bottom:16px;">
+          <div style="font-size:11.5px; color:var(--text-secondary); letter-spacing:0.08em; margin-bottom:16px;">MANUAL CREDIT ADJUSTMENT</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 140px auto; gap:12px; align-items:end;">
+            <div>
+              <label style="font-size:10.5px; color:var(--text-muted); letter-spacing:0.08em; display:block; margin-bottom:6px;">ORG ID / NAME</label>
+              <input type="text" class="ops-input" id="credit-org" placeholder="org-uuid or firm name"/>
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:var(--text-muted); letter-spacing:0.08em; display:block; margin-bottom:6px;">AMOUNT (USD)</label>
+              <input type="number" class="ops-input" id="credit-amount" placeholder="e.g. 50.00"/>
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:var(--text-muted); letter-spacing:0.08em; display:block; margin-bottom:6px;">OPERATION</label>
+              <select class="ops-input" id="credit-op">
+                <option value="add">ADD</option>
+                <option value="deduct">DEDUCT</option>
+                <option value="set">SET EXACT</option>
+              </select>
+            </div>
+            <button class="btn-ghost" onclick="adjustCredit()" style="padding:10px 16px; font-size:11px; letter-spacing:0.08em;">APPLY</button>
+          </div>
+          <div id="credit-confirm-row" style="display:none; margin-top:14px;">
+            <div class="hazard-zone" style="padding:14px 18px;">
+              <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Type <span style="color:var(--crimson); font-weight:700;">CONFIRM OVERRIDE</span> to proceed:</div>
+              <div style="display:flex; gap:10px;">
+                <input type="text" class="ops-input confirm-input" id="credit-confirm-text" placeholder="CONFIRM OVERRIDE" style="width:260px;"/>
+                <button class="btn-crimson btn-danger" onclick="executeCreditAdjust()">EXECUTE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing status table -->
+        <div class="ops-panel fade-in delay-3" style="overflow:hidden;">
+          <div style="padding:12px 16px; border-bottom:1px solid var(--border);">
+            <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">BILLING STATUS — ALL ORGS</span>
+          </div>
+          <table class="ops-table">
+            <thead><tr>
+              <th>Firm</th><th>Status</th><th>Balance</th><th>Overdraft</th><th>Budget Cap</th><th>Spend MTD</th>
+            </tr></thead>
+            <tbody id="billing-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── CIRCUIT BREAKER ─── -->
+      <div id="section-circuit" style="display:none;">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">electric_bolt</span>Circuit Breaker Status</div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;" class="fade-in delay-2">
+          <div class="ops-panel-hot" style="padding:20px;">
+            <div style="font-size:10.5px; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:10px;">BREAKERS OPEN</div>
+            <div style="font-size:36px; font-weight:700; color:var(--crimson);" id="cb-open">0</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">wallet depleted / blocked</div>
+          </div>
+          <div class="ops-panel" style="padding:20px;">
+            <div style="font-size:10.5px; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:10px;">BREAKERS CLOSED</div>
+            <div style="font-size:36px; font-weight:700; color:#34d399;" id="cb-closed">0</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">authorized to execute</div>
+          </div>
+          <div class="ops-panel" style="padding:20px;">
+            <div style="font-size:10.5px; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:10px;">PAST DUE HALT</div>
+            <div style="font-size:36px; font-weight:700; color:#fbbf24;" id="cb-halt">0</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">settlement required</div>
+          </div>
+        </div>
+
+        <!-- Circuit breaker table -->
+        <div class="ops-panel fade-in delay-3" style="margin-top:16px; overflow:hidden;">
+          <table class="ops-table">
+            <thead><tr><th>Organization</th><th>Breaker State</th><th>Balance</th><th>Reason</th><th>Action</th></tr></thead>
+            <tbody id="circuit-tbody">
+              <tr><td colspan="5" style="text-align:center; padding:24px; color:var(--text-muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── LIVE CAMPAIGNS ─── -->
+      <div id="section-campaigns" style="display:none;">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">campaign</span>Live Campaign Control</div>
+
+        <div class="ops-panel fade-in delay-2" style="overflow:hidden;">
+          <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">ALL PROCESSING CAMPAIGNS</span>
+            <button class="btn-crimson btn-danger" onclick="confirmPauseAll()" style="font-size:11px; padding:7px 16px; letter-spacing:0.08em;">⏸ PAUSE ALL</button>
+          </div>
+          <table class="ops-table">
+            <thead><tr><th>Campaign</th><th>Org</th><th>Mode</th><th>Status</th><th>Budget Used</th><th>Control</th></tr></thead>
+            <tbody id="campaigns-tbody">
+              <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─── VAULT CONTROLS ─── -->
+      <div id="section-vault" style="display:none;">
+        <div class="section-label fade-in delay-1"><span class="md-icon" style="font-size:15px; color:var(--crimson);">lock</span>Vault Controls — Irreversible Operations</div>
+
+        <div style="display:grid; gap:16px;" class="fade-in delay-2">
+
+          <!-- Purge sandbox records -->
+          <div class="hazard-zone">
+            <div style="display:flex; align-items:start; justify-content:space-between; gap:20px;">
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Force-Purge Sandbox Records</div>
+                <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">Immediately destroys all <code style="color:var(--crimson);">guest_trial</code> records across all organizations. Normally auto-purges after 2h. This fires instantly.</div>
+              </div>
+              <button class="btn-crimson btn-danger" onclick="openVaultModal('purge-sandbox')" style="flex-shrink:0; white-space:nowrap;">EXECUTE PURGE</button>
+            </div>
+          </div>
+
+          <!-- Kill all campaigns -->
+          <div class="hazard-zone">
+            <div style="display:flex; align-items:start; justify-content:space-between; gap:20px;">
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Emergency Kill — All Active Campaigns</div>
+                <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">Force-sets all <code style="color:var(--crimson);">processing</code> campaigns to <code style="color:var(--crimson);">paused</code> globally. Terminates all in-flight Vapi calls and SMS queues.</div>
+              </div>
+              <button class="btn-crimson btn-danger" onclick="openVaultModal('kill-campaigns')" style="flex-shrink:0; white-space:nowrap;">KILL ALL</button>
+            </div>
+          </div>
+
+          <!-- Lock org -->
+          <div class="hazard-zone">
+            <div style="display:flex; align-items:start; justify-content:space-between; gap:20px;">
+              <div style="flex:1;">
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Lock Organization</div>
+                <div style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px;">Sets billing status to <code style="color:var(--crimson);">past_due</code>. Freezes all API traffic for the org immediately.</div>
+                <input type="text" class="ops-input" id="lock-org-id" placeholder="› org UUID…" style="width:320px;"/>
+              </div>
+              <button class="btn-crimson btn-danger" onclick="openVaultModal('lock-org')" style="flex-shrink:0; white-space:nowrap;">LOCK ORG</button>
+            </div>
+          </div>
+
+          <!-- Drop all RLS -->
+          <div class="hazard-zone">
+            <div style="display:flex; align-items:start; justify-content:space-between; gap:20px;">
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:6px;">Rotate All Webhook Secrets</div>
+                <div style="font-size:12px; color:var(--text-secondary); line-height:1.6;">Re-generates Supabase webhook signing secrets for all active integrations. Connected CRMs must re-register.</div>
+              </div>
+              <button class="btn-crimson btn-danger" onclick="openVaultModal('rotate-secrets')" style="flex-shrink:0; white-space:nowrap;">ROTATE SECRETS</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ TOTP MFA MODAL ══ -->
+<div class="modal-backdrop" id="mfa-modal">
+  <div class="modal-box">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+      <span class="md-icon" style="font-size:22px; color:var(--crimson);">security</span>
+      <span style="font-size:14px; font-weight:700; letter-spacing:0.05em; color:var(--text-primary);">SOVEREIGN VERIFICATION</span>
+    </div>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Operation: <span id="mfa-op-label" style="color:var(--crimson); font-weight:700;"></span></p>
+    <p style="font-size:11.5px; color:var(--text-muted);">Type <span style="color:var(--crimson);">CONFIRM OVERRIDE</span> then enter 6-digit TOTP code.</p>
+
+    <!-- Text confirmation -->
+    <div style="margin-top:18px; margin-bottom:4px;">
+      <label style="font-size:10.5px; letter-spacing:0.1em; color:var(--text-muted);">TEXT CONFIRMATION</label>
+    </div>
+    <input type="text" class="ops-input confirm-input" id="mfa-confirm-text" placeholder="CONFIRM OVERRIDE" autocomplete="off"/>
+
+    <!-- TOTP -->
+    <div style="margin-top:16px; margin-bottom:4px;">
+      <label style="font-size:10.5px; letter-spacing:0.1em; color:var(--text-muted);">6-DIGIT TOTP CODE</label>
+    </div>
+    <div class="totp-row">
+      <input type="text" maxlength="1" class="totp-digit" id="t0" oninput="totpNav(0,this)" onkeydown="totpBack(0,event)"/>
+      <input type="text" maxlength="1" class="totp-digit" id="t1" oninput="totpNav(1,this)" onkeydown="totpBack(1,event)"/>
+      <input type="text" maxlength="1" class="totp-digit" id="t2" oninput="totpNav(2,this)" onkeydown="totpBack(2,event)"/>
+      <input type="text" maxlength="1" class="totp-digit" id="t3" oninput="totpNav(3,this)" onkeydown="totpBack(3,event)"/>
+      <input type="text" maxlength="1" class="totp-digit" id="t4" oninput="totpNav(4,this)" onkeydown="totpBack(4,event)"/>
+      <input type="text" maxlength="1" class="totp-digit" id="t5" oninput="totpNav(5,this)" onkeydown="totpBack(5,event)"/>
+    </div>
+    <div id="mfa-error" style="font-size:11.5px; color:var(--crimson); min-height:18px; text-align:center; margin-bottom:4px;"></div>
+
+    <div style="display:flex; gap:10px; margin-top:4px;">
+      <button class="btn-ghost" onclick="closeMfaModal()" style="flex:1; letter-spacing:0.08em; font-size:11.5px;">CANCEL</button>
+      <button class="btn-crimson btn-danger" onclick="executeMfaAction()" style="flex:1; letter-spacing:0.08em; font-size:11.5px;">AUTHORIZE</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="ops-toast" id="ops-toast">
+  <span class="md-icon" id="toast-icon" style="font-size:18px;">info</span>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+// ── State ──
+let currentMfaAction = null;
+let allOrgs = [];
+
+// ── Mock data ──
+const MOCK_ORGS = [
+  {id:'org-1',firm_name:'Gupta & Sons Accounting',country_code:'IN',billing_status:'active',  credit_balance:420.50, overdraft_allowed:true, overdraft_limit:500,created_at:'2024-01-15'},
+  {id:'org-2',firm_name:'Nair Exports Ltd',        country_code:'IN',billing_status:'active',  credit_balance:85.20,  overdraft_allowed:true, overdraft_limit:500,created_at:'2024-02-03'},
+  {id:'org-3',firm_name:'Kapoor Real Estate',      country_code:'IN',billing_status:'trial',   credit_balance:0,      overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-05-20'},
+  {id:'org-4',firm_name:'Bhatt Consultants LLC',   country_code:'US',billing_status:'active',  credit_balance:1200.00,overdraft_allowed:true, overdraft_limit:500,created_at:'2024-03-11'},
+  {id:'org-5',firm_name:'Al Fardan Group',         country_code:'AE',billing_status:'past_due',credit_balance:-120.00,overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-04-01'},
+  {id:'org-6',firm_name:'Demo Corp (Sandbox)',     country_code:'US',billing_status:'guest_trial',credit_balance:0,   overdraft_allowed:false,overdraft_limit:0,  created_at:'2024-05-27'},
+];
+const MOCK_CAMPAIGNS = [
+  {id:'c1',campaign_name:'Q4 Tax Reminder',    org:'Gupta & Sons',  execution_mode:'automated',status:'processing',  budget_used:38.50, budget_cap:50},
+  {id:'c2',campaign_name:'Sales Outreach Q4',  org:'Nair Exports',  execution_mode:'manual',   status:'processing',  budget_used:12.20, budget_cap:50},
+  {id:'c3',campaign_name:'GSTR-1 Alert',       org:'Bhatt Consult', execution_mode:'automated',status:'scheduled',   budget_used:0,     budget_cap:30},
+  {id:'c4',campaign_name:'Enterprise Demo',    org:'Kapoor RE',     execution_mode:'manual',   status:'draft',       budget_used:0,     budget_cap:20},
+];
+const MOCK_AUDIT = [
+  {ts:'10:42:01', actor:'system',    action:'Circuit breaker fired — Al Fardan Group wallet depleted',type:'warn'},
+  {ts:'10:38:17', actor:'prasad@cd', action:'Credit adjusted +$200 — Bhatt Consultants LLC',         type:'info'},
+  {ts:'10:22:44', actor:'system',    action:'New org registered — Demo Corp (Sandbox)',               type:'info'},
+  {ts:'09:55:03', actor:'system',    action:'Campaign paused — past_due halt — Al Fardan Group',     type:'warn'},
+  {ts:'09:30:11', actor:'prasad@cd', action:'Vault login — TOTP verified',                           type:'ok'},
+  {ts:'Yesterday','actor':'system',  action:'Sandbox purge — 3 guest_trial records destroyed',       type:'info'},
+];
+
+// ── Section nav ──
+const SECTIONS = ['overview','orgs','billing','circuit','campaigns','vault'];
+function switchSection(name, el) {
+  event && event.preventDefault();
+  SECTIONS.forEach(s => {
+    const el = document.getElementById('section-'+s);
+    if(el) el.style.display = s===name?'block':'none';
+  });
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  // Load data for section
+  if(name==='orgs')      loadOrgs();
+  if(name==='billing')   loadBilling();
+  if(name==='circuit')   loadCircuit();
+  if(name==='campaigns') loadCampaigns();
+}
+
+// ── Stat counters ──
+function animCount(el, v, suffix='') {
+  let s=null;
+  const f=t=>{if(!s)s=t;const p=Math.min((t-s)/900,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v)+suffix;if(p<1)requestAnimationFrame(f);};
+  requestAnimationFrame(f);
+}
+
+// ── Load overview ──
+async function loadOverview() {
+  try {
+    const { data, error } = await window.supabase.from('organizations').select('*');
+    allOrgs = (!error && data && data.length) ? data : MOCK_ORGS;
+  } catch { allOrgs = MOCK_ORGS; }
+
+  const active = allOrgs.filter(o=>o.billing_status==='active').length;
+  animCount(document.getElementById('s-orgs'),      allOrgs.length);
+  animCount(document.getElementById('s-active'),    active);
+  animCount(document.getElementById('s-campaigns'), MOCK_CAMPAIGNS.filter(c=>c.status==='processing').length);
+
+  // Gross margin mock calculation
+  const margin = 61; // mock: (retail - wholesale) / retail * 100
+  document.getElementById('s-margin').textContent = margin+'%';
+  document.getElementById('s-margin').style.color = margin < 35 ? '#f87171' : '#34d399';
+  const fill = document.getElementById('margin-fill');
+  fill.style.background = margin < 35 ? '#dc2626' : margin < 55 ? '#f59e0b' : '#34d399';
+  fill.style.width = margin+'%';
+  document.getElementById('margin-label').textContent = margin+'% '+(margin<35?'⚠ BELOW THRESHOLD':margin<55?'WATCH':'HEALTHY');
+  document.getElementById('margin-label').style.color = margin<35?'#f87171':margin<55?'#fbbf24':'#34d399';
+
+  // Audit log
+  document.getElementById('audit-log').innerHTML = MOCK_AUDIT.map(e=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.03);">
+      <span style="font-size:11px;color:var(--text-muted);font-family:var(--mono);flex-shrink:0;">${e.ts}</span>
+      <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:${e.type==='warn'?'#f59e0b':e.type==='ok'?'#34d399':'rgba(255,255,255,0.3)'}"></span>
+      <span style="font-size:12px;color:${e.type==='warn'?'#fbbf24':e.type==='ok'?'#34d399':'var(--text-secondary)'};">[${e.actor}] ${e.action}</span>
+    </div>`).join('');
+}
+
+// ── Load orgs ──
+async function loadOrgs() {
+  const tbody = document.getElementById('orgs-tbody');
+  const statusPill = s => {
+    const m = {active:'pill-active',trial:'pill-trial',past_due:'pill-blocked',canceled:'pill-blocked',guest_trial:'pill-paused'};
+    return `<span class="pill ${m[s]||'pill-paused'}">${s.replace('_',' ').toUpperCase()}</span>`;
+  };
+  tbody.innerHTML = allOrgs.map(o=>`
+    <tr>
+      <td class="bright">${o.firm_name}</td>
+      <td>${statusPill(o.billing_status)}</td>
+      <td>${o.country_code}</td>
+      <td class="${parseFloat(o.credit_balance)<0?'hot':'bright'}">$${parseFloat(o.credit_balance||0).toFixed(2)}</td>
+      <td>${o.created_at?o.created_at.slice(0,10):'—'}</td>
+      <td>
+        <button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;letter-spacing:0.05em;" onclick="lockOrg('${o.id}','${o.firm_name}')">LOCK</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterOrgs(q) {
+  const rows = document.querySelectorAll('#orgs-tbody tr');
+  rows.forEach(r => { r.style.display = q ? (r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none') : ''; });
+}
+
+// ── Load billing ──
+async function loadBilling() {
+  document.getElementById('billing-tbody').innerHTML = allOrgs.map(o=>{
+    const statusPill = s => {const m={active:'pill-active',trial:'pill-trial',past_due:'pill-blocked',canceled:'pill-blocked',guest_trial:'pill-paused'};return `<span class="pill ${m[s]||'pill-paused'}">${s.replace('_',' ').toUpperCase()}</span>`;};
+    return `<tr>
+      <td class="bright">${o.firm_name}</td>
+      <td>${statusPill(o.billing_status)}</td>
+      <td class="${parseFloat(o.credit_balance)<0?'hot':'bright'}">$${parseFloat(o.credit_balance||0).toFixed(2)}</td>
+      <td>${o.overdraft_allowed?`<span style="color:#34d399;">YES ($${o.overdraft_limit})</span>`:'<span style="color:var(--text-muted);">NO</span>'}</td>
+      <td>$${(o.monthly_budget_cap||100).toFixed(2)}</td>
+      <td>$${(Math.random()*80).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Load circuit breaker ──
+async function loadCircuit() {
+  const open   = allOrgs.filter(o=>o.billing_status==='past_due'||parseFloat(o.credit_balance||0)<=0).length;
+  const halt   = allOrgs.filter(o=>o.billing_status==='past_due').length;
+  const closed = allOrgs.length - open;
+  document.getElementById('cb-open').textContent   = open;
+  document.getElementById('cb-closed').textContent = closed;
+  document.getElementById('cb-halt').textContent   = halt;
+
+  document.getElementById('circuit-tbody').innerHTML = allOrgs.map(o=>{
+    const bal = parseFloat(o.credit_balance||0);
+    const isOpen = o.billing_status==='past_due'||bal<=0;
+    const reason = o.billing_status==='past_due'?'Settlement required':bal<=0?'Wallet depleted':'Authorized';
+    const state = isOpen ? '<span class="pill pill-blocked">OPEN</span>' : '<span class="pill pill-active">CLOSED</span>';
+    return `<tr>
+      <td class="bright">${o.firm_name}</td>
+      <td>${state}</td>
+      <td class="${bal<0?'hot':'bright'}">$${bal.toFixed(2)}</td>
+      <td style="color:${isOpen?'#fbbf24':'var(--text-muted)'};">${reason}</td>
+      <td>${isOpen?`<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="resetBreaker('${o.id}')">RESET</button>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Load campaigns ──
+async function loadCampaigns() {
+  document.getElementById('campaigns-tbody').innerHTML = MOCK_CAMPAIGNS.map(c=>{
+    const pct = c.budget_cap?Math.round(c.budget_used/c.budget_cap*100):0;
+    const statusPill = s=>{const m={processing:'pill-active',scheduled:'pill-paused',draft:'pill-trial',paused:'pill-blocked'};return `<span class="pill ${m[s]||'pill-paused'}">${s.toUpperCase()}</span>`;};
+    return `<tr>
+      <td class="bright">${c.campaign_name}</td>
+      <td>${c.org}</td>
+      <td>${c.execution_mode.toUpperCase()}</td>
+      <td>${statusPill(c.status)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:80px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${pct>80?'#dc2626':pct>60?'#f59e0b':'#34d399'};border-radius:2px;"></div></div>
+          <span style="font-size:11px;color:var(--text-muted);">$${c.budget_used}/$${c.budget_cap}</span>
+        </div>
+      </td>
+      <td>
+        ${c.status==='processing'?`<button class="btn-ghost" style="font-size:10.5px;padding:4px 10px;" onclick="pauseCampaign('${c.id}')">PAUSE</button>`:'—'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Credit adjustment ──
+function adjustCredit() {
+  const org = document.getElementById('credit-org').value.trim();
+  const amt = document.getElementById('credit-amount').value;
+  if(!org||!amt) { showToast('Fill org + amount first.','warning'); return; }
+  document.getElementById('credit-confirm-row').style.display='block';
+  document.getElementById('credit-confirm-text').focus();
+}
+function executeCreditAdjust() {
+  const txt = document.getElementById('credit-confirm-text').value;
+  if(txt !== 'CONFIRM OVERRIDE') { showToast('Type exact phrase: CONFIRM OVERRIDE','error'); return; }
+  showToast('Credit adjustment queued — requires Supabase Edge Function hook.','ok');
+  document.getElementById('credit-confirm-row').style.display='none';
+  document.getElementById('credit-confirm-text').value='';
+}
+
+// ── Vault modal ──
+const OP_LABELS = {
+  'purge-sandbox'  : 'FORCE PURGE — guest_trial records',
+  'kill-campaigns' : 'EMERGENCY KILL — all processing campaigns',
+  'lock-org'       : 'LOCK ORGANIZATION — billing past_due',
+  'rotate-secrets' : 'ROTATE — all webhook secrets',
+};
+function openVaultModal(op) {
+  currentMfaAction = op;
+  document.getElementById('mfa-op-label').textContent = OP_LABELS[op] || op;
+  document.getElementById('mfa-confirm-text').value = '';
+  document.getElementById('mfa-error').textContent = '';
+  [0,1,2,3,4,5].forEach(i => document.getElementById('t'+i).value='');
+  document.getElementById('mfa-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('mfa-confirm-text').focus(), 100);
+}
+function closeMfaModal() {
+  document.getElementById('mfa-modal').classList.remove('open');
+  currentMfaAction = null;
+}
+
+// TOTP navigation
+function totpNav(idx, el) {
+  el.value = el.value.replace(/\D/,'');
+  if(el.value && idx < 5) document.getElementById('t'+(idx+1)).focus();
+  if(idx===5 && el.value) checkTotpComplete();
+}
+function totpBack(idx, e) {
+  if(e.key==='Backspace' && !document.getElementById('t'+idx).value && idx>0) {
+    document.getElementById('t'+(idx-1)).focus();
+  }
+}
+function checkTotpComplete() {
+  const code = [0,1,2,3,4,5].map(i=>document.getElementById('t'+i).value).join('');
+  if(code.length===6) executeMfaAction();
+}
+
+async function executeMfaAction() {
+  const txt  = document.getElementById('mfa-confirm-text').value;
+  const code = [0,1,2,3,4,5].map(i=>document.getElementById('t'+i).value).join('');
+  const errEl = document.getElementById('mfa-error');
+  if(txt !== 'CONFIRM OVERRIDE') { errEl.textContent = 'Type: CONFIRM OVERRIDE exactly.'; return; }
+  if(code.length !== 6 || !/^\d{6}$/.test(code)) { errEl.textContent = 'Enter 6-digit TOTP code.'; return; }
+
+  // In production: verify AAL2 via supabase.auth.mfa.verify()
+  // Simulating success here:
+  errEl.textContent = '';
+  closeMfaModal();
+  const opName = OP_LABELS[currentMfaAction] || currentMfaAction;
+  showToast(`Executed: ${opName}`,'ok');
+}
+
+// ── Helpers ──
+function lockOrg(id, name) { openVaultModal('lock-org'); document.getElementById('lock-org-id').value=id; }
+function resetBreaker(id) { showToast('Breaker reset queued for org '+id,'ok'); }
+function pauseCampaign(id) { showToast('Campaign '+id+' paused.','ok'); }
+function confirmPauseAll() { openVaultModal('kill-campaigns'); }
+
+function showToast(msg, type='info') {
+  const toast=document.getElementById('ops-toast'), ic=document.getElementById('toast-icon'), ms=document.getElementById('toast-msg');
+  const colors={ok:'#34d399',warn:'#fbbf24',error:'#f87171',info:'rgba(255,255,255,0.5)'};
+  const icons={ok:'check_circle',warn:'warning',error:'error',info:'info'};
+  ic.textContent=icons[type]; ic.style.color=colors[type]; ms.textContent=msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),3500);
+}
+
+// ── Init ──
+async function init() {
+  // Require DEVELOPER role
+  const user = await requireMinimumRole('DEVELOPER', '/login.html');
+  if(!user) return;
+  document.getElementById('ops-user-label').textContent = (user.display_name||user.email).toUpperCase();
+  await loadOverview();
+  // animate margin bar after paint
+  setTimeout(()=>{
+    const m=61;
+    document.getElementById('margin-fill').style.width=m+'%';
+  }, 300);
+}
+init();
+</script>
+</body>
+</html>

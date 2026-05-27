@@ -1,168 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk - Agents</title>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Agents</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="translations.js"></script>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<script>
 tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      "colors": {
-        "on-background": "#1b1b24",
-        "primary": "#4d41df",
-        "secondary": "#005bbf",
-        "tertiary": "#914800",
-        "on-primary": "#ffffff",
-        "on-secondary": "#ffffff",
-        "surface-container": "#f0ecf9",
-        "on-surface": "#1b1b24",
-        "on-surface-variant": "#464555"
-      }
-    }
-  }
+  darkMode:"class",
+  theme:{extend:{colors:{"on-background":"#1b1b24","surface-tint":"#4f44e2","secondary-container":"#5694fe","surface-dim":"#dcd8e5","surface-variant":"#e4e1ee","on-error":"#ffffff","primary-fixed-dim":"#c4c0ff","surface-container-high":"#eae6f3","surface-container-low":"#f6f2ff","secondary":"#005bbf","tertiary":"#914800","on-primary":"#ffffff","tertiary-container":"#b65c00","on-secondary":"#ffffff","primary":"#4d41df","outline":"#777587","surface-bright":"#fcf8ff","surface-container-highest":"#e4e1ee","background":"#fcf8ff","primary-fixed":"#e3dfff","inverse-surface":"#302f39","error":"#ba1a1a","secondary-fixed":"#d7e2ff","surface-container":"#f0ecf9","on-surface-variant":"#464555","surface-container-lowest":"#ffffff","on-surface":"#1b1b24","error-container":"#ffdad6","surface":"#fcf8ff","inverse-primary":"#c4c0ff","primary-container":"#675df9","outline-variant":"#c7c4d8"},fontFamily:{sans:["Plus Jakarta Sans","sans-serif"]},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem","2xl":"1rem","3xl":"1.5rem",full:"9999px"}}}
 }
 </script>
+
 <style>
-body {
-    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-    min-height: 100vh;
-}
-.glass-card {
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-}
-.glass-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(32px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:100vh;overflow-x:hidden;}
+.ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,0.13) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,0.10) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 50%,rgba(198,194,255,0.08) 0%,transparent 60%),linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);animation:ambientShift 20s ease-in-out infinite alternate;}
+@keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
+.glass-nav{background:rgba(255,255,255,0.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 0 rgba(77,65,223,0.06);}
+.glass-card{background:rgba(255,255,255,0.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,0.5);box-shadow:0 4px 24px rgba(77,65,223,0.07),0 1px 0 rgba(255,255,255,0.8) inset;}
+.glass-card-solid{background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);box-shadow:0 4px 24px rgba(77,65,223,0.08);}
+.transition-snappy{transition:all 0.22s cubic-bezier(0.25,1,0.5,1);}
+.card-hover{transition:transform 0.22s cubic-bezier(0.25,1,0.5,1),box-shadow 0.22s cubic-bezier(0.25,1,0.5,1),border-color 0.22s ease;}
+.card-hover:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(77,65,223,0.14),0 1px 0 rgba(255,255,255,0.8) inset;border-color:rgba(108,99,255,0.25);}
+.nav-item{position:relative;transition:color 0.18s ease;}
+.nav-item::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:#6C63FF;border-radius:2px;transition:transform 0.22s cubic-bezier(0.25,1,0.5,1);}
+.nav-item:hover::after,.nav-item.active::after{transform:translateX(-50%) scaleX(1);}
+.nav-item.active{color:#6C63FF;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.enter{opacity:0;animation:slideUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards;}
+.enter-1{animation-delay:.05s}.enter-2{animation-delay:.10s}.enter-3{animation-delay:.15s}.enter-4{animation-delay:.20s}
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;user-select:none;}
+.credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
+
+/* Agent card */
+.agent-card{cursor:pointer;}
+.agent-avatar{width:64px;height:64px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex-shrink:0;margin:0 auto;}
+
+/* Status dot */
+.status-online{width:10px;height:10px;border-radius:50%;background:#10b981;border:2px solid #fff;box-shadow:0 0 0 3px rgba(16,185,129,0.2);}
+.status-away   {width:10px;height:10px;border-radius:50%;background:#f59e0b;border:2px solid #fff;}
+.status-offline{width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;}
+
+/* Performance bar */
+.perf-bar{height:6px;border-radius:999px;background:rgba(108,99,255,0.12);overflow:hidden;}
+.perf-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#6C63FF,#8b5cf6);transition:width 1.2s cubic-bezier(0.25,1,0.5,1);}
+.perf-fill.good{background:linear-gradient(90deg,#10b981,#34d399);}
+.perf-fill.warn{background:linear-gradient(90deg,#f59e0b,#fcd34d);}
+
+/* Drawer */
+.drawer-overlay{position:fixed;inset:0;background:rgba(15,12,41,0.35);backdrop-filter:blur(4px);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s ease;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;right:0;top:0;height:100%;width:540px;max-width:95vw;z-index:101;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);}
+.drawer.open{transform:translateX(0);}
+
+/* Stat micro */
+.micro-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
+
+/* Sparkline placeholder */
+.sparkline{height:36px;border-radius:8px;background:rgba(108,99,255,0.06);display:flex;align-items:flex-end;gap:2px;padding:4px 6px;overflow:hidden;}
+.spark-bar{border-radius:2px;background:rgba(108,99,255,0.25);flex:1;transition:background 0.2s;}
+.spark-bar.high{background:rgba(16,185,129,0.5);}
+.spark-bar.low {background:rgba(239,68,68,0.35);}
+
+.filter-btn{background:transparent;cursor:pointer;}
+.filter-btn.active{background:rgba(108,99,255,0.1);color:#6C63FF;border-color:rgba(108,99,255,0.2)!important;}
+
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.2);border-radius:3px}
+@media(max-width:768px){.nav-scroll{overflow-x:auto}.agents-grid{grid-template-columns:1fr!important;}}
 </style>
 </head>
+
 <body class="text-on-surface">
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
-          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="text-xl font-semibold">ClearDesk</span>
+<div class="ambient-bg"></div>
+<div class="relative z-10 min-h-screen flex flex-col">
+
+<!-- NAVBAR -->
+<nav class="glass-nav sticky top-0 z-50">
+  <div class="max-w-[1320px] mx-auto px-6 md:px-10">
+    <div class="flex items-center justify-between h-16 gap-6">
+      <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
+        <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm"><span class="md-icon text-white text-[17px]">receipt_long</span></div>
+        <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
       </a>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="text-sm hover:text-primary">Dashboard</a>
-        <a href="team-management.html" class="text-sm hover:text-primary">Teams</a>
-        <a href="agent-detail.html" class="text-sm text-primary font-semibold">Agents</a>
-        <a href="campaigns.html" class="text-sm hover:text-primary">Campaigns</a>
-        <a href="contacts.html" class="text-sm hover:text-primary">Contacts</a>
-        <a href="call-logs.html" class="text-sm hover:text-primary">Calls</a>
-        <a href="sms-logs.html" class="text-sm hover:text-primary">SMS</a>
-        <a href="settings.html" class="text-sm hover:text-primary">Settings</a>
-        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-primary text-white rounded-full text-sm">Logout</button>
+      <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto">
+        <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
+        <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
+        <a href="agent-detail.html"    class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
+        <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
+        <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
+        <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
+        <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
+        <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <select id="language-selector" class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none transition-snappy">
+          <option value="ENGLISH">🌐 EN</option><option value="HINDI">🇮🇳 HI</option><option value="MARATHI">🇮🇳 MR</option>
+        </select>
+        <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+          <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+          <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
+        </button>
       </div>
     </div>
   </div>
 </nav>
 
-<main class="pt-24 pb-12 px-6">
-  <div class="max-w-7xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold mb-2">Automation Agents</h1>
-      <p class="text-lg text-on-surface-variant">View and manage your compliance agents</p>
+<!-- MAIN -->
+<main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4 enter enter-1">
+    <div>
+      <h1 class="text-[26px] font-bold text-on-surface tracking-tight">AI Agents</h1>
+      <p class="text-[14px] text-on-surface-variant mt-0.5">Monitor agent performance, call volumes, and success rates</p>
     </div>
-    
-    <div id="agents-container" class="space-y-4">
-      <div class="glass-card rounded-xl p-6 animate-pulse">
-        <div class="h-6 bg-surface-container rounded mb-4"></div>
-        <div class="h-4 bg-surface-container rounded"></div>
+    <div class="flex items-center gap-2.5">
+      <div class="relative">
+        <span class="md-icon absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+        <input id="search-input" oninput="filterAgents()" type="text" placeholder="Search agents…" class="pl-9 pr-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy w-48"/>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setFilter('all')"     id="f-all"     class="filter-btn active px-3.5 py-2 text-[12.5px] font-semibold rounded-xl border border-transparent transition-snappy">All</button>
+        <button onclick="setFilter('online')"  id="f-online"  class="filter-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl border border-transparent text-on-surface-variant transition-snappy">Online</button>
+        <button onclick="setFilter('offline')" id="f-offline" class="filter-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl border border-transparent text-on-surface-variant transition-snappy">Offline</button>
       </div>
     </div>
   </div>
-</main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="supabase-config.js"></script>
-<script src="auth.js"></script>
-<script>
-(async () => {
-  const session = await getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-    return;
-  }
-  
-  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
-  
-  // Load agents with team names
-  const { data: agents, error } = await supabaseClient
-    .from('agents')
-    .select(`
-      *,
-      teams (name)
-    `)
-    .order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error('Error:', error);
-    return;
-  }
-  
-  const container = document.getElementById('agents-container');
-  container.innerHTML = agents.map(agent => `
-    <div class="glass-card rounded-xl p-6 hover:shadow-lg transition-shadow">
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <div class="flex items-center gap-3 mb-2">
-            <h3 class="text-xl font-semibold">${agent.name}</h3>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-              agent.status === 'active' ? 'bg-secondary text-white' : 'bg-surface-container'
-            }">
-              ${agent.status}
-            </span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <p class="text-sm text-on-surface-variant mb-1">Email</p>
-              <p class="text-sm font-medium">${agent.email || 'N/A'}</p>
-            </div>
-            <div>
-              <p class="text-sm text-on-surface-variant mb-1">Role</p>
-              <p class="text-sm font-medium">${agent.role || 'N/A'}</p>
-            </div>
-            <div>
-              <p class="text-sm text-on-surface-variant mb-1">Team</p>
-              <p class="text-sm font-medium">${agent.teams?.name || 'Unassigned'}</p>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-6 mt-4 pt-4 border-t border-white/20">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
-              <div>
-                <p class="text-xs text-on-surface-variant">Compliance Rate</p>
-                <p class="text-sm font-semibold">${agent.compliance_rate?.toFixed(1) || 0}%</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-secondary text-xl">task</span>
-              <div>
-                <p class="text-xs text-on-surface-variant">Tasks Completed</p>
-                <p class="text-sm font-semibold">${agent.tasks_completed || 0}</p>
-              </div>
-            </div>
+  <!-- Summary stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 enter enter-2">
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center"><span class="md-icon text-[20px] text-[#6C63FF]">support_agent</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Total Agents</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-total">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#dcfce7] flex items-center justify-center"><span class="md-icon text-[20px] text-emerald-600">wifi_tethering</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Online Now</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-online">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#cffafe] flex items-center justify-center"><span class="md-icon text-[20px] text-cyan-700">call</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Calls Today</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-calls">0</div>
+    </div>
+    <div class="glass-card rounded-2xl p-5 card-hover">
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#e0f2fe] flex items-center justify-center"><span class="md-icon text-[20px] text-sky-600">trending_up</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Avg Success Rate</span></div>
+      <div class="text-[28px] font-bold text-on-surface" id="stat-rate">0%</div>
+    </div>
+  </div>
+
+  <!-- Agent grid -->
+  <div class="agents-grid grid grid-cols-3 gap-5 enter enter-3" id="agents-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-on-surface-variant col-span-3">
+      <span class="md-icon text-[28px] animate-spin">progress_activity</span>
+      <span class="text-[13.5px]">Loading agents…</span>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- Agent Detail Drawer -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="agent-drawer" class="drawer glass-card-solid">
+  <div class="h-full flex flex-col overflow-y-auto">
+    <!-- Drawer header with gradient accent -->
+    <div class="relative p-6 pb-0" id="drawer-header-bg">
+      <div class="absolute inset-0 opacity-10 rounded-t-0" id="drawer-accent" style="background:linear-gradient(135deg,#6C63FF,#8b5cf6);"></div>
+      <div class="relative flex items-start justify-between mb-5">
+        <div class="flex items-center gap-4">
+          <div class="agent-avatar" id="d-avatar" style="width:56px;height:56px;font-size:20px;"></div>
+          <div>
+            <h2 class="text-[18px] font-bold text-on-surface" id="d-name">—</h2>
+            <p class="text-[13px] text-on-surface-variant" id="d-email">—</p>
+            <div class="flex items-center gap-1.5 mt-1" id="d-status-row"></div>
           </div>
         </div>
+        <button onclick="closeDrawer()" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy flex-shrink-0">
+          <span class="md-icon text-[20px] text-on-surface-variant">close</span>
+        </button>
       </div>
     </div>
-  `).join('');
-})();
+
+    <div class="p-6 space-y-6 flex-1">
+      <!-- KPI row -->
+      <div class="grid grid-cols-4 gap-3">
+        <div class="glass-card rounded-xl p-3 text-center">
+          <div class="text-[20px] font-bold text-on-surface" id="d-calls">—</div>
+          <div class="text-[11px] text-on-surface-variant mt-0.5">Calls Today</div>
+        </div>
+        <div class="glass-card rounded-xl p-3 text-center">
+          <div class="text-[20px] font-bold text-on-surface" id="d-success">—</div>
+          <div class="text-[11px] text-on-surface-variant mt-0.5">Success Rate</div>
+        </div>
+        <div class="glass-card rounded-xl p-3 text-center">
+          <div class="text-[20px] font-bold text-on-surface" id="d-avg-dur">—</div>
+          <div class="text-[11px] text-on-surface-variant mt-0.5">Avg Duration</div>
+        </div>
+        <div class="glass-card rounded-xl p-3 text-center">
+          <div class="text-[20px] font-bold text-on-surface" id="d-sms">—</div>
+          <div class="text-[11px] text-on-surface-variant mt-0.5">SMS Sent</div>
+        </div>
+      </div>
+
+      <!-- Performance bar -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[12.5px] font-semibold text-on-surface">Overall Performance</span>
+          <span class="text-[12.5px] font-bold text-[#6C63FF]" id="d-perf-label">—</span>
+        </div>
+        <div class="perf-bar">
+          <div class="perf-fill" id="d-perf-bar" style="width:0%;"></div>
+        </div>
+      </div>
+
+      <!-- Weekly activity sparkline -->
+      <div>
+        <p class="text-[12.5px] font-semibold text-on-surface mb-2">Weekly Call Volume</p>
+        <div class="sparkline" id="d-sparkline"></div>
+        <div class="flex justify-between mt-1">
+          <span class="text-[11px] text-outline">Mon</span><span class="text-[11px] text-outline">Tue</span><span class="text-[11px] text-outline">Wed</span><span class="text-[11px] text-outline">Thu</span><span class="text-[11px] text-outline">Fri</span><span class="text-[11px] text-outline">Sat</span><span class="text-[11px] text-outline">Sun</span>
+        </div>
+      </div>
+
+      <!-- Active campaigns -->
+      <div>
+        <p class="text-[12.5px] font-semibold text-on-surface mb-3">Assigned Campaigns</p>
+        <div id="d-campaigns" class="space-y-2"></div>
+      </div>
+
+      <!-- Recent calls -->
+      <div>
+        <p class="text-[12.5px] font-semibold text-on-surface mb-3">Recent Calls</p>
+        <div id="d-recent" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AVATAR_COLORS=['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+let allAgents=[],filtered=[],currentFilter='all';
+
+const MOCK=[
+  {id:'1',name:'Aria (Doc Chaser)',  email:'aria@cleardesk.ai',  status:'online',  calls_today:34,success_rate:91,avg_duration:'2:47',sms_today:12,weekly:[22,28,34,31,34,8,4], campaigns:['Q4 Tax Reminder','Doc Chaser Batch'],recent:[{name:'Rajesh Gupta',status:'completed',time:'10:15 AM'},{name:'Suresh Patil',status:'completed',time:'09:52 AM'},{name:'Kavitha Iyer',status:'failed',time:'09:31 AM'}]},
+  {id:'2',name:'Nova (Sales)',        email:'nova@cleardesk.ai',   status:'online',  calls_today:27,success_rate:84,avg_duration:'4:12',sms_today:9, weekly:[18,24,20,27,27,5,2], campaigns:['Sales Outreach Q4','Enterprise Demo'],recent:[{name:'Manish Kapoor',status:'completed',time:'09:20 AM'},{name:'Anita Menon',status:'no-answer',time:'10:05 AM'}]},
+  {id:'3',name:'Echo (Deadline)',     email:'echo@cleardesk.ai',   status:'online',  calls_today:19,success_rate:78,avg_duration:'1:55',sms_today:22,weekly:[12,16,18,19,19,3,1], campaigns:['GSTR-1 Reminder','TDS Alert'],recent:[{name:'Ritu Bhatt',status:'completed',time:'11:00 AM'},{name:'Deepa Nair',status:'completed',time:'09:00 AM'}]},
+  {id:'4',name:'Pulse (Collections)', email:'pulse@cleardesk.ai',  status:'away',    calls_today:11,success_rate:67,avg_duration:'3:30',sms_today:5, weekly:[8,11,9,10,11,2,0], campaigns:['Outstanding Dues'],recent:[{name:'Sanjay Reddy',status:'no-answer',time:'2:30 PM'},{name:'Vikram Malhotra',status:'failed',time:'2 days ago'}]},
+  {id:'5',name:'Zen (Onboarding)',    email:'zen@cleardesk.ai',    status:'offline', calls_today:0, success_rate:95,avg_duration:'5:20',sms_today:0, weekly:[15,20,18,22,0,0,0], campaigns:['New Client Welcome'],recent:[{name:'Pooja Agarwal',status:'completed',time:'Yesterday'}]},
+  {id:'6',name:'Flux (WhatsApp)',     email:'flux@cleardesk.ai',   status:'online',  calls_today:8, success_rate:88,avg_duration:'—',   sms_today:41,weekly:[5,6,8,7,8,3,1], campaigns:['WhatsApp Broadcast'],recent:[{name:'Aakash Verma',status:'completed',time:'Yesterday'}]},
+];
+
+function getInitials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function avatarColor(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
+function animCounter(el,v,d=900,suffix=''){let s=null;const f=t=>{if(!s)s=t;const p=Math.min((t-s)/d,1);const e=1-Math.pow(1-p,3);el.textContent=Math.round(e*v)+suffix;if(p<1)requestAnimationFrame(f);};requestAnimationFrame(f);}
+
+function statusDot(s){
+  const cls={online:'status-online',away:'status-away',offline:'status-offline'}[s]||'status-offline';
+  const label={online:'Online',away:'Away',offline:'Offline'}[s]||s;
+  const color={online:'text-emerald-700',away:'text-amber-700',offline:'text-on-surface-variant'}[s];
+  return `<span class="${cls}"></span><span class="text-[12px] font-semibold ${color}">${label}</span>`;
+}
+
+function perfClass(r){return r>=85?'good':r>=65?'':'warn';}
+
+function sparkBars(weekly){
+  const max=Math.max(...weekly,1);
+  return weekly.map(v=>{
+    const pct=Math.round(v/max*100);
+    const cls=pct>=75?'high':pct<=25?'low':'';
+    return `<div class="spark-bar ${cls}" style="height:${Math.max(pct,8)}%;"></div>`;
+  }).join('');
+}
+
+function renderGrid(agents){
+  const grid=document.getElementById('agents-grid');
+  if(!agents.length){grid.innerHTML=`<div class="glass-card rounded-2xl p-12 flex flex-col items-center gap-3 text-on-surface-variant col-span-3"><span class="md-icon text-[40px] opacity-40">support_agent</span><p class="text-[14px] font-medium">No agents found</p></div>`;return;}
+  grid.innerHTML=agents.map((a,i)=>`
+    <div class="glass-card agent-card card-hover rounded-2xl p-5 flex flex-col gap-4" onclick="openDrawer('${a.id}')" style="animation:slideUp 0.4s cubic-bezier(0.25,1,0.5,1) ${i*0.07}s both;">
+      <!-- Avatar + status -->
+      <div class="relative flex flex-col items-center gap-2 pt-2">
+        <div class="relative">
+          <div class="agent-avatar" style="background:${avatarColor(a.name)}">${getInitials(a.name)}</div>
+          <div class="absolute bottom-0 right-0 ${a.status==='online'?'status-online':a.status==='away'?'status-away':'status-offline'}"></div>
+        </div>
+        <div class="text-center">
+          <div class="text-[14px] font-bold text-on-surface leading-tight">${a.name}</div>
+          <div class="text-[11.5px] text-on-surface-variant mt-0.5">${a.email}</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-3 gap-2 border-t border-outline-variant/30 pt-4">
+        <div class="micro-stat">
+          <span class="text-[17px] font-bold text-on-surface">${a.calls_today}</span>
+          <span class="text-[10.5px] text-on-surface-variant text-center">Calls</span>
+        </div>
+        <div class="micro-stat">
+          <span class="text-[17px] font-bold text-on-surface">${a.success_rate}%</span>
+          <span class="text-[10.5px] text-on-surface-variant text-center">Success</span>
+        </div>
+        <div class="micro-stat">
+          <span class="text-[17px] font-bold text-on-surface">${a.sms_today}</span>
+          <span class="text-[10.5px] text-on-surface-variant text-center">SMS</span>
+        </div>
+      </div>
+
+      <!-- Performance bar -->
+      <div>
+        <div class="perf-bar">
+          <div class="perf-fill ${perfClass(a.success_rate)}" style="width:${a.success_rate}%;"></div>
+        </div>
+        <div class="flex justify-between mt-1.5">
+          <span class="text-[11px] text-on-surface-variant">Performance</span>
+          <span class="text-[11px] font-semibold ${a.success_rate>=85?'text-emerald-600':a.success_rate>=65?'text-[#6C63FF]':'text-amber-600'}">${a.success_rate>=85?'Excellent':a.success_rate>=65?'Good':'Needs Attention'}</span>
+        </div>
+      </div>
+
+      <!-- Mini sparkline -->
+      <div class="sparkline">${sparkBars(a.weekly)}</div>
+    </div>`).join('');
+}
+
+function updateStats(){
+  animCounter(document.getElementById('stat-total'),  allAgents.length);
+  animCounter(document.getElementById('stat-online'), allAgents.filter(a=>a.status==='online').length);
+  animCounter(document.getElementById('stat-calls'),  allAgents.reduce((s,a)=>s+a.calls_today,0));
+  const avgRate=allAgents.length?Math.round(allAgents.reduce((s,a)=>s+a.success_rate,0)/allAgents.length):0;
+  document.getElementById('stat-rate').textContent=avgRate+'%';
+}
+
+function setFilter(f){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('f-'+f).classList.add('active');
+  filterAgents();
+}
+function filterAgents(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  filtered=allAgents.filter(a=>{
+    const mF=currentFilter==='all'||(currentFilter==='online'&&a.status==='online')||(currentFilter==='offline'&&a.status!=='online');
+    const mQ=!q||a.name.toLowerCase().includes(q)||a.email.toLowerCase().includes(q);
+    return mF&&mQ;
+  });
+  renderGrid(filtered);
+}
+
+function openDrawer(id){
+  const a=allAgents.find(x=>x.id===id);if(!a)return;
+  const col=avatarColor(a.name);
+  document.getElementById('d-avatar').style.background=col;
+  document.getElementById('d-avatar').textContent=getInitials(a.name);
+  document.getElementById('d-accent').style.background=`linear-gradient(135deg,${col},#8b5cf6)`;
+  document.getElementById('d-name').textContent=a.name;
+  document.getElementById('d-email').textContent=a.email;
+  document.getElementById('d-status-row').innerHTML=statusDot(a.status);
+  document.getElementById('d-calls').textContent=a.calls_today;
+  document.getElementById('d-success').textContent=a.success_rate+'%';
+  document.getElementById('d-avg-dur').textContent=a.avg_duration;
+  document.getElementById('d-sms').textContent=a.sms_today;
+  document.getElementById('d-perf-label').textContent=a.success_rate+'%';
+  const bar=document.getElementById('d-perf-bar');
+  bar.className='perf-fill '+perfClass(a.success_rate);
+  setTimeout(()=>bar.style.width=a.success_rate+'%',80);
+  document.getElementById('d-sparkline').innerHTML=sparkBars(a.weekly);
+  document.getElementById('d-campaigns').innerHTML=a.campaigns.map(c=>`
+    <div class="glass-card rounded-xl px-4 py-2.5 flex items-center gap-2.5">
+      <span class="md-icon text-[17px] text-[#6C63FF]">campaign</span>
+      <span class="text-[13px] font-medium text-on-surface">${c}</span>
+    </div>`).join('');
+  const statusColors={completed:'text-emerald-600','no-answer':'text-amber-600',failed:'text-red-500'};
+  document.getElementById('d-recent').innerHTML=a.recent.map(r=>`
+    <div class="glass-card rounded-xl px-4 py-2.5 flex items-center justify-between">
+      <span class="text-[13px] font-medium text-on-surface">${r.name}</span>
+      <div class="flex items-center gap-2">
+        <span class="text-[12px] ${statusColors[r.status]||'text-on-surface-variant'} font-semibold capitalize">${r.status.replace('-',' ')}</span>
+        <span class="text-[11.5px] text-outline">${r.time}</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('agent-drawer').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('agent-drawer').classList.remove('open');
+  document.getElementById('d-perf-bar').style.width='0%';
+}
+
+async function init(){
+  const user=await protectPage();if(!user)return;
+  const name=user.display_name||user.email;
+  document.getElementById('avatar-initials').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
+
+  // Try Supabase, fall back to mock
+  try{
+    const{data,error}=await window.supabase.from('ai_agents').select('*').eq('organization_id',user.organization_id);
+    if(!error&&data&&data.length){
+      allAgents=data.map(a=>({id:a.id,name:a.agent_name||a.name,email:a.email||a.agent_name+'@cleardesk.ai',status:a.is_active?'online':'offline',calls_today:a.calls_today||0,success_rate:a.success_rate||0,avg_duration:a.avg_duration||'—',sms_today:a.sms_today||0,weekly:a.weekly_calls||[0,0,0,0,0,0,0],campaigns:a.campaigns||[],recent:a.recent_calls||[]}));
+    }else{allAgents=MOCK;}
+  }catch{allAgents=MOCK;}
+  filtered=[...allAgents];renderGrid(filtered);updateStats();
+}
+init();
 </script>
 </body>
 </html>

@@ -1,165 +1,1502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Developer Portal - ClearDesk</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="../supabase-config.js"></script>
-  <script src="../auth.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Developer Portal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../supabase-config.js"></script>
+<script src="../auth.js"></script>
+<script src="../translations.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ── Pillar B tokens ── */
+:root {
+  --base-slate:        #0f172a;
+  --slate-800:         #1e293b;
+  --slate-700:         #2a3a52;
+  --slate-600:         #334155;
+  --slate-500:         #475569;
+  --slate-400:         #64748b;
+  --slate-300:         #94a3b8;
+  --slate-200:         #cbd5e1;
+  --neon-cyan:         #06b6d4;
+  --neon-cyan-dim:     rgba(6,182,212,0.13);
+  --neon-cyan-border:  rgba(6,182,212,0.28);
+  --neon-emerald:      #34d399;
+  --neon-emerald-dim:  rgba(52,211,153,0.12);
+  --warning-crimson:   #dc2626;
+  --crimson-dim:       rgba(220,38,38,0.12);
+  --crimson-border:    rgba(220,38,38,0.28);
+  --amber:             #f59e0b;
+  --amber-dim:         rgba(245,158,11,0.12);
+  --violet:            #8b5cf6;
+  --violet-dim:        rgba(139,92,246,0.12);
+  --text-primary:      #f1f5f9;
+  --text-secondary:    #94a3b8;
+  --text-muted:        #475569;
+  --border-dim:        rgba(255,255,255,0.06);
+  --border-med:        rgba(255,255,255,0.10);
+  --card-bg:           rgba(255,255,255,0.03);
+  --card-bg-hover:     rgba(255,255,255,0.055);
+  --font-mono:         'JetBrains Mono','Fira Code',monospace;
+  --font-sans:         'Plus Jakarta Sans',sans-serif;
+  --t-snappy:          0.22s cubic-bezier(0.25,1,0.5,1);
+}
+
+html { scroll-behavior:smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--base-slate);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* subtle cyan grid overlay */
+body::before {
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(6,182,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,0.03) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+.rel{position:relative;z-index:1;}
+
+/* ── Topbar ── */
+.topbar {
+  position:sticky;top:0;z-index:100;
+  background:rgba(15,23,42,0.96);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border-dim);
+  box-shadow:0 1px 0 rgba(6,182,212,0.08);
+  height:60px;
+  display:flex;align-items:center;
+  padding:0 28px;
+  gap:24px;
+}
+.topbar-brand {
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+}
+.topbar-brand .badge {
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  background:var(--neon-cyan-dim);color:var(--neon-cyan);
+  border:1px solid var(--neon-cyan-border);
+  padding:2px 8px;border-radius:4px;letter-spacing:0.08em;
+}
+.topbar-brand .title {
+  font-size:15px;font-weight:700;color:var(--text-primary);
+}
+.topbar-divider { width:1px;height:24px;background:var(--border-dim); }
+.back-link {
+  font-family:var(--font-mono);font-size:12px;color:var(--text-muted);
+  text-decoration:none;display:flex;align-items:center;gap:5px;
+  transition:color var(--t-snappy);
+}
+.back-link:hover{color:var(--neon-cyan);}
+.topbar-spacer{flex:1;}
+.topbar-user {
+  display:flex;align-items:center;gap:10px;
+}
+.topbar-avatar {
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--violet),var(--neon-cyan));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;
+  flex-shrink:0;
+}
+.topbar-name{font-size:13px;font-weight:600;color:var(--text-secondary);}
+
+/* ── Subnav ── */
+.subnav {
+  background:rgba(15,23,42,0.7);
+  border-bottom:1px solid var(--border-dim);
+  padding:0 28px;
+  display:flex;align-items:center;gap:4px;
+  height:44px;
+  position:sticky;top:60px;z-index:99;
+}
+.subnav-link {
+  font-family:var(--font-mono);font-size:12px;font-weight:500;
+  color:var(--text-muted);padding:6px 14px;border-radius:5px;
+  text-decoration:none;
+  display:flex;align-items:center;gap:6px;
+  transition:color var(--t-snappy),background var(--t-snappy);
+  white-space:nowrap;
+}
+.subnav-link:hover{color:var(--text-primary);background:rgba(255,255,255,0.05);}
+.subnav-link.active{color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.subnav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* ── Layout ── */
+.page-layout {
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:calc(100vh - 104px);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right:1px solid var(--border-dim);
+  padding:28px 14px;
+  position:sticky;top:104px;
+  height:calc(100vh - 104px);
+  overflow-y:auto;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border-med);border-radius:2px;}
+
+.sb-section-label {
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;
+  padding:0 10px;margin:18px 0 6px;
+}
+.sb-link {
+  display:flex;align-items:center;gap:9px;
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+  padding:8px 10px;border-radius:6px;
+  text-decoration:none;
+  transition:color var(--t-snappy),background var(--t-snappy);
+  cursor:pointer;
+  border:none;background:transparent;width:100%;text-align:left;
+}
+.sb-link:hover{color:var(--text-primary);background:rgba(255,255,255,0.05);}
+.sb-link.active{color:var(--neon-cyan);background:var(--neon-cyan-dim);}
+.sb-icon{font-family:'Material Symbols Outlined';font-size:17px;font-style:normal;
+  font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;flex-shrink:0;}
+.sb-badge {
+  margin-left:auto;font-family:var(--font-mono);font-size:9px;font-weight:600;
+  padding:2px 6px;border-radius:3px;
+}
+.sb-badge.ok{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.sb-badge.warn{background:var(--amber-dim);color:var(--amber);}
+.sb-badge.err{background:var(--crimson-dim);color:var(--warning-crimson);}
+
+/* ── Main content ── */
+.main{padding:36px 40px;overflow-y:auto;}
+.section{display:none;}
+.section.active{display:block;}
+.section-header{margin-bottom:28px;}
+.section-title{font-size:20px;font-weight:700;color:var(--text-primary);}
+.section-sub{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* ── Stat grid ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{
+  background:var(--card-bg);border:1px solid var(--border-dim);
+  border-radius:10px;padding:18px 20px;
+  transition:border-color var(--t-snappy),background var(--t-snappy);
+  position:relative;overflow:hidden;
+}
+.stat-card:hover{border-color:var(--border-med);background:var(--card-bg-hover);}
+.stat-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(6,182,212,0.03),transparent);
+  pointer-events:none;
+}
+.stat-label{font-family:var(--font-mono);font-size:10px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-size:26px;font-weight:700;color:var(--text-primary);line-height:1;font-family:var(--font-mono);}
+.stat-delta{font-family:var(--font-mono);font-size:11px;margin-top:6px;}
+.stat-delta.up{color:var(--neon-emerald);}
+.stat-delta.down{color:var(--warning-crimson);}
+.stat-delta.neutral{color:var(--text-muted);}
+
+/* ── Cards ── */
+.card{
+  background:var(--card-bg);border:1px solid var(--border-dim);
+  border-radius:10px;padding:22px 24px;margin-bottom:18px;
+}
+.card-title{
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.14em;text-transform:uppercase;
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.card-title .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.card-title .dot.green{background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald);}
+.card-title .dot.cyan{background:var(--neon-cyan);box-shadow:0 0 6px var(--neon-cyan);}
+.card-title .dot.amber{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.card-title .dot.red{background:var(--warning-crimson);box-shadow:0 0 6px var(--warning-crimson);}
+
+/* ── Gross margin bar ── */
+.margin-bar-wrap{margin:14px 0 10px;}
+.margin-bar-bg{
+  height:10px;border-radius:5px;background:var(--slate-700);
+  position:relative;overflow:hidden;
+}
+.margin-bar-fill{
+  height:100%;border-radius:5px;
+  transition:width 1.1s cubic-bezier(0.25,1,0.5,1);
+  position:relative;
+}
+.margin-bar-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  animation:bar-shimmer 2.4s linear infinite;
+}
+@keyframes bar-shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.margin-threshold{
+  position:absolute;top:-3px;bottom:-3px;width:2px;border-radius:1px;
+  background:var(--amber);box-shadow:0 0 6px var(--amber);
+}
+.margin-labels{display:flex;justify-content:space-between;margin-top:6px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
+
+/* ── Terminal log stream ── */
+.terminal-box{
+  background:rgba(0,0,0,0.35);border:1px solid var(--border-dim);
+  border-radius:8px;padding:14px 16px;
+  font-family:var(--font-mono);font-size:12px;line-height:1.9;
+  max-height:220px;overflow-y:auto;
+}
+.terminal-box::-webkit-scrollbar{width:4px;}
+.terminal-box::-webkit-scrollbar-track{background:transparent;}
+.terminal-box::-webkit-scrollbar-thumb{background:var(--border-med);border-radius:2px;}
+.t-line{animation:t-fade-in 0.3s ease;}
+@keyframes t-fade-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.t-ts{color:var(--text-muted);}
+.t-ok{color:var(--neon-emerald);}
+.t-warn{color:var(--amber);}
+.t-err{color:var(--warning-crimson);}
+.t-info{color:var(--neon-cyan);}
+.t-dim{color:var(--slate-500);}
+
+/* ── Health grid ── */
+.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.health-item{
+  background:var(--card-bg);border:1px solid var(--border-dim);border-radius:8px;
+  padding:16px 18px;display:flex;flex-direction:column;gap:8px;
+}
+.health-service{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);font-weight:500;}
+.health-latency{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text-primary);}
+.health-status-row{display:flex;align-items:center;gap:6px;}
+.health-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.health-dot.operational{background:var(--neon-emerald);box-shadow:0 0 6px var(--neon-emerald);}
+.health-dot.degraded{background:var(--amber);box-shadow:0 0 6px var(--amber);
+  animation:health-pulse 1.4s ease-in-out infinite;}
+.health-dot.down{background:var(--warning-crimson);box-shadow:0 0 6px var(--warning-crimson);}
+@keyframes health-pulse{0%,100%{opacity:1}50%{opacity:0.45}}
+.health-status-label{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+.health-status-label.operational{color:var(--neon-emerald);}
+.health-status-label.degraded{color:var(--amber);}
+.health-status-label.down{color:var(--warning-crimson);}
+.health-uptime{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
+
+/* ── Queue rows ── */
+.queue-row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 14px;border-radius:8px;margin-bottom:6px;
+  background:var(--card-bg);border:1px solid var(--border-dim);
+  transition:border-color var(--t-snappy);
+}
+.queue-row:hover{border-color:var(--border-med);}
+.queue-worker{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--neon-cyan);min-width:120px;}
+.queue-desc{font-size:13px;color:var(--text-secondary);flex:1;}
+.queue-count{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);min-width:60px;text-align:right;}
+.queue-chip{
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:4px;
+}
+.queue-chip.running{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.queue-chip.idle{background:var(--card-bg);color:var(--text-muted);border:1px solid var(--border-dim);}
+.queue-chip.backlog{background:var(--amber-dim);color:var(--amber);}
+
+/* ── API keys table ── */
+.api-table{width:100%;border-collapse:collapse;}
+.api-table th{
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;
+  text-align:left;padding:8px 14px;border-bottom:1px solid var(--border-dim);
+}
+.api-table td{
+  padding:12px 14px;font-size:13px;color:var(--text-secondary);
+  border-bottom:1px solid var(--border-dim);
+  vertical-align:middle;
+}
+.api-table tbody tr{transition:background var(--t-snappy);}
+.api-table tbody tr:hover{background:var(--card-bg-hover);}
+.api-key-name{font-weight:600;color:var(--text-primary);}
+.api-key-value{
+  font-family:var(--font-mono);font-size:11px;color:var(--text-muted);
+  background:rgba(0,0,0,0.25);padding:4px 9px;border-radius:5px;
+  border:1px solid var(--border-dim);display:inline-block;
+  cursor:pointer;transition:color var(--t-snappy),border-color var(--t-snappy);
+}
+.api-key-value:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);}
+.api-scope{
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  padding:3px 7px;border-radius:4px;
+}
+.api-scope.full{background:var(--violet-dim);color:var(--violet);}
+.api-scope.read{background:var(--neon-cyan-dim);color:var(--neon-cyan);}
+.api-scope.write{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.api-status{display:flex;align-items:center;gap:6px;}
+.api-status-dot{width:6px;height:6px;border-radius:50%;}
+.api-status-dot.active{background:var(--neon-emerald);}
+.api-status-dot.revoked{background:var(--warning-crimson);}
+
+/* ── Buttons ── */
+.btn{
+  font-family:var(--font-mono);font-size:12px;font-weight:600;
+  padding:8px 16px;border-radius:6px;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:all var(--t-snappy);
+}
+.btn-cyan{background:var(--neon-cyan);color:#0f172a;}
+.btn-cyan:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border-dim);}
+.btn-ghost:hover{color:var(--neon-cyan);border-color:var(--neon-cyan-border);background:var(--neon-cyan-dim);}
+.btn-danger{background:var(--crimson-dim);color:var(--warning-crimson);border:1px solid var(--crimson-border);}
+.btn-danger:hover{background:rgba(220,38,38,0.2);transform:translateY(-1px);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* ── Circuit breaker ── */
+.cb-org-row{
+  display:grid;grid-template-columns:1fr 120px 110px 130px 100px;
+  align-items:center;gap:14px;
+  padding:13px 16px;border-radius:8px;margin-bottom:6px;
+  background:var(--card-bg);border:1px solid var(--border-dim);
+  font-size:13px;
+  transition:border-color var(--t-snappy);
+}
+.cb-org-row:hover{border-color:var(--border-med);}
+.cb-org-row.locked{border-color:var(--crimson-border);background:var(--crimson-dim);}
+.cb-org-name{font-weight:600;color:var(--text-primary);}
+.cb-org-country{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);}
+.cb-balance{font-family:var(--font-mono);font-size:13px;font-weight:600;}
+.cb-balance.positive{color:var(--neon-emerald);}
+.cb-balance.negative{color:var(--warning-crimson);}
+.cb-chip{
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:4px;text-align:center;
+}
+.cb-chip.active{background:var(--neon-emerald-dim);color:var(--neon-emerald);}
+.cb-chip.trial{background:var(--neon-cyan-dim);color:var(--neon-cyan);}
+.cb-chip.past-due{background:var(--crimson-dim);color:var(--warning-crimson);}
+.cb-chip.paused{background:var(--amber-dim);color:var(--amber);}
+.cb-chip.guest{background:var(--violet-dim);color:var(--violet);}
+.cb-toggle{
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:5px;border:1px solid var(--border-dim);
+  background:transparent;cursor:pointer;color:var(--text-muted);
+  transition:all var(--t-snappy);
+}
+.cb-toggle:hover{border-color:var(--warning-crimson);color:var(--warning-crimson);background:var(--crimson-dim);}
+
+/* ── Cost breakdown ── */
+.cost-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+.cost-service-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border-dim);
+  font-size:13px;
+}
+.cost-service-row:last-child{border-bottom:none;}
+.cost-service-label{color:var(--text-secondary);}
+.cost-service-value{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-primary);}
+.cost-service-margin{font-family:var(--font-mono);font-size:11px;}
+.cost-service-margin.good{color:var(--neon-emerald);}
+.cost-service-margin.warn{color:var(--amber);}
+.cost-service-margin.bad{color:var(--warning-crimson);}
+
+/* ── Mini sparkline ── */
+.mini-spark{display:flex;align-items:flex-end;gap:2px;height:28px;}
+.spark-bar-mini{width:6px;border-radius:2px 2px 0 0;background:var(--neon-cyan);opacity:0.6;}
+
+/* ── Webhook rows ── */
+.webhook-row{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;border-radius:8px;margin-bottom:6px;
+  background:var(--card-bg);border:1px solid var(--border-dim);
+  transition:border-color var(--t-snappy);
+}
+.webhook-row:hover{border-color:var(--border-med);}
+.webhook-url{font-family:var(--font-mono);font-size:12px;color:var(--neon-cyan);flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.webhook-event{font-family:var(--font-mono);font-size:10px;font-weight:600;
+  background:var(--violet-dim);color:var(--violet);padding:3px 7px;border-radius:4px;}
+.webhook-last{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:28px;right:28px;z-index:999;
+  background:var(--slate-800);border:1px solid var(--border-med);
+  border-radius:8px;padding:12px 18px;
+  font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);
+  box-shadow:0 8px 32px rgba(0,0,0,0.35);
+  opacity:0;transform:translateY(12px);
+  transition:opacity 0.22s,transform 0.22s;pointer-events:none;
+  display:flex;align-items:center;gap:8px;
+}
+#toast.show{opacity:1;transform:none;}
+
+/* ── New key modal ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--slate-800);border:1px solid var(--border-med);
+  border-radius:12px;padding:28px 32px;width:460px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.5);
+  animation:modal-in 0.22s cubic-bezier(0.25,1,0.5,1);
+}
+@keyframes modal-in{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:none}}
+.modal-title{font-family:var(--font-mono);font-size:14px;font-weight:600;
+  color:var(--text-primary);margin-bottom:20px;}
+.modal-field{margin-bottom:16px;}
+.modal-label{font-family:var(--font-mono);font-size:10px;font-weight:600;
+  color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+.modal-input{
+  width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);
+  border-radius:6px;padding:9px 13px;color:var(--text-primary);
+  font-family:var(--font-mono);font-size:13px;
+  transition:border-color var(--t-snappy),box-shadow var(--t-snappy);outline:none;
+}
+.modal-input:focus{border-color:var(--neon-cyan);box-shadow:0 0 0 3px rgba(6,182,212,0.12);}
+.modal-select{
+  width:100%;background:rgba(0,0,0,0.35);border:1px solid var(--border-med);
+  border-radius:6px;padding:9px 13px;color:var(--text-primary);
+  font-family:var(--font-mono);font-size:12px;
+  outline:none;cursor:pointer;
+}
+.modal-select:focus{border-color:var(--neon-cyan);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+
+/* ── Revealed key callout ── */
+.key-reveal{
+  background:rgba(6,182,212,0.06);border:1px solid var(--neon-cyan-border);
+  border-radius:8px;padding:14px 16px;margin-top:16px;
+}
+.key-reveal-label{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:6px;}
+.key-reveal-val{font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);word-break:break-all;}
+.key-reveal-warn{font-family:var(--font-mono);font-size:10px;color:var(--amber);margin-top:8px;}
+</style>
 </head>
-<body class="bg-gray-900 text-white">
-  <!-- Navigation -->
-  <nav class="bg-gray-800 border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <a href="../index.html" class="text-purple-400 hover:text-purple-300">← Back to Dashboard</a>
-          <h1 class="text-xl font-bold text-purple-400">Developer Portal</h1>
+
+<body>
+<div class="rel">
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a href="../index.html" class="topbar-brand">
+    <span class="title">ClearDesk</span>
+    <span class="badge">DEV PORTAL</span>
+  </a>
+  <div class="topbar-divider"></div>
+  <a href="../index.html" class="back-link">
+    <span style="font-size:14px;">←</span> Back to Dashboard
+  </a>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-user">
+    <div class="topbar-avatar" id="topbarAvatar">D</div>
+    <span class="topbar-name" id="topbarName">Developer</span>
+  </div>
+</header>
+
+<!-- ── Subnav ── -->
+<nav class="subnav">
+  <a href="index.html" class="subnav-link active">
+    <span class="subnav-dot"></span> Overview
+  </a>
+  <a href="api-keys.html" class="subnav-link">
+    <span class="subnav-dot"></span> API Keys
+  </a>
+  <a href="models.html" class="subnav-link">
+    <span class="subnav-dot"></span> Models
+  </a>
+  <a href="credits.html" class="subnav-link">
+    <span class="subnav-dot"></span> Credits
+  </a>
+  <a href="webhooks.html" class="subnav-link">
+    <span class="subnav-dot"></span> Webhooks
+  </a>
+</nav>
+
+<!-- ── Page layout ── -->
+<div class="page-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar rel">
+    <div class="sb-section-label">Monitor</div>
+    <button class="sb-link active" onclick="switchSection('overview',this)">
+      <span class="sb-icon">dashboard</span> Overview
+    </button>
+    <button class="sb-link" onclick="switchSection('health',this)">
+      <span class="sb-icon">monitor_heart</span> System Health
+      <span class="sb-badge ok" id="sb-health-badge">OK</span>
+    </button>
+    <button class="sb-link" onclick="switchSection('margin',this)">
+      <span class="sb-icon">analytics</span> Cost & Margin
+    </button>
+
+    <div class="sb-section-label">Operations</div>
+    <button class="sb-link" onclick="switchSection('circuit',this)">
+      <span class="sb-icon">electric_bolt</span> Circuit Breaker
+      <span class="sb-badge warn" id="sb-cb-badge">2</span>
+    </button>
+    <button class="sb-link" onclick="switchSection('queue',this)">
+      <span class="sb-icon">queue</span> Job Queue
+    </button>
+    <button class="sb-link" onclick="switchSection('logs',this)">
+      <span class="sb-icon">terminal</span> Audit Logs
+    </button>
+
+    <div class="sb-section-label">Integrations</div>
+    <button class="sb-link" onclick="switchSection('apikeys',this)">
+      <span class="sb-icon">key</span> API Keys
+    </button>
+    <button class="sb-link" onclick="switchSection('webhooks',this)">
+      <span class="sb-icon">webhook</span> Webhooks
+    </button>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main rel">
+
+    <!-- ══ Overview ══ -->
+    <div id="sec-overview" class="section active">
+      <div class="section-header">
+        <div class="section-title">Platform Overview</div>
+        <div class="section-sub">// real-time infrastructure pulse · auto-refresh 30s</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Active Orgs</div>
+          <div class="stat-value" data-target="47" id="cnt-orgs">0</div>
+          <div class="stat-delta up" id="delta-orgs">+3 this week</div>
         </div>
-        <div class="flex items-center space-x-6">
-          <a href="index.html" class="text-purple-400 font-medium">Overview</a>
-          <a href="models.html" class="text-gray-400 hover:text-white">Models</a>
-          <a href="credits.html" class="text-gray-400 hover:text-white">Credits</a>
-          <a href="webhooks.html" class="text-gray-400 hover:text-white">Webhooks</a>
-          <a href="api-keys.html" class="text-gray-400 hover:text-white">API Keys</a>
+        <div class="stat-card">
+          <div class="stat-label">Calls Today</div>
+          <div class="stat-value" data-target="1842" id="cnt-calls">0</div>
+          <div class="stat-delta up">↑ 12% vs yesterday</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Platform Margin</div>
+          <div class="stat-value" id="cnt-margin">0<span style="font-size:16px">%</span></div>
+          <div class="stat-delta" id="delta-margin">— loading</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Queue Backlog</div>
+          <div class="stat-value" data-target="12" id="cnt-queue">0</div>
+          <div class="stat-delta neutral">3 workers active</div>
+        </div>
+      </div>
+
+      <!-- Health quick view -->
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title"><span class="dot green"></span> Service Health — Live</div>
+        <div class="health-grid">
+          <div class="health-item">
+            <div class="health-service">Supabase DB</div>
+            <div class="health-latency" id="h-db">—</div>
+            <div class="health-status-row">
+              <div class="health-dot operational"></div>
+              <span class="health-status-label operational">Operational</span>
+            </div>
+            <div class="health-uptime">99.98% · 30d</div>
+          </div>
+          <div class="health-item">
+            <div class="health-service">Vapi Voice API</div>
+            <div class="health-latency" id="h-vapi">—</div>
+            <div class="health-status-row">
+              <div class="health-dot operational"></div>
+              <span class="health-status-label operational">Operational</span>
+            </div>
+            <div class="health-uptime">99.91% · 30d</div>
+          </div>
+          <div class="health-item">
+            <div class="health-service">Inngest Workers</div>
+            <div class="health-latency" id="h-inngest">—</div>
+            <div class="health-status-row">
+              <div class="health-dot degraded" id="h-inngest-dot"></div>
+              <span class="health-status-label degraded" id="h-inngest-label">Degraded</span>
+            </div>
+            <div class="health-uptime">99.54% · 30d</div>
+          </div>
+          <div class="health-item">
+            <div class="health-service">Upstash Queue</div>
+            <div class="health-latency" id="h-upstash">—</div>
+            <div class="health-status-row">
+              <div class="health-dot operational"></div>
+              <span class="health-status-label operational">Operational</span>
+            </div>
+            <div class="health-uptime">100% · 30d</div>
+          </div>
+          <div class="health-item">
+            <div class="health-service">Vercel Edge</div>
+            <div class="health-latency" id="h-vercel">—</div>
+            <div class="health-status-row">
+              <div class="health-dot operational"></div>
+              <span class="health-status-label operational">Operational</span>
+            </div>
+            <div class="health-uptime">99.99% · 30d</div>
+          </div>
+          <div class="health-item">
+            <div class="health-service">LlamaParse</div>
+            <div class="health-latency" id="h-llama">—</div>
+            <div class="health-status-row">
+              <div class="health-dot operational"></div>
+              <span class="health-status-label operational">Operational</span>
+            </div>
+            <div class="health-uptime">99.7% · 30d</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent audit log -->
+      <div class="card">
+        <div class="card-title"><span class="dot cyan"></span> Live Audit Feed</div>
+        <div class="terminal-box" id="overview-log">
+          <div class="t-line"><span class="t-ts">[00:00:00]</span> <span class="t-info">INFO</span> <span class="t-dim"> initialising developer portal…</span></div>
         </div>
       </div>
     </div>
-  </nav>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Welcome Section -->
-    <div class="mb-8">
-      <h2 class="text-3xl font-bold mb-2">Developer Portal</h2>
-      <p class="text-gray-400">Configure AI models, manage credits, and integrate with external systems.</p>
+    <!-- ══ System Health ══ -->
+    <div id="sec-health" class="section">
+      <div class="section-header">
+        <div class="section-title">System Health</div>
+        <div class="section-sub">// latency probes fire every 60s · p99 shown</div>
+      </div>
+
+      <div class="health-grid" style="margin-bottom:18px;">
+        <div class="health-item">
+          <div class="health-service">Supabase Postgres (Supavisor)</div>
+          <div class="health-latency">18<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">Pooler port 6543 · TX mode · 99.98% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Supabase Auth (GoTrue)</div>
+          <div class="health-latency">9<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">JWT issuer · aal2 MFA · 99.99% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Vapi Voice API</div>
+          <div class="health-latency">142<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">WebRTC calls · 3 jurisdictions · 99.91% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Inngest Workers</div>
+          <div class="health-latency">—<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot degraded"></div>
+            <span class="health-status-label degraded">Degraded</span>
+          </div>
+          <div class="health-uptime">2/3 workers active · elevated queue depth</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Upstash Redis Queue</div>
+          <div class="health-latency">4<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">Global replication · 100% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Vercel Edge Network</div>
+          <div class="health-latency">7<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">CDN · Edge Functions · 99.99% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">LlamaParse</div>
+          <div class="health-latency">310<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">Doc parsing async · 99.7% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">Twilio SMS Gateway</div>
+          <div class="health-latency">88<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">IN · US · AE routing · 99.95% uptime</div>
+        </div>
+        <div class="health-item">
+          <div class="health-service">CRM Webhook Listener</div>
+          <div class="health-latency">31<span style="font-size:13px;color:var(--text-muted)">ms</span></div>
+          <div class="health-status-row">
+            <div class="health-dot operational"></div>
+            <span class="health-status-label operational">Operational</span>
+          </div>
+          <div class="health-uptime">Zoho · HubSpot · 99.88% uptime</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot cyan"></span> Incident Log</div>
+        <div class="terminal-box">
+          <div class="t-line"><span class="t-ts">[2026-05-27 08:14]</span> <span class="t-warn">WARN</span>  Inngest worker-3 heartbeat missed · auto-restart queued</div>
+          <div class="t-line"><span class="t-ts">[2026-05-27 06:00]</span> <span class="t-ok">RESOLVED</span> Vapi latency spike recovered · p99 back to 142ms</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 22:31]</span> <span class="t-warn">WARN</span>  Upstash queue depth &gt; 200 · cleared by worker scale-out</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 14:07]</span> <span class="t-info">INFO</span>  LlamaParse async worker deployed · v2.4.1</div>
+          <div class="t-line"><span class="t-ts">[2026-05-25 09:00]</span> <span class="t-ok">OK</span>     Supabase migration applied · index idx_campaigns_execution_flow</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-gray-400 text-sm">Active Models</span>
-          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-          </svg>
-        </div>
-        <p class="text-3xl font-bold" id="active-models">-</p>
+    <!-- ══ Cost & Margin ══ -->
+    <div id="sec-margin" class="section">
+      <div class="section-header">
+        <div class="section-title">Cost & Margin Analysis</div>
+        <div class="section-sub">// gross margin = ((retail burn - wholesale cost) / retail burn) × 100</div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-gray-400 text-sm">Credits Used</span>
-          <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Retail Burn (MTD)</div>
+          <div class="stat-value" style="font-size:22px;">$<span id="m-retail">14,820</span></div>
+          <div class="stat-delta up">↑ $1,240 vs last month</div>
         </div>
-        <p class="text-3xl font-bold" id="credits-used">-</p>
+        <div class="stat-card">
+          <div class="stat-label">Wholesale Cost (MTD)</div>
+          <div class="stat-value" style="font-size:22px;">$<span id="m-wholesale">8,156</span></div>
+          <div class="stat-delta neutral">Vapi + Twilio + LlamaParse</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gross Margin</div>
+          <div class="stat-value" id="m-margin-val" style="color:var(--neon-emerald)">44.9%</div>
+          <div class="stat-delta up" id="m-margin-delta">▲ Above 35% threshold</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Credit Liability</div>
+          <div class="stat-value" style="font-size:22px;">$<span>3,420</span></div>
+          <div class="stat-delta warn" style="color:var(--amber)">2 orgs in overdraft</div>
+        </div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-gray-400 text-sm">API Calls (30d)</span>
-          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
+      <!-- Margin bar -->
+      <div class="card">
+        <div class="card-title"><span class="dot green"></span> Platform Gross Margin</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+          <span style="font-size:32px;font-weight:700;font-family:var(--font-mono);color:var(--neon-emerald);" id="margin-big">44.9%</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">Alert threshold: 35%</span>
         </div>
-        <p class="text-3xl font-bold" id="api-calls">-</p>
+        <div class="margin-bar-wrap">
+          <div class="margin-bar-bg">
+            <div class="margin-bar-fill" id="margin-fill" style="width:0%;background:linear-gradient(90deg,var(--neon-emerald),#16a34a);"></div>
+            <div class="margin-threshold" style="left:35%;" title="35% Alert Threshold"></div>
+          </div>
+          <div class="margin-labels">
+            <span>0%</span>
+            <span style="color:var(--amber);">35% threshold</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:28px;margin-top:12px;">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:2px;">RETAIL BURN</div>
+            <div style="font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--text-primary);">$14,820</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:2px;">WHOLESALE</div>
+            <div style="font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--text-primary);">$8,156</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-bottom:2px;">GROSS PROFIT</div>
+            <div style="font-family:var(--font-mono);font-size:15px;font-weight:600;color:var(--neon-emerald);">$6,664</div>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-gray-400 text-sm">Active Webhooks</span>
-          <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-          </svg>
+      <!-- Service breakdown -->
+      <div class="cost-grid">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title"><span class="dot cyan"></span> Infrastructure Cost Breakdown</div>
+          <div class="cost-service-row">
+            <span class="cost-service-label">Vapi Voice API</span>
+            <div style="text-align:right">
+              <div class="cost-service-value">$4,218</div>
+              <div class="cost-service-margin good">38% margin</div>
+            </div>
+          </div>
+          <div class="cost-service-row">
+            <span class="cost-service-label">Twilio SMS</span>
+            <div style="text-align:right">
+              <div class="cost-service-value">$1,840</div>
+              <div class="cost-service-margin good">51% margin</div>
+            </div>
+          </div>
+          <div class="cost-service-row">
+            <span class="cost-service-label">LlamaParse</span>
+            <div style="text-align:right">
+              <div class="cost-service-value">$980</div>
+              <div class="cost-service-margin warn">30% margin</div>
+            </div>
+          </div>
+          <div class="cost-service-row">
+            <span class="cost-service-label">Supabase</span>
+            <div style="text-align:right">
+              <div class="cost-service-value">$620</div>
+              <div class="cost-service-margin good">—</div>
+            </div>
+          </div>
+          <div class="cost-service-row">
+            <span class="cost-service-label">Vercel + Inngest</span>
+            <div style="text-align:right">
+              <div class="cost-service-value">$498</div>
+              <div class="cost-service-margin good">—</div>
+            </div>
+          </div>
         </div>
-        <p class="text-3xl font-bold" id="active-webhooks">-</p>
+
+        <div class="card" style="margin-bottom:0">
+          <div class="card-title"><span class="dot amber"></span> Monthly Trend</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding-bottom:6px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;" title="Jan">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+                <div style="width:100%;background:var(--neon-cyan);opacity:0.55;border-radius:3px 3px 0 0;" data-h="55"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">J</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;" title="Feb">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+                <div style="width:100%;background:var(--neon-cyan);opacity:0.55;border-radius:3px 3px 0 0;" data-h="42"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">F</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;" title="Mar">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+                <div style="width:100%;background:var(--neon-cyan);opacity:0.55;border-radius:3px 3px 0 0;" data-h="61"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">M</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;" title="Apr">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+                <div style="width:100%;background:var(--neon-cyan);opacity:0.55;border-radius:3px 3px 0 0;" data-h="48"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-muted);">A</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;" title="May">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+                <div style="width:100%;background:var(--neon-emerald);opacity:0.8;border-radius:3px 3px 0 0;" data-h="80"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--neon-cyan);">M</span>
+            </div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:4px;">
+            Gross margin % by month
+          </div>
+          <div style="margin-top:16px;padding:10px 12px;background:var(--neon-emerald-dim);border:1px solid rgba(52,211,153,0.2);border-radius:6px;">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--neon-emerald);font-weight:600;">✓ MARGIN HEALTHY</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:3px;">9.9% above minimum threshold</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-lg font-semibold mb-4">Model Configuration</h3>
-        <p class="text-gray-400 text-sm mb-4">Configure AI models, voices, and localization settings for your agents.</p>
-        <a href="models.html" class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium">
-          Configure Models →
-        </a>
+    <!-- ══ Circuit Breaker ══ -->
+    <div id="sec-circuit" class="section">
+      <div class="section-header">
+        <div class="section-title">Circuit Breaker</div>
+        <div class="section-sub">// wallet depletion auto-pauses active campaigns · overdraft limits enforced per org</div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-lg font-semibold mb-4">Credit Management</h3>
-        <p class="text-gray-400 text-sm mb-4">Set credit ceilings, monitor usage, and configure billing alerts.</p>
-        <a href="credits.html" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium">
-          Manage Credits →
-        </a>
+      <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="stat-label">Orgs at Risk</div>
+          <div class="stat-value" style="color:var(--warning-crimson);">2</div>
+          <div class="stat-delta down">balance &lt; $50 or past_due</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Campaigns Paused</div>
+          <div class="stat-value" style="color:var(--amber);">3</div>
+          <div class="stat-delta warn" style="color:var(--amber);">circuit breaker triggered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Overdraft Active</div>
+          <div class="stat-value">2</div>
+          <div class="stat-delta neutral">$820 total exposure</div>
+        </div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-lg font-semibold mb-4">Webhook Integration</h3>
-        <p class="text-gray-400 text-sm mb-4">Configure CRM webhooks for HubSpot, Salesforce, and custom endpoints.</p>
-        <a href="webhooks.html" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium">
-          Setup Webhooks →
-        </a>
+      <div class="card">
+        <div class="card-title"><span class="dot amber"></span> Organisation Wallet Status</div>
+        <div style="display:grid;grid-template-columns:1fr 120px 110px 130px 100px;gap:14px;padding:6px 16px;margin-bottom:6px;">
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Organisation</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Balance</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Status</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Billing</span>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;">Action</span>
+        </div>
+        <div id="cb-org-list"></div>
       </div>
 
-      <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 class="text-lg font-semibold mb-4">API Keys</h3>
-        <p class="text-gray-400 text-sm mb-4">Generate and manage API keys for external integrations and services.</p>
-        <a href="api-keys.html" class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-sm font-medium">
-          Manage Keys →
-        </a>
+      <div class="card">
+        <div class="card-title"><span class="dot red"></span> Circuit Breaker Events</div>
+        <div class="terminal-box" id="cb-log">
+          <div class="t-line"><span class="t-ts">[2026-05-27 09:12]</span> <span class="t-err">BREAKER</span> Mehta & Mehta Associates — wallet $0 · 2 campaigns auto-paused</div>
+          <div class="t-line"><span class="t-ts">[2026-05-27 08:45]</span> <span class="t-warn">WARN</span>   Sharma Tax Solutions — overdraft $320/$500 consumed</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 17:30]</span> <span class="t-err">BREAKER</span> Dubai Wealth Partners — past_due · API traffic frozen</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 11:00]</span> <span class="t-ok">RESTORED</span> Patel CPA Group — credit topup $200 · campaigns resumed</div>
+          <div class="t-line"><span class="t-ts">[2026-05-25 16:22]</span> <span class="t-info">INFO</span>   Circuit breaker middleware v2.1 deployed</div>
+        </div>
       </div>
     </div>
 
-    <!-- System Status -->
-    <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 class="text-lg font-semibold mb-4">System Status</h3>
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">AI Model API</span>
-          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+    <!-- ══ Job Queue ══ -->
+    <div id="sec-queue" class="section">
+      <div class="section-header">
+        <div class="section-title">Job Queue</div>
+        <div class="section-sub">// Inngest + Upstash workers · async document parsing and campaign execution</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Active Workers</div>
+          <div class="stat-value" style="color:var(--neon-emerald);">2<span style="font-size:14px;color:var(--text-muted)">/3</span></div>
+          <div class="stat-delta warn" style="color:var(--amber);">1 worker degraded</div>
         </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">Voice Synthesis</span>
-          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        <div class="stat-card">
+          <div class="stat-label">Jobs In Queue</div>
+          <div class="stat-value" data-target="12" id="cnt-jobs">0</div>
+          <div class="stat-delta neutral">~2min avg wait</div>
         </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">Webhook Delivery</span>
-          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        <div class="stat-card">
+          <div class="stat-label">Completed Today</div>
+          <div class="stat-value" data-target="847" id="cnt-done">0</div>
+          <div class="stat-delta up">↑ 18% vs yesterday</div>
         </div>
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400">Database</span>
-          <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">Operational</span>
+        <div class="stat-card">
+          <div class="stat-label">Failed Jobs (24h)</div>
+          <div class="stat-value" style="color:var(--warning-crimson);">4</div>
+          <div class="stat-delta down">DLQ — manual review</div>
         </div>
       </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title"><span class="dot cyan"></span> Worker Status</div>
+        <div class="queue-row">
+          <span class="queue-worker">inngest-w1</span>
+          <span class="queue-desc">Document parsing · LlamaParse async handler</span>
+          <span class="queue-chip running">RUNNING</span>
+          <span class="queue-count">3 jobs</span>
+        </div>
+        <div class="queue-row">
+          <span class="queue-worker">inngest-w2</span>
+          <span class="queue-desc">Campaign execution · Vapi call batch dispatcher</span>
+          <span class="queue-chip running">RUNNING</span>
+          <span class="queue-count">7 jobs</span>
+        </div>
+        <div class="queue-row">
+          <span class="queue-worker">inngest-w3</span>
+          <span class="queue-desc">CRM webhook listener · Zoho / HubSpot sync</span>
+          <span class="queue-chip backlog">DEGRADED</span>
+          <span class="queue-count">—</span>
+        </div>
+        <div class="queue-row">
+          <span class="queue-worker">upstash-q1</span>
+          <span class="queue-desc">SMS dispatch queue · Twilio delivery tracker</span>
+          <span class="queue-chip running">RUNNING</span>
+          <span class="queue-count">2 jobs</span>
+        </div>
+        <div class="queue-row">
+          <span class="queue-worker">upstash-q2</span>
+          <span class="queue-desc">Purge scheduler · 7-day data retention enforcer</span>
+          <span class="queue-chip idle">IDLE</span>
+          <span class="queue-count">0 jobs</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot red"></span> Dead Letter Queue (DLQ)</div>
+        <div class="terminal-box">
+          <div class="t-line"><span class="t-ts">[2026-05-27 09:45]</span> <span class="t-err">DLQ</span>  job:parse-doc-1a8f · LlamaParse timeout after 3 retries · org: Patel CPA</div>
+          <div class="t-line"><span class="t-ts">[2026-05-27 07:12]</span> <span class="t-err">DLQ</span>  job:vapi-call-b22c · Vapi rate limit hit · campaign: GSTR-1 Chase</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 22:05]</span> <span class="t-err">DLQ</span>  job:crm-sync-d91a · Zoho OAuth expired · org: TaxPro Solutions</div>
+          <div class="t-line"><span class="t-ts">[2026-05-26 14:30]</span> <span class="t-err">DLQ</span>  job:sms-send-f44e · Twilio balance insufficient · org: Mehta & Mehta</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Audit Logs ══ -->
+    <div id="sec-logs" class="section">
+      <div class="section-header">
+        <div class="section-title">Audit Logs</div>
+        <div class="section-sub">// developer-level system log stream · auto-appends every 5s</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="dot green"></span> Live Log Feed
+          <button class="btn btn-ghost btn-sm" onclick="clearLogs()" style="margin-left:auto;">Clear</button>
+        </div>
+        <div class="terminal-box" style="max-height:480px;" id="audit-log"></div>
+      </div>
+    </div>
+
+    <!-- ══ API Keys ══ -->
+    <div id="sec-apikeys" class="section">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="section-title">API Keys</div>
+          <div class="section-sub">// scoped API credentials for integrations · rotate quarterly</div>
+        </div>
+        <button class="btn btn-cyan" onclick="openNewKeyModal()">
+          <span style="font-size:16px;">+</span> New Key
+        </button>
+      </div>
+
+      <div class="card">
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Key</th>
+              <th>Scope</th>
+              <th>Created</th>
+              <th>Last Used</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="api-keys-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="key-reveal-box" style="display:none;">
+        <div class="key-reveal">
+          <div class="key-reveal-label">Your new API key (copy now — shown only once)</div>
+          <div class="key-reveal-val" id="key-reveal-val"></div>
+          <div class="key-reveal-warn">⚠ After dismissing, this key cannot be retrieved.</div>
+          <div style="margin-top:12px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyKey()">Copy Key</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('key-reveal-box').style.display='none'" style="margin-left:8px;">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Webhooks ══ -->
+    <div id="sec-webhooks" class="section">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="section-title">Webhooks</div>
+          <div class="section-sub">// outbound event notifications · HMAC-SHA256 signed payloads</div>
+        </div>
+        <button class="btn btn-cyan" onclick="toast('Webhook endpoint form coming soon')">
+          <span style="font-size:16px;">+</span> Add Endpoint
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot cyan"></span> Registered Endpoints</div>
+        <div id="webhook-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="dot green"></span> Recent Deliveries</div>
+        <div class="terminal-box">
+          <div class="t-line"><span class="t-ts">[09:14:32]</span> <span class="t-ok">200</span>  campaign.completed → https://hooks.zoho.com/crm/v2/… · 142ms</div>
+          <div class="t-line"><span class="t-ts">[09:12:11]</span> <span class="t-ok">200</span>  call.finished → https://hooks.zoho.com/crm/v2/… · 88ms</div>
+          <div class="t-line"><span class="t-ts">[08:55:04]</span> <span class="t-err">503</span>  sms.delivered → https://api.hubspot.com/crm/… · timeout</div>
+          <div class="t-line"><span class="t-ts">[08:50:22]</span> <span class="t-ok">200</span>  contact.created → https://api.hubspot.com/crm/… · 61ms</div>
+          <div class="t-line"><span class="t-ts">[08:44:18]</span> <span class="t-ok">200</span>  campaign.started → https://hooks.zoho.com/crm/v2/… · 95ms</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /page-layout -->
+
+</div><!-- /rel -->
+
+<!-- ── New API Key Modal ── -->
+<div class="modal-overlay" id="newKeyModal" onclick="if(event.target===this)closeNewKeyModal()">
+  <div class="modal-box">
+    <div class="modal-title">// Create New API Key</div>
+    <div class="modal-field">
+      <label class="modal-label">Key Name</label>
+      <input class="modal-input" id="newKeyName" placeholder="e.g. Zoho CRM Integration" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Scope</label>
+      <select class="modal-select" id="newKeyScope">
+        <option value="read">read — query only</option>
+        <option value="write">write — create / update</option>
+        <option value="full">full — unrestricted</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Expiry</label>
+      <select class="modal-select" id="newKeyExpiry">
+        <option>90 days</option>
+        <option>180 days</option>
+        <option>1 year</option>
+        <option>No expiry</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNewKeyModal()">Cancel</button>
+      <button class="btn btn-cyan" onclick="generateKey()">Generate Key</button>
     </div>
   </div>
+</div>
 
-  <script>
-    let currentUser = null;
+<!-- ── Toast ── -->
+<div id="toast"><span id="toast-msg">Copied</span></div>
 
-    async function initDeveloperPortal() {
-      // Require DEVELOPER role
-      currentUser = await requireRole(['DEVELOPER'], '../index.html');
-      if (!currentUser) return;
-
-      // Load stats
-      await loadStats();
+<script>
+/* ── Auth ── */
+(async () => {
+  try {
+    await requireMinimumRole('DEVELOPER', '../login.html');
+    const user = await getCurrentUser();
+    if (user) {
+      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('topbarName').textContent = name;
     }
+  } catch(e) {
+    // dev fallback
+  }
+})();
 
-    async function loadStats() {
-      // Mock stats - replace with actual API calls
-      document.getElementById('active-models').textContent = '3';
-      document.getElementById('credits-used').textContent = '0';
-      document.getElementById('api-calls').textContent = '0';
-      document.getElementById('active-webhooks').textContent = '0';
-    }
+/* ── Section switcher ── */
+function switchSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'margin') animateMarginBar();
+  if (name === 'queue') animateQueueCounters();
+  if (name === 'logs') startAuditFeed();
+}
 
-    document.addEventListener('DOMContentLoaded', initDeveloperPortal);
-  </script>
+/* ── Animated counters ── */
+function animateCounter(el, target, duration = 1400, prefix = '') {
+  const start = performance.now();
+  const startVal = 0;
+  const format = v => prefix + (v >= 1000 ? v.toLocaleString() : Math.round(v));
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = format(startVal + (target - startVal) * ease);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function animateMainCounters() {
+  const counters = [
+    { id:'cnt-orgs', target:47 },
+    { id:'cnt-calls', target:1842 },
+    { id:'cnt-queue', target:12 },
+  ];
+  counters.forEach(c => {
+    const el = document.getElementById(c.id);
+    if (el) animateCounter(el, c.target);
+  });
+
+  // margin counter
+  const mEl = document.getElementById('cnt-margin');
+  const start = performance.now();
+  const target = 44.9;
+  (function tick(now) {
+    const p = Math.min((now - start) / 1400, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    mEl.innerHTML = (ease * target).toFixed(1) + '<span style="font-size:16px">%</span>';
+    if (p < 1) requestAnimationFrame(tick);
+  })(performance.now());
+
+  // delta style
+  const md = document.getElementById('delta-margin');
+  md.textContent = '▲ Above 35% threshold';
+  md.className = 'stat-delta up';
+}
+
+function animateMarginBar() {
+  const margin = 44.9;
+  const fill = document.getElementById('margin-fill');
+  setTimeout(() => { fill.style.width = margin + '%'; }, 80);
+  // update big number
+  const big = document.getElementById('margin-big');
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / 1100, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    big.textContent = (ease * margin).toFixed(1) + '%';
+    if (p < 1) requestAnimationFrame(tick);
+  })(performance.now());
+
+  if (margin < 35) {
+    fill.style.background = 'linear-gradient(90deg,var(--warning-crimson),#b91c1c)';
+  } else if (margin < 50) {
+    fill.style.background = 'linear-gradient(90deg,var(--amber),#d97706)';
+  } else {
+    fill.style.background = 'linear-gradient(90deg,var(--neon-emerald),#16a34a)';
+  }
+}
+
+function animateQueueCounters() {
+  [{id:'cnt-jobs',target:12},{id:'cnt-done',target:847}].forEach(c => {
+    const el = document.getElementById(c.id);
+    if (el) animateCounter(el, c.target);
+  });
+}
+
+/* ── Health latencies ── */
+function populateHealth() {
+  const services = {
+    'h-db': '18ms', 'h-vapi': '142ms', 'h-inngest': '—',
+    'h-upstash': '4ms', 'h-vercel': '7ms', 'h-llama': '310ms'
+  };
+  Object.entries(services).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  });
+}
+
+/* ── Circuit breaker org list ── */
+const MOCK_ORGS = [
+  { name:'Patel CPA Group', country:'IN', balance:245.80, status:'active', billing:'active' },
+  { name:'Sharma Tax Solutions', country:'IN', balance:28.40, status:'active', billing:'trial' },
+  { name:'Mehta & Mehta Associates', country:'IN', balance:0.00, status:'paused', billing:'past_due' },
+  { name:'NYC Tax Advisors LLC', country:'US', balance:1240.00, status:'active', billing:'active' },
+  { name:'TaxPro Solutions', country:'US', balance:80.20, status:'active', billing:'trial' },
+  { name:'Dubai Wealth Partners', country:'AE', balance:-320.00, status:'locked', billing:'past_due' },
+  { name:'Gupta & Partners', country:'IN', balance:15.00, status:'active', billing:'guest' },
+];
+
+function renderCircuitOrgs() {
+  const list = document.getElementById('cb-org-list');
+  if (!list) return;
+  list.innerHTML = MOCK_ORGS.map(org => {
+    const balClass = org.balance < 0 ? 'negative' : (org.balance < 50 ? 'warn' : 'positive');
+    const billingChipClass = {
+      active:'active', trial:'trial', past_due:'past-due', guest:'guest'
+    }[org.billing] || 'idle';
+    const isLocked = org.billing === 'past_due' || org.balance <= 0;
+    return `
+    <div class="cb-org-row${isLocked ? ' locked' : ''}">
+      <div>
+        <div class="cb-org-name">${org.name}</div>
+        <div class="cb-org-country">${org.country}</div>
+      </div>
+      <div class="cb-balance ${balClass}">$${org.balance.toFixed(2)}</div>
+      <div><span class="cb-chip ${org.status === 'paused' ? 'paused' : (org.status === 'locked' ? 'past-due' : 'active')}">${org.status.toUpperCase()}</span></div>
+      <div><span class="cb-chip ${billingChipClass}">${org.billing.replace('_',' ').toUpperCase()}</span></div>
+      <button class="cb-toggle" onclick="toast('Wallet adjustment requires Ops Vault access')">
+        ${isLocked ? 'Unblock' : 'Freeze'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ── API Keys ── */
+const MOCK_KEYS = [
+  { id:1, name:'Zoho CRM Webhook', key:'ck_live_z7f8...a3b1', scope:'write', created:'2026-03-01', used:'2026-05-27', active:true },
+  { id:2, name:'LlamaParse Parser', key:'ck_live_p2m9...c7d4', scope:'read', created:'2026-02-14', used:'2026-05-26', active:true },
+  { id:3, name:'HubSpot Integration', key:'ck_live_h4k1...e9f2', scope:'full', created:'2026-01-08', used:'2026-04-30', active:true },
+  { id:4, name:'Vapi Voice Dispatcher', key:'ck_live_v8n3...b5a7', scope:'write', created:'2026-04-10', used:'2026-05-25', active:true },
+  { id:5, name:'Legacy Sync Key', key:'ck_live_l1q5...d2c8', scope:'read', created:'2025-11-20', used:'2026-02-10', active:false },
+];
+
+function renderApiKeys() {
+  const tbody = document.getElementById('api-keys-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = MOCK_KEYS.map(k => `
+    <tr>
+      <td><span class="api-key-name">${k.name}</span></td>
+      <td><span class="api-key-value" onclick="copyText('${k.key}')" title="Click to copy">${k.key}</span></td>
+      <td><span class="api-scope ${k.scope}">${k.scope}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${k.created}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">${k.used}</td>
+      <td>
+        <div class="api-status">
+          <div class="api-status-dot ${k.active ? 'active' : 'revoked'}"></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:${k.active ? 'var(--neon-emerald)' : 'var(--warning-crimson)'};">${k.active ? 'Active' : 'Revoked'}</span>
+        </div>
+      </td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="revokeKey(${k.id})" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Revoke</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function revokeKey(id) {
+  const key = MOCK_KEYS.find(k => k.id === id);
+  if (!key) return;
+  key.active = false;
+  renderApiKeys();
+  toast('Key revoked — ' + key.name);
+}
+
+/* ── New key modal ── */
+function openNewKeyModal() { document.getElementById('newKeyModal').classList.add('open'); }
+function closeNewKeyModal() { document.getElementById('newKeyModal').classList.remove('open'); }
+function generateKey() {
+  const name = document.getElementById('newKeyName').value.trim();
+  if (!name) { toast('Enter a key name first'); return; }
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const rand = (n) => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const fullKey = 'ck_live_' + rand(8) + '...' + rand(4);
+  const scope = document.getElementById('newKeyScope').value;
+  MOCK_KEYS.unshift({ id: Date.now(), name, key: fullKey, scope, created: '2026-05-27', used: 'Never', active: true });
+  closeNewKeyModal();
+  renderApiKeys();
+  document.getElementById('key-reveal-val').textContent = 'ck_live_' + rand(32);
+  document.getElementById('key-reveal-box').style.display = 'block';
+  document.getElementById('key-reveal-box').scrollIntoView({behavior:'smooth'});
+}
+function copyKey() {
+  const val = document.getElementById('key-reveal-val').textContent;
+  copyText(val);
+}
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  toast('Copied to clipboard');
+}
+
+/* ── Webhooks ── */
+const MOCK_WEBHOOKS = [
+  { url:'https://hooks.zoho.com/crm/v2/cleardesk/inbound', event:'campaign.completed', last:'27 May 09:14' },
+  { url:'https://api.hubspot.com/crm/v3/timeline/events', event:'call.finished', last:'27 May 09:12' },
+  { url:'https://hooks.zoho.com/crm/v2/cleardesk/sms', event:'sms.delivered', last:'27 May 08:44' },
+  { url:'https://webhook.site/test-endpoint-cd', event:'contact.created', last:'26 May 18:22' },
+];
+
+function renderWebhooks() {
+  const list = document.getElementById('webhook-list');
+  if (!list) return;
+  list.innerHTML = MOCK_WEBHOOKS.map(w => `
+    <div class="webhook-row">
+      <span class="webhook-url">${w.url}</span>
+      <span class="webhook-event">${w.event}</span>
+      <span class="webhook-last">${w.last}</span>
+      <button class="btn btn-ghost btn-sm" onclick="toast('Test ping sent to endpoint')">Test</button>
+    </div>
+  `).join('');
+}
+
+/* ── Live audit feed ── */
+const AUDIT_MESSAGES = [
+  { level:'ok',   msg:'Supabase connection pool healthy · 42/100 connections used' },
+  { level:'info', msg:'Vapi call batch dispatched · org: Patel CPA · 8 recipients' },
+  { level:'info', msg:'LlamaParse job queued · doc: GSTR-1_MAY26.xlsx · 14 pages' },
+  { level:'warn', msg:'Inngest worker-3 slow heartbeat · last beat 48s ago' },
+  { level:'ok',   msg:'SMS batch delivered · 23/25 successful · org: Sharma Tax' },
+  { level:'info', msg:'CRM webhook received · Zoho lead → "Inquiry - Warm Open" · auto-fire queued' },
+  { level:'ok',   msg:'Credit debit processed · org: NYC Tax · $18.40 · balance $1221.60' },
+  { level:'warn', msg:'Org overdraft limit 64% consumed · org: Sharma Tax Solutions' },
+  { level:'err',  msg:'DLQ: job:parse-doc-1a8f · retry 3/3 failed · moved to dead letter' },
+  { level:'info', msg:'Data retention sweep · 847 records purged · 7d policy enforced' },
+  { level:'ok',   msg:'Gross margin check · 44.9% · above 35% threshold · no alert' },
+  { level:'info', msg:'Cron: GSTR-1 deadline reminder fired · 12 orgs notified' },
+];
+let auditFeedRunning = false;
+let auditIntervalId = null;
+
+function startAuditFeed() {
+  const log = document.getElementById('audit-log');
+  if (!log) return;
+  if (log.children.length === 0) {
+    appendAuditLine(log);
+  }
+  if (!auditFeedRunning) {
+    auditFeedRunning = true;
+    auditIntervalId = setInterval(() => appendAuditLine(log), 4500);
+  }
+}
+
+function appendAuditLine(log) {
+  const now = new Date();
+  const ts = now.toTimeString().split(' ')[0];
+  const entry = AUDIT_MESSAGES[Math.floor(Math.random() * AUDIT_MESSAGES.length)];
+  const colorMap = { ok:'t-ok', info:'t-info', warn:'t-warn', err:'t-err' };
+  const line = document.createElement('div');
+  line.className = 't-line';
+  line.innerHTML = `<span class="t-ts">[${ts}]</span> <span class="${colorMap[entry.level]}">${entry.level.toUpperCase().padEnd(4)}</span>  <span class="t-dim">${entry.msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLogs() {
+  const log = document.getElementById('audit-log');
+  if (log) log.innerHTML = '';
+}
+
+/* ── Overview log feed ── */
+function startOverviewFeed() {
+  const log = document.getElementById('overview-log');
+  if (!log) return;
+  setInterval(() => {
+    const now = new Date();
+    const ts = now.toTimeString().split(' ')[0];
+    const msg = AUDIT_MESSAGES[Math.floor(Math.random() * AUDIT_MESSAGES.length)];
+    const colorMap = { ok:'t-ok', info:'t-info', warn:'t-warn', err:'t-err' };
+    const line = document.createElement('div');
+    line.className = 't-line';
+    line.innerHTML = `<span class="t-ts">[${ts}]</span> <span class="${colorMap[msg.level]}">${msg.level.toUpperCase().padEnd(4)}</span>  <span class="t-dim">${msg.msg}</span>`;
+    log.appendChild(line);
+    log.scrollTop = log.scrollHeight;
+    // cap at 50 lines
+    while (log.children.length > 50) log.removeChild(log.firstChild);
+  }, 5000);
+}
+
+/* ── Toast ── */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', () => {
+  animateMainCounters();
+  populateHealth();
+  renderCircuitOrgs();
+  renderApiKeys();
+  renderWebhooks();
+  startOverviewFeed();
+  setTimeout(animateMarginBar, 200);
+
+  // animate monthly bar heights
+  document.querySelectorAll('[data-h]').forEach(el => {
+    const h = parseInt(el.getAttribute('data-h'));
+    el.style.height = '0%';
+    setTimeout(() => {
+      el.style.transition = 'height 0.9s cubic-bezier(0.25,1,0.5,1)';
+      el.style.height = h + '%';
+    }, 300);
+  });
+});
+</script>
 </body>
 </html>

@@ -1,159 +1,586 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk - Team Management</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      "colors": {
-        "on-background": "#1b1b24",
-        "primary": "#4d41df",
-        "secondary": "#005bbf",
-        "tertiary": "#914800",
-        "on-primary": "#ffffff",
-        "on-secondary": "#ffffff",
-        "on-tertiary": "#ffffff",
-        "primary-container": "#675df9",
-        "secondary-container": "#5694fe",
-        "on-surface": "#1b1b24",
-        "on-surface-variant": "#464555",
-        "surface-container": "#f0ecf9",
-        "outline": "#777587"
-      }
-    }
-  }
-}
-</script>
-<style>
-body {
-    background: linear-gradient(135deg, #E8EAF6 0%, #F0F4FF 100%);
-    min-height: 100vh;
-}
-.glass-card {
-    background-color: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(30, 27, 75, 0.05);
-}
-.glass-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(32px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-}
-</style>
-</head>
-<body class="text-on-surface">
-<nav class="glass-nav fixed top-0 left-0 right-0 z-50">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-white/80 p-1.5">
-          <img alt="Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2BPWssKIhb8Nh7xzwHxs5Q9cl9UzJinuqYxn4u7G77MxUQp8ToVWRwujRTgS5gpWR-suwz4V4fsm8dW-N0RSaEwm_9Dt37s8jf0olEME9M9cSy9FvfHvcx2gMPkp1H5Dj4YaKufPRsAyon8Tf-vMzrmI7MIrChpJZ6_kSbZGs523Pb4CA2SX-QCxPi-STBDe5ihnSr8ua8SbHBVpbMPSjmkwgd9XbJbO8Y-HpmNSk3lZFsuA8itL13q_6zNTl8kk0paSM8gKI5S4"/>
-        </div>
-        <span class="text-xl font-semibold">ClearDesk</span>
-      </a>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="text-sm hover:text-primary">Dashboard</a>
-        <a href="team-management.html" class="text-sm text-primary font-semibold">Teams</a>
-        <a href="agent-detail.html" class="text-sm hover:text-primary">Agents</a>
-        <a href="campaigns.html" class="text-sm hover:text-primary">Campaigns</a>
-        <a href="contacts.html" class="text-sm hover:text-primary">Contacts</a>
-        <a href="call-logs.html" class="text-sm hover:text-primary">Calls</a>
-        <a href="sms-logs.html" class="text-sm hover:text-primary">SMS</a>
-        <a href="settings.html" class="text-sm hover:text-primary">Settings</a>
-        <button id="auth-btn" onclick="signOut()" class="px-4 py-2 bg-primary text-white rounded-full text-sm">Logout</button>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<main class="pt-24 pb-12 px-6">
-  <div class="max-w-7xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold mb-2">Team Management</h1>
-      <p class="text-lg text-on-surface-variant">Manage your compliance automation teams</p>
-    </div>
-    
-    <div id="teams-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="glass-card rounded-xl p-6 animate-pulse">
-        <div class="h-6 bg-surface-container rounded mb-4"></div>
-        <div class="h-4 bg-surface-container rounded mb-2"></div>
-        <div class="h-4 bg-surface-container rounded w-2/3"></div>
-      </div>
-    </div>
-  </div>
-</main>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Teams</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="translations.js"></script>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
 <script>
-(async () => {
-  const session = await getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-    return;
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-background": "#1b1b24",
+        "surface-tint": "#4f44e2",
+        "secondary-container": "#5694fe",
+        "surface-dim": "#dcd8e5",
+        "surface-variant": "#e4e1ee",
+        "on-error": "#ffffff",
+        "primary-fixed-dim": "#c4c0ff",
+        "surface-container-high": "#eae6f3",
+        "surface-container-low": "#f6f2ff",
+        "secondary": "#005bbf",
+        "tertiary": "#914800",
+        "on-primary": "#ffffff",
+        "tertiary-container": "#b65c00",
+        "on-secondary": "#ffffff",
+        "primary": "#4d41df",
+        "outline": "#777587",
+        "surface-bright": "#fcf8ff",
+        "surface-container-highest": "#e4e1ee",
+        "background": "#fcf8ff",
+        "primary-fixed": "#e3dfff",
+        "inverse-surface": "#302f39",
+        "error": "#ba1a1a",
+        "secondary-fixed": "#d7e2ff",
+        "surface-container": "#f0ecf9",
+        "on-surface-variant": "#464555",
+        "surface-container-lowest": "#ffffff",
+        "on-surface": "#1b1b24",
+        "error-container": "#ffdad6",
+        "surface": "#fcf8ff",
+        "inverse-primary": "#c4c0ff",
+        "primary-container": "#675df9",
+        "outline-variant": "#c7c4d8"
+      },
+      fontFamily: { sans: ["Plus Jakarta Sans", "sans-serif"] },
+      borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", "2xl": "1rem", "3xl": "1.5rem", full: "9999px" }
+    }
   }
-  
-  // Update auth button
-  document.getElementById('auth-btn').textContent = session.user.email.split('@')[0];
-  
-  // Load teams
-  const { data: teams, error } = await supabaseClient
-    .from('teams')
-    .select('*')
-    .order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error('Error loading teams:', error);
-    return;
+}
+</script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Plus Jakarta Sans", sans-serif; background: #f0ecf9; min-height: 100vh; overflow-x: hidden; }
+
+  .ambient-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(108,99,255,0.13) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 100%,  rgba(79,68,226,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 50% 50%,   rgba(198,194,255,0.08) 0%, transparent 60%),
+      linear-gradient(160deg, #ece9ff 0%, #f0ecf9 40%, #e8f0ff 100%);
+    animation: ambientShift 20s ease-in-out infinite alternate;
   }
-  
-  // Get agent counts per team
-  const { data: agents } = await supabaseClient
-    .from('agents')
-    .select('team_id');
-  
-  const agentCounts = {};
-  if (agents) {
-    agents.forEach(a => {
-      agentCounts[a.team_id] = (agentCounts[a.team_id] || 0) + 1;
-    });
+  @keyframes ambientShift { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(15deg); } }
+
+  .glass-nav {
+    background: rgba(255,255,255,0.82); backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    border-bottom: 1px solid rgba(255,255,255,0.5); box-shadow: 0 1px 0 rgba(77,65,223,0.06);
   }
-  
-  // Render teams
-  const container = document.getElementById('teams-container');
-  container.innerHTML = teams.map(team => `
-    <div class="glass-card rounded-xl p-6 hover:scale-105 transition-transform cursor-pointer">
-      <div class="flex items-start justify-between mb-4">
-        <div>
-          <h3 class="text-xl font-semibold mb-1">${team.name}</h3>
-          <p class="text-sm text-on-surface-variant">${team.lead_name || 'No lead assigned'}</p>
+  .glass-card {
+    background: rgba(255,255,255,0.62); backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 24px rgba(77,65,223,0.07), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
+  .glass-card-solid {
+    background: rgba(255,255,255,0.88); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 24px rgba(77,65,223,0.08);
+  }
+
+  .transition-snappy { transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1); }
+
+  .card-hover {
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(77,65,223,0.14), 0 1px 0 rgba(255,255,255,0.8) inset; }
+
+  .nav-item { position: relative; transition: color 0.18s ease, background 0.18s ease; }
+  .nav-item::after {
+    content: ''; position: absolute; bottom: -1px; left: 50%;
+    transform: translateX(-50%) scaleX(0); width: 80%; height: 2px;
+    background: #6C63FF; border-radius: 2px;
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .nav-item:hover::after, .nav-item.active::after { transform: translateX(-50%) scaleX(1); }
+  .nav-item.active { color: #6C63FF; }
+
+  @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .enter { opacity: 0; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .enter-1 { animation-delay: 0.05s; } .enter-2 { animation-delay: 0.10s; }
+  .enter-3 { animation-delay: 0.15s; } .enter-4 { animation-delay: 0.20s; }
+  .enter-5 { animation-delay: 0.25s; } .enter-6 { animation-delay: 0.30s; }
+
+  .md-icon { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 300;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; line-height: 1; user-select: none; }
+
+  .credit-stripe { background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%); }
+
+  /* Role badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .badge-admin { background: rgba(79,68,226,0.1); color: #4d41df; border: 1px solid rgba(79,68,226,0.2); }
+  .badge-manager { background: rgba(5,150,105,0.1); color: #065f46; border: 1px solid rgba(5,150,105,0.2); }
+  .badge-agent { background: rgba(37,99,235,0.09); color: #1e40af; border: 1px solid rgba(37,99,235,0.18); }
+  .badge-ops { background: rgba(217,119,6,0.1); color: #92400e; border: 1px solid rgba(217,119,6,0.2); }
+
+  /* Avatar */
+  .avatar { width: 40px; height: 40px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+
+  /* Drawer overlay */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(15,12,41,0.35); backdrop-filter: blur(4px); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+  .drawer-overlay.open { opacity: 1; pointer-events: all; }
+  .drawer { position: fixed; right: 0; top: 0; height: 100%; width: 480px; max-width: 95vw; z-index: 101; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+  .drawer.open { transform: translateX(0); }
+
+  /* Member row hover */
+  .member-row { transition: background 0.15s ease; }
+  .member-row:hover { background: rgba(108,99,255,0.03); }
+
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.35); }
+
+  @media (max-width: 768px) { .nav-scroll { overflow-x: auto; } }
+</style>
+</head>
+
+<body class="text-on-surface">
+<div class="ambient-bg"></div>
+
+<div class="relative z-10 min-h-screen flex flex-col">
+
+  <!-- NAVBAR -->
+  <nav class="glass-nav sticky top-0 z-50">
+    <div class="max-w-[1320px] mx-auto px-6 md:px-10">
+      <div class="flex items-center justify-between h-16 gap-6">
+        <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
+          <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm">
+            <span class="md-icon text-white text-[17px]">receipt_long</span>
+          </div>
+          <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
+        </a>
+
+        <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto">
+          <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
+          <a href="team-management.html" class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
+          <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
+          <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
+          <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
+          <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
+          <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
+          <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
         </div>
-        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-          team.status === 'active' ? 'bg-secondary text-white' : 'bg-surface-container'
-        }">
-          ${team.status}
-        </span>
-      </div>
-      
-      <div class="flex items-center gap-4 text-sm">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">group</span>
-          <span>${agentCounts[team.id] || 0} agents</span>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <select id="language-selector" onchange="changeLanguage()" class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none transition-snappy">
+            <option value="ENGLISH">🌐 EN</option>
+            <option value="HINDI">🇮🇳 HI</option>
+            <option value="MARATHI">🇮🇳 MR</option>
+          </select>
+          <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+            <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+            <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+            <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
+          </button>
         </div>
       </div>
     </div>
-  `).join('');
-})();
+  </nav>
+
+  <!-- MAIN -->
+  <main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
+
+    <!-- Page header -->
+    <div class="flex items-center justify-between flex-wrap gap-4 enter enter-1">
+      <div>
+        <h1 class="text-[26px] font-bold text-on-surface tracking-tight">Team Management</h1>
+        <p class="text-[14px] text-on-surface-variant mt-0.5">Manage your agents, roles, and team structure</p>
+      </div>
+      <button onclick="openInviteDrawer()" class="flex items-center gap-2 px-4 py-2.5 credit-stripe text-white rounded-xl text-[13.5px] font-semibold shadow-sm hover:shadow-md transition-snappy">
+        <span class="md-icon text-[18px]">person_add</span>Invite Member
+      </button>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 enter enter-2">
+      <div class="glass-card rounded-2xl p-5 card-hover">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center">
+            <span class="md-icon text-[20px] text-[#6C63FF]">group</span>
+          </div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant">Total Members</span>
+        </div>
+        <div class="text-[28px] font-bold text-on-surface counter-value" id="stat-total">0</div>
+      </div>
+      <div class="glass-card rounded-2xl p-5 card-hover">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-[#dcfce7] flex items-center justify-center">
+            <span class="md-icon text-[20px] text-emerald-600">support_agent</span>
+          </div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant">Active Agents</span>
+        </div>
+        <div class="text-[28px] font-bold text-on-surface counter-value" id="stat-agents">0</div>
+      </div>
+      <div class="glass-card rounded-2xl p-5 card-hover">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-[#e0f2fe] flex items-center justify-center">
+            <span class="md-icon text-[20px] text-sky-600">manage_accounts</span>
+          </div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant">Admins</span>
+        </div>
+        <div class="text-[28px] font-bold text-on-surface counter-value" id="stat-admins">0</div>
+      </div>
+      <div class="glass-card rounded-2xl p-5 card-hover">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-9 h-9 rounded-xl bg-[#fef3c7] flex items-center justify-center">
+            <span class="md-icon text-[20px] text-amber-600">pending</span>
+          </div>
+          <span class="text-[12.5px] font-medium text-on-surface-variant">Pending Invites</span>
+        </div>
+        <div class="text-[28px] font-bold text-on-surface counter-value" id="stat-pending">0</div>
+      </div>
+    </div>
+
+    <!-- Filters + Search -->
+    <div class="flex flex-wrap items-center gap-3 enter enter-3">
+      <div class="relative flex-1 min-w-[220px]">
+        <span class="md-icon absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+        <input id="search-input" oninput="filterMembers()" type="text" placeholder="Search members…"
+          class="w-full pl-9 pr-4 py-2.5 text-[13.5px] bg-white/70 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="setFilter('all')" id="filter-all" class="filter-btn active-filter px-3.5 py-2 text-[12.5px] font-semibold rounded-xl transition-snappy border border-transparent">All</button>
+        <button onclick="setFilter('admin')" id="filter-admin" class="filter-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl transition-snappy border border-transparent text-on-surface-variant">Admins</button>
+        <button onclick="setFilter('manager')" id="filter-manager" class="filter-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl transition-snappy border border-transparent text-on-surface-variant">Managers</button>
+        <button onclick="setFilter('agent')" id="filter-agent" class="filter-btn px-3.5 py-2 text-[12.5px] font-medium rounded-xl transition-snappy border border-transparent text-on-surface-variant">Agents</button>
+      </div>
+    </div>
+
+    <!-- Members table card -->
+    <div class="glass-card rounded-2xl overflow-hidden enter enter-4">
+      <!-- Table header -->
+      <div class="grid grid-cols-[2fr_1fr_1fr_1fr_80px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40">
+        <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Member</span>
+        <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Role</span>
+        <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Calls Today</span>
+        <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Status</span>
+        <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider text-right">Actions</span>
+      </div>
+      <!-- Members list -->
+      <div id="members-list">
+        <!-- Loading skeleton -->
+        <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
+          <span class="md-icon text-[20px] animate-spin">progress_activity</span>
+          <span class="text-[13.5px]">Loading team members…</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Invite Drawer Overlay -->
+<div id="drawer-overlay" class="drawer-overlay" onclick="closeInviteDrawer()"></div>
+<div id="invite-drawer" class="drawer glass-card-solid">
+  <div class="h-full flex flex-col p-6 overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-[18px] font-bold text-on-surface">Invite Team Member</h2>
+        <p class="text-[13px] text-on-surface-variant mt-0.5">Send an invitation to join your workspace</p>
+      </div>
+      <button onclick="closeInviteDrawer()" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy">
+        <span class="md-icon text-[20px] text-on-surface-variant">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-5 flex-1">
+      <div>
+        <label class="block text-[13px] font-semibold text-on-surface mb-1.5">Full Name</label>
+        <input id="invite-name" type="text" placeholder="e.g. Priya Sharma"
+          class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-on-surface mb-1.5">Email Address</label>
+        <input id="invite-email" type="email" placeholder="priya@yourfirm.com"
+          class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-on-surface mb-1.5">Role</label>
+        <select id="invite-role" class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
+          <option value="agent">Agent</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[13px] font-semibold text-on-surface mb-1.5">Phone Number (optional)</label>
+        <input id="invite-phone" type="tel" placeholder="+91 98765 43210"
+          class="w-full px-4 py-2.5 text-[13.5px] bg-surface-container border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-snappy"/>
+      </div>
+
+      <div class="glass-card rounded-xl p-4 flex items-start gap-3">
+        <span class="md-icon text-[20px] text-[#6C63FF] mt-0.5">info</span>
+        <p class="text-[12.5px] text-on-surface-variant leading-relaxed">An invitation email will be sent. The member must set a password before they can log in.</p>
+      </div>
+    </div>
+
+    <div class="pt-5 border-t border-outline-variant/40 mt-5 flex gap-3">
+      <button onclick="closeInviteDrawer()" class="flex-1 px-4 py-2.5 text-[13.5px] font-medium text-on-surface-variant bg-surface-container rounded-xl hover:bg-surface-container-high transition-snappy">Cancel</button>
+      <button onclick="sendInvite()" class="flex-1 px-4 py-2.5 text-[13.5px] font-semibold text-white credit-stripe rounded-xl shadow-sm hover:shadow-md transition-snappy flex items-center justify-center gap-2">
+        <span class="md-icon text-[17px]">send</span>Send Invite
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] pointer-events-none">
+  <div id="toast-inner" class="glass-card-solid rounded-2xl px-5 py-3 flex items-center gap-3 shadow-lg opacity-0 translate-y-4 transition-all duration-300">
+    <span id="toast-icon" class="md-icon text-[20px]">check_circle</span>
+    <span id="toast-msg" class="text-[13.5px] font-medium text-on-surface"></span>
+  </div>
+</div>
+
+<style>
+  .filter-btn { background: transparent; cursor: pointer; }
+  .filter-btn.active-filter { background: rgba(108,99,255,0.1); color: #6C63FF; border-color: rgba(108,99,255,0.2); }
+</style>
+
+<script>
+  // ── Colour palette for avatars ──
+  const AVATAR_COLORS = ['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+  let currentFilter = 'all';
+  let allMembers = [];
+
+  // ── Mock team data (replace with Supabase query when user_profiles table exists) ──
+  const MOCK_MEMBERS = [
+    { id: '1', display_name: 'Priya Sharma',   email: 'priya@firm.com',   role: 'admin',   calls_today: 14, status: 'online' },
+    { id: '2', display_name: 'Rahul Nair',      email: 'rahul@firm.com',   role: 'manager', calls_today: 9,  status: 'online' },
+    { id: '3', display_name: 'Ananya Desai',    email: 'ananya@firm.com',  role: 'agent',   calls_today: 22, status: 'online' },
+    { id: '4', display_name: 'Vikram Joshi',    email: 'vikram@firm.com',  role: 'agent',   calls_today: 17, status: 'away'   },
+    { id: '5', display_name: 'Sneha Pillai',    email: 'sneha@firm.com',   role: 'agent',   calls_today: 11, status: 'offline'},
+    { id: '6', display_name: 'Arjun Mehta',     email: 'arjun@firm.com',   role: 'manager', calls_today: 6,  status: 'online' },
+    { id: '7', display_name: 'Divya Krishnan',  email: 'divya@firm.com',   role: 'agent',   calls_today: 19, status: 'online' },
+  ];
+
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  }
+  function avatarColor(name) {
+    let h = 0; for (let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  }
+  function roleLabel(role) {
+    const map = { admin: ['Admin','badge-admin'], manager: ['Manager','badge-manager'], agent: ['Agent','badge-agent'], ops: ['Ops','badge-ops'] };
+    return map[role] || [role, 'badge-agent'];
+  }
+  function statusChip(s) {
+    const map = {
+      online:  `<span class="inline-flex items-center gap-1 text-[11.5px] font-semibold text-emerald-700"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>Online</span>`,
+      away:    `<span class="inline-flex items-center gap-1 text-[11.5px] font-semibold text-amber-700"><span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>Away</span>`,
+      offline: `<span class="inline-flex items-center gap-1 text-[11.5px] font-semibold text-on-surface-variant"><span style="width:7px;height:7px;border-radius:50%;background:#9ca3af;display:inline-block;"></span>Offline</span>`,
+    };
+    return map[s] || map.offline;
+  }
+
+  function renderMembers(members) {
+    const list = document.getElementById('members-list');
+    if (!members.length) {
+      list.innerHTML = `<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant">
+        <span class="md-icon text-[40px] opacity-40">group_off</span>
+        <p class="text-[14px] font-medium">No members found</p>
+      </div>`;
+      return;
+    }
+    list.innerHTML = members.map((m, i) => {
+      const [label, cls] = roleLabel(m.role);
+      return `<div class="member-row grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation: slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
+        <div class="flex items-center gap-3">
+          <div class="avatar" style="background:${avatarColor(m.display_name)}">${getInitials(m.display_name)}</div>
+          <div>
+            <div class="text-[13.5px] font-semibold text-on-surface">${m.display_name}</div>
+            <div class="text-[12px] text-on-surface-variant">${m.email}</div>
+          </div>
+        </div>
+        <div><span class="badge ${cls}">${label}</span></div>
+        <div class="hidden md:block text-[13.5px] font-semibold text-on-surface">${m.calls_today}</div>
+        <div class="hidden md:block">${statusChip(m.status)}</div>
+        <div class="flex items-center justify-end gap-1">
+          <button onclick="editMember('${m.id}')" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy" title="Edit">
+            <span class="md-icon text-[17px] text-on-surface-variant">edit</span>
+          </button>
+          <button onclick="removeMember('${m.id}')" class="w-8 h-8 rounded-lg hover:bg-error-container flex items-center justify-center transition-snappy" title="Remove">
+            <span class="md-icon text-[17px] text-on-surface-variant hover:text-error">person_remove</span>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function animateCounter(el, target, duration = 900) {
+    let start = null;
+    const step = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function updateStats(members) {
+    animateCounter(document.getElementById('stat-total'),   members.length);
+    animateCounter(document.getElementById('stat-agents'),  members.filter(m => m.role === 'agent').length);
+    animateCounter(document.getElementById('stat-admins'),  members.filter(m => m.role === 'admin').length);
+    animateCounter(document.getElementById('stat-pending'), 2); // mock
+  }
+
+  function setFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active-filter'));
+    document.getElementById('filter-' + f).classList.add('active-filter');
+    filterMembers();
+  }
+
+  function filterMembers() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    let filtered = allMembers.filter(m => {
+      const matchRole = currentFilter === 'all' || m.role === currentFilter;
+      const matchSearch = !q || m.display_name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+      return matchRole && matchSearch;
+    });
+    renderMembers(filtered);
+  }
+
+  function openInviteDrawer() {
+    document.getElementById('drawer-overlay').classList.add('open');
+    document.getElementById('invite-drawer').classList.add('open');
+  }
+  function closeInviteDrawer() {
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.getElementById('invite-drawer').classList.remove('open');
+  }
+
+  function showToast(msg, icon = 'check_circle', color = '#10b981') {
+    const inner = document.getElementById('toast-inner');
+    document.getElementById('toast-msg').textContent = msg;
+    const ic = document.getElementById('toast-icon');
+    ic.textContent = icon; ic.style.color = color;
+    inner.style.opacity = '1'; inner.style.transform = 'translateY(0)';
+    setTimeout(() => { inner.style.opacity = '0'; inner.style.transform = 'translateY(8px)'; }, 3200);
+  }
+
+  async function sendInvite() {
+    const name  = document.getElementById('invite-name').value.trim();
+    const email = document.getElementById('invite-email').value.trim();
+    const role  = document.getElementById('invite-role').value;
+    if (!name || !email) { showToast('Please fill in name and email.', 'warning', '#f59e0b'); return; }
+
+    const btn = document.querySelector('[onclick="sendInvite()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+    try {
+      // Get caller session token
+      const { data: { session } } = await window.supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch(
+        'https://grudvsgmbyobilqnvoof.supabase.co/functions/v1/send-invite',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdydWR2c2dtYnlvYmlscW52b29mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzODU3NTQsImV4cCI6MjA5NDk2MTc1NH0._vpHj5tyrkY6yYAP3m3yn2clA1mqT4OjUrJ4W24ZY1s',
+          },
+          body: JSON.stringify({ email, display_name: name, role }),
+        }
+      );
+
+      const payload = await res.json();
+
+      if (!res.ok) {
+        throw new Error(payload.error || `Server error ${res.status}`);
+      }
+
+      // Optimistically add to local list
+      allMembers.unshift({
+        id: 'pending-' + Date.now(),
+        display_name: name,
+        email,
+        role,
+        status: 'offline',
+        calls_today: 0,
+        joined: new Date().toLocaleDateString('en-GB'),
+      });
+      filterMembers();
+      updateStats(allMembers);
+
+      showToast(`Invite sent to ${email}`, 'mark_email_read', '#6C63FF');
+      closeInviteDrawer();
+      // Reset form
+      document.getElementById('invite-name').value = '';
+      document.getElementById('invite-email').value = '';
+
+    } catch(err) {
+      console.error('Invite error:', err);
+      showToast(err.message || 'Failed to send invite', 'error', '#ef4444');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="md-icon text-[17px]">send</span>Send Invite';
+      }
+    }
+  }
+
+  function editMember(id) { showToast('Edit coming soon', 'edit', '#6C63FF'); }
+  function removeMember(id) {
+    allMembers = allMembers.filter(m => m.id !== id);
+    filterMembers(); updateStats(allMembers);
+    showToast('Member removed', 'person_remove', '#ef4444');
+  }
+
+  function changeLanguage() { /* translations.js hook */ }
+
+  async function init() {
+    const user = await protectPage();
+    if (!user) return;
+
+    // Nav user chip
+    const initEl = document.getElementById('avatar-initials');
+    const emailEl = document.getElementById('user-email-short');
+    const name = user.display_name || user.email;
+    initEl.textContent = getInitials(name);
+    emailEl.textContent = user.email.split('@')[0];
+
+    // Show developer link if applicable
+    if (user.role === 'DEVELOPER') {
+      const dl = document.getElementById('developer-link');
+      if (dl) dl.style.display = 'flex';
+    }
+
+    // Load members — try Supabase, fall back to mock
+    try {
+      const { data, error } = await window.supabase
+        .from('user_profiles')
+        .select('id, display_name, email, role, status')
+        .eq('organization_id', user.organization_id);
+      if (!error && data && data.length) {
+        allMembers = data.map(m => ({ ...m, calls_today: Math.floor(Math.random() * 25) }));
+      } else { allMembers = MOCK_MEMBERS; }
+    } catch { allMembers = MOCK_MEMBERS; }
+
+    renderMembers(allMembers);
+    updateStats(allMembers);
+  }
+
+  init();
 </script>
 </body>
 </html>
