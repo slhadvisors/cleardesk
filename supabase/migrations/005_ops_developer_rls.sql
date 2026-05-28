@@ -6,7 +6,7 @@
 -- ============================================================
 
 -- ── Helper: is caller a DEVELOPER? ───────────────────────────────
-CREATE OR REPLACE FUNCTION auth.is_developer()
+CREATE OR REPLACE FUNCTION public.is_developer()
 RETURNS boolean LANGUAGE sql STABLE AS $$
   SELECT coalesce(
     (auth.jwt() -> 'app_metadata'  ->> 'user_role') = 'DEVELOPER'
@@ -17,25 +17,25 @@ $$;
 
 -- ── Organizations: DEVELOPER can read ALL orgs ───────────────────
 CREATE POLICY "DEVELOPER read all orgs" ON organizations
-    FOR SELECT USING (auth.is_developer());
+    FOR SELECT USING (public.is_developer());
 
 -- DEVELOPER can update credit_balance, billing_status, overdraft settings
 CREATE POLICY "DEVELOPER update orgs" ON organizations
-    FOR UPDATE USING (auth.is_developer())
-    WITH CHECK (auth.is_developer());
+    FOR UPDATE USING (public.is_developer())
+    WITH CHECK (public.is_developer());
 
 -- ── Campaigns: DEVELOPER can read/update ALL campaigns ───────────
 CREATE POLICY "DEVELOPER read all campaigns" ON outbound_campaigns
-    FOR SELECT USING (auth.is_developer());
+    FOR SELECT USING (public.is_developer());
 
 CREATE POLICY "DEVELOPER update all campaigns" ON outbound_campaigns
-    FOR UPDATE USING (auth.is_developer())
-    WITH CHECK (auth.is_developer());
+    FOR UPDATE USING (public.is_developer())
+    WITH CHECK (public.is_developer());
 
 -- ── Call logs: DEVELOPER can read all logs ───────────────────────
 CREATE POLICY "DEVELOPER read all call logs" ON call_logs
-    FOR SELECT USING (auth.is_developer());
+    FOR SELECT USING (public.is_developer());
 
 -- ── CRM webhook logs: DEVELOPER can read all ─────────────────────
 CREATE POLICY "DEVELOPER read all webhook logs" ON crm_webhook_logs
-    FOR SELECT USING (auth.is_developer());
+    FOR SELECT USING (public.is_developer());

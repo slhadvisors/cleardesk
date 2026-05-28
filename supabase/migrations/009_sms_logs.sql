@@ -39,7 +39,7 @@ CREATE POLICY "Tenant RLS: SMS Logs" ON sms_logs
 
 -- DEVELOPER bypass
 CREATE POLICY "DEVELOPER bypass: SMS Logs" ON sms_logs
-    FOR ALL USING (auth.is_developer());
+    FOR ALL USING (public.is_developer());
 
 -- Auto-update timestamp
 CREATE TRIGGER sms_logs_updated_at

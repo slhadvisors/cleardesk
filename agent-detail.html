@@ -252,14 +252,6 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 const AVATAR_COLORS=['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
 let allAgents=[],filtered=[],currentFilter='all';
 
-const MOCK=[
-  {id:'1',name:'Aria (Doc Chaser)',  email:'aria@cleardesk.ai',  status:'online',  calls_today:34,success_rate:91,avg_duration:'2:47',sms_today:12,weekly:[22,28,34,31,34,8,4], campaigns:['Q4 Tax Reminder','Doc Chaser Batch'],recent:[{name:'Rajesh Gupta',status:'completed',time:'10:15 AM'},{name:'Suresh Patil',status:'completed',time:'09:52 AM'},{name:'Kavitha Iyer',status:'failed',time:'09:31 AM'}]},
-  {id:'2',name:'Nova (Sales)',        email:'nova@cleardesk.ai',   status:'online',  calls_today:27,success_rate:84,avg_duration:'4:12',sms_today:9, weekly:[18,24,20,27,27,5,2], campaigns:['Sales Outreach Q4','Enterprise Demo'],recent:[{name:'Manish Kapoor',status:'completed',time:'09:20 AM'},{name:'Anita Menon',status:'no-answer',time:'10:05 AM'}]},
-  {id:'3',name:'Echo (Deadline)',     email:'echo@cleardesk.ai',   status:'online',  calls_today:19,success_rate:78,avg_duration:'1:55',sms_today:22,weekly:[12,16,18,19,19,3,1], campaigns:['GSTR-1 Reminder','TDS Alert'],recent:[{name:'Ritu Bhatt',status:'completed',time:'11:00 AM'},{name:'Deepa Nair',status:'completed',time:'09:00 AM'}]},
-  {id:'4',name:'Pulse (Collections)', email:'pulse@cleardesk.ai',  status:'away',    calls_today:11,success_rate:67,avg_duration:'3:30',sms_today:5, weekly:[8,11,9,10,11,2,0], campaigns:['Outstanding Dues'],recent:[{name:'Sanjay Reddy',status:'no-answer',time:'2:30 PM'},{name:'Vikram Malhotra',status:'failed',time:'2 days ago'}]},
-  {id:'5',name:'Zen (Onboarding)',    email:'zen@cleardesk.ai',    status:'offline', calls_today:0, success_rate:95,avg_duration:'5:20',sms_today:0, weekly:[15,20,18,22,0,0,0], campaigns:['New Client Welcome'],recent:[{name:'Pooja Agarwal',status:'completed',time:'Yesterday'}]},
-  {id:'6',name:'Flux (WhatsApp)',     email:'flux@cleardesk.ai',   status:'online',  calls_today:8, success_rate:88,avg_duration:'—',   sms_today:41,weekly:[5,6,8,7,8,3,1], campaigns:['WhatsApp Broadcast'],recent:[{name:'Aakash Verma',status:'completed',time:'Yesterday'}]},
-];
 
 function getInitials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
 function avatarColor(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))&0xffff;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
@@ -404,13 +396,29 @@ async function init(){
   document.getElementById('avatar-initials').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('user-email-short').textContent=user.email.split('@')[0];
 
-  // Try Supabase, fall back to mock
+  window._cdUser=user;
   try{
-    const{data,error}=await window.supabase.from('ai_agents').select('*').eq('organization_id',user.organization_id);
-    if(!error&&data&&data.length){
-      allAgents=data.map(a=>({id:a.id,name:a.agent_name||a.name,email:a.email||a.agent_name+'@cleardesk.ai',status:a.is_active?'online':'offline',calls_today:a.calls_today||0,success_rate:a.success_rate||0,avg_duration:a.avg_duration||'—',sms_today:a.sms_today||0,weekly:a.weekly_calls||[0,0,0,0,0,0,0],campaigns:a.campaigns||[],recent:a.recent_calls||[]}));
-    }else{allAgents=MOCK;}
-  }catch{allAgents=MOCK;}
+    const{data,error}=await window.supabase
+      .from('agents')
+      .select('id,name,email,role,status,compliance_rate,tasks_completed,avatar_url,created_at')
+      .eq('organization_id',user.organization_id)
+      .order('created_at',{ascending:true});
+    if(!error&&data){
+      allAgents=data.map(a=>({
+        id:           a.id,
+        name:         a.name||'—',
+        email:        a.email||'—',
+        status:       a.status||'offline',
+        calls_today:  a.tasks_completed||0,
+        success_rate: parseFloat(a.compliance_rate)||0,
+        avg_duration: '—',
+        sms_today:    0,
+        weekly:       [0,0,0,0,0,0,0],
+        campaigns:    [],
+        recent:       [],
+      }));
+    } else { allAgents=[]; }
+  }catch{ allAgents=[]; }
   filtered=[...allAgents];renderGrid(filtered);updateStats();
 }
 init();

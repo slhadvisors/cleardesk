@@ -33,7 +33,7 @@ CREATE POLICY "Tenant RLS: Contacts" ON contacts
 
 -- DEVELOPER bypass
 CREATE POLICY "DEVELOPER bypass: Contacts" ON contacts
-    FOR ALL USING (auth.is_developer());
+    FOR ALL USING (public.is_developer());
 
 -- Auto-update updated_at
 CREATE OR REPLACE FUNCTION trg_contacts_updated_at()

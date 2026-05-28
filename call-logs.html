@@ -480,7 +480,11 @@ async function loadLogs() {
     return;
   }
 
-  allLogs = data || [];
+  allLogs = (data || []).map(l => ({
+    ...l,
+    contact_name:  l.contact_name  || l.recipient_name  || '',
+    contact_phone: l.contact_phone || l.recipient_phone || '',
+  }));
   filtered = [...allLogs];
   updateStats();
   filterLogs();
@@ -516,10 +520,12 @@ function exportCSV() {
 document.addEventListener('DOMContentLoaded', async () => {
   await checkMaintenanceMode();
   const user = await protectPage(); if (!user) return;
+  window._cdUser = user;
+  const{data:{session}}=await window.supabase.auth.getSession();
+  window._cdSession = session;
 
   // Avatar
-  const meta = user.user_metadata || {};
-  const name = meta.full_name || user.email || '';
+  const name = user.display_name || user.email || '';
   document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
   document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
 

@@ -31,7 +31,7 @@ CREATE POLICY "Tenant RLS: Financial Insights" ON tenant_financial_insights
 
 -- DEVELOPER bypass
 CREATE POLICY "DEVELOPER bypass: Financial Insights" ON tenant_financial_insights
-    FOR ALL USING (auth.is_developer());
+    FOR ALL USING (public.is_developer());
 
 -- Auto-update timestamp
 CREATE TRIGGER insights_updated_at

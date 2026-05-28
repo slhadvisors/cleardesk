@@ -220,11 +220,11 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 const PAGE_SIZE=20;
 let allLogs=[],filtered=[],currentPage=1,currentFilter='all';
 
-// ── Org ID from JWT ────────────────────────────────────────────────
+// ── Org ID ────────────────────────────────────────────────────────
 function getOrgId(){
-  const s=window._cdSession;
-  return s?.user?.app_metadata?.organization_id
-      || s?.user?.user_metadata?.organization_id || null;
+  return window._cdUser?.organization_id
+      || window._cdSession?.user?.app_metadata?.organization_id
+      || window._cdSession?.user?.user_metadata?.organization_id || null;
 }
 
 function statusBadge(s){
@@ -273,22 +273,15 @@ function openDetail(id){
 function closeModal(){const ov=document.getElementById('modal-overlay'),box=document.getElementById('modal-box');ov.style.opacity='0';ov.style.pointerEvents='none';box.style.transform='scale(0.95)';}
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 function exportCSV(){const rows=['Name,Phone,Campaign,Status,Sent',...allLogs.map(l=>`${l.name},${l.phone},${l.campaign},${l.status},${l.time}`)];const blob=new Blob([rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sms-logs.csv';a.click();}
-// ── Org ID from JWT ────────────────────────────────────────────────
-function getOrgId(){
-  const s=window._cdSession;
-  return s?.user?.app_metadata?.organization_id
-      || s?.user?.user_metadata?.organization_id || null;
-}
-
 // ── DB → view model mapper ─────────────────────────────────────────
 function dbToLog(l){
   return {
     id:       l.id,
-    name:     l.contact_name  || '—',
-    phone:    l.phone_number  || '—',
-    message:  l.message_body  || '',
+    name:     l.contact_name  || l.recipient_name || '—',
+    phone:    l.phone_number  || l.recipient_phone || '—',
+    message:  l.message_body  || l.message || '',
     campaign: l.campaign_name || '—',
-    status:   l.delivery_status || 'sent',
+    status:   l.delivery_status || l.status || 'sent',
     time:     new Date(l.created_at).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}),
     reply:    l.reply_body    || null,
     cost:     parseFloat(l.cost_inr)||0,
@@ -306,7 +299,7 @@ async function loadLogs(){
 
   const{data,error}=await window.supabase
     .from('sms_logs')
-    .select('id,contact_name,phone_number,message_body,campaign_name,delivery_status,reply_body,cost_inr,created_at')
+    .select('id,contact_name,phone_number,message_body,campaign_name,delivery_status,reply_body,cost_inr,created_at,recipient_name,recipient_phone,message,status')
     .eq('organization_id',orgId)
     .order('created_at',{ascending:false})
     .limit(200);
@@ -363,11 +356,15 @@ async function sendSMS(){
   btn.disabled=true;btn.textContent='Sending…';
   alert.hidden=true;
   const{data,error}=await window.supabase.from('sms_logs').insert({
-    organization_id:orgId,
-    contact_name:   name||phone,
-    phone_number:   phone,
-    message_body:   message,
-    delivery_status:'sent',
+    organization_id: orgId,
+    user_id:         window._cdSession?.user?.id,
+    contact_name:    name||phone,
+    phone_number:    phone,
+    recipient_phone: phone,
+    message_body:    message,
+    message:         message,
+    delivery_status: 'sent',
+    status:          'sent',
   }).select().single();
   btn.disabled=false;btn.textContent='Send ➔';
   if(error){showErr('Failed: '+error.message);return;}
@@ -381,6 +378,7 @@ async function sendSMS(){
 async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
+  window._cdUser=user;
   const{data:{session}}=await window.supabase.auth.getSession();
   window._cdSession=session;
   const name=user.display_name||user.email;

@@ -17,8 +17,8 @@ CREATE POLICY "Public read platform_settings" ON platform_settings
 
 -- Only DEVELOPER role can write
 CREATE POLICY "DEVELOPER write platform_settings" ON platform_settings
-    FOR ALL USING (auth.is_developer())
-    WITH CHECK (auth.is_developer());
+    FOR ALL USING (public.is_developer())
+    WITH CHECK (public.is_developer());
 
 -- Seed default maintenance mode state
 INSERT INTO platform_settings (key, value, updated_by)

@@ -298,9 +298,10 @@ let allContacts=[],filtered=[],currentPage=1,currentTag='all',csvParsed=[];
 
 // ── DB helpers ────────────────────────────────────────────────────
 function getOrgId() {
-  const s = window._cdSession;
-  return s?.user?.app_metadata?.organization_id
-      || s?.user?.user_metadata?.organization_id
+  // Prefer user_profiles-derived org_id (stored on _cdUser by init)
+  return window._cdUser?.organization_id
+      || window._cdSession?.user?.app_metadata?.organization_id
+      || window._cdSession?.user?.user_metadata?.organization_id
       || null;
 }
 // Map DB row → UI contact shape
@@ -308,7 +309,7 @@ function dbToContact(c) {
   const type = Array.isArray(c.tags) && c.tags.length ? c.tags[0] : 'client';
   return {
     id: c.id,
-    name: c.full_name,
+    name: c.full_name || c.name,
     phone: c.phone,
     email: c.email || '',
     type,
@@ -405,9 +406,13 @@ async function saveContact(){
   if(!full_name||!phone){showToast('Name and phone required.','warning','#f59e0b');return;}
   const orgId=getOrgId();
   if(!orgId){showToast('Session error — reload.','error','#ef4444');return;}
+  const userId=window._cdSession?.user?.id;
   const row={
     organization_id:orgId,
-    full_name,phone,
+    user_id:userId,
+    full_name,
+    name:full_name,          // NOT NULL legacy column
+    phone,
     email:document.getElementById('add-email').value||null,
     company:document.getElementById('add-company').value||null,
     tags:[document.getElementById('add-type').value||'client'],
@@ -447,9 +452,13 @@ async function importCSV(){
   if(!csvParsed.length){showToast('Please select a CSV file first.','warning','#f59e0b');return;}
   const orgId=getOrgId();
   if(!orgId){showToast('Session error — reload.','error','#ef4444');return;}
+  const userId=window._cdSession?.user?.id;
   const rows=csvParsed.map(c=>({
     organization_id:orgId,
-    full_name:c.name,phone:c.phone,
+    user_id:userId,
+    full_name:c.name,
+    name:c.name,             // NOT NULL legacy column
+    phone:c.phone,
     email:c.email||null,company:c.company||null,
     tags:[c.type||'client'],country_code:'IN'
   }));
@@ -480,6 +489,7 @@ async function loadContacts(){
 async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
+  window._cdUser=user;                         // org_id from user_profiles
   const{data:{session}}=await window.supabase.auth.getSession();
   window._cdSession=session;
   const meta=user.user_metadata||{};

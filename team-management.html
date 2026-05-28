@@ -358,16 +358,6 @@ tailwind.config = {
   let currentFilter = 'all';
   let allMembers = [];
 
-  // ── Mock team data (replace with Supabase query when user_profiles table exists) ──
-  const MOCK_MEMBERS = [
-    { id: '1', display_name: 'Priya Sharma',   email: 'priya@firm.com',   role: 'admin',   calls_today: 14, status: 'online' },
-    { id: '2', display_name: 'Rahul Nair',      email: 'rahul@firm.com',   role: 'manager', calls_today: 9,  status: 'online' },
-    { id: '3', display_name: 'Ananya Desai',    email: 'ananya@firm.com',  role: 'agent',   calls_today: 22, status: 'online' },
-    { id: '4', display_name: 'Vikram Joshi',    email: 'vikram@firm.com',  role: 'agent',   calls_today: 17, status: 'away'   },
-    { id: '5', display_name: 'Sneha Pillai',    email: 'sneha@firm.com',   role: 'agent',   calls_today: 11, status: 'offline'},
-    { id: '6', display_name: 'Arjun Mehta',     email: 'arjun@firm.com',   role: 'manager', calls_today: 6,  status: 'online' },
-    { id: '7', display_name: 'Divya Krishnan',  email: 'divya@firm.com',   role: 'agent',   calls_today: 19, status: 'online' },
-  ];
 
   function getInitials(name) {
     return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
@@ -377,8 +367,15 @@ tailwind.config = {
     return AVATAR_COLORS[h % AVATAR_COLORS.length];
   }
   function roleLabel(role) {
-    const map = { admin: ['Admin','badge-admin'], manager: ['Manager','badge-manager'], agent: ['Agent','badge-agent'], ops: ['Ops','badge-ops'] };
-    return map[role] || [role, 'badge-agent'];
+    const map = {
+      ORG_ADMIN:  ['Admin',     'badge-admin'],
+      ORG_STAFF:  ['Staff',     'badge-agent'],
+      DEVELOPER:  ['Developer', 'badge-ops'],
+      admin:      ['Admin',     'badge-admin'],
+      manager:    ['Manager',   'badge-manager'],
+      agent:      ['Agent',     'badge-agent'],
+    };
+    return map[role] || [role || 'Staff', 'badge-agent'];
   }
   function statusChip(s) {
     const map = {
@@ -400,17 +397,17 @@ tailwind.config = {
     }
     list.innerHTML = members.map((m, i) => {
       const [label, cls] = roleLabel(m.role);
-      return `<div class="member-row grid grid-cols-[2fr_1fr_1fr_1fr_80px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation: slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
+      const joined = m.created_at ? new Date(m.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      return `<div class="member-row grid grid-cols-[2fr_1fr_1fr_80px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" style="animation: slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.04}s both;">
         <div class="flex items-center gap-3">
-          <div class="avatar" style="background:${avatarColor(m.display_name)}">${getInitials(m.display_name)}</div>
+          <div class="avatar" style="background:${avatarColor(m.display_name||'?')}">${getInitials(m.display_name||'?')}</div>
           <div>
-            <div class="text-[13.5px] font-semibold text-on-surface">${m.display_name}</div>
-            <div class="text-[12px] text-on-surface-variant">${m.email}</div>
+            <div class="text-[13.5px] font-semibold text-on-surface">${m.display_name || '—'}</div>
+            <div class="text-[12px] text-on-surface-variant">Joined ${joined}</div>
           </div>
         </div>
         <div><span class="badge ${cls}">${label}</span></div>
-        <div class="hidden md:block text-[13.5px] font-semibold text-on-surface">${m.calls_today}</div>
-        <div class="hidden md:block">${statusChip(m.status)}</div>
+        <div class="hidden md:block text-[12.5px] text-on-surface-variant">${joined}</div>
         <div class="flex items-center justify-end gap-1">
           <button onclick="editMember('${m.id}')" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy" title="Edit">
             <span class="md-icon text-[17px] text-on-surface-variant">edit</span>
@@ -436,10 +433,20 @@ tailwind.config = {
   }
 
   function updateStats(members) {
-    animateCounter(document.getElementById('stat-total'),   members.length);
-    animateCounter(document.getElementById('stat-agents'),  members.filter(m => m.role === 'agent').length);
-    animateCounter(document.getElementById('stat-admins'),  members.filter(m => m.role === 'admin').length);
-    animateCounter(document.getElementById('stat-pending'), 2); // mock
+    animateCounter(document.getElementById('stat-total'),  members.length);
+    animateCounter(document.getElementById('stat-agents'), members.filter(m => m.role === 'ORG_STAFF' || m.role === 'agent').length);
+    animateCounter(document.getElementById('stat-admins'), members.filter(m => m.role === 'ORG_ADMIN' || m.role === 'admin').length);
+    // pending count updated by loadPendingCount()
+  }
+
+  async function loadPendingCount() {
+    try {
+      const { count } = await window.supabase
+        .from('pending_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      animateCounter(document.getElementById('stat-pending'), count ?? 0);
+    } catch { /* non-critical */ }
   }
 
   function setFilter(f) {
@@ -540,8 +547,11 @@ tailwind.config = {
     }
   }
 
-  function editMember(id) { showToast('Edit coming soon', 'edit', '#6C63FF'); }
-  function removeMember(id) {
+  function editMember(id) { showToast('Edit role coming soon', 'edit', '#6C63FF'); }
+  async function removeMember(id) {
+    if (!confirm('Remove this team member? They will lose access.')) return;
+    const { error } = await window.supabase.from('user_profiles').delete().eq('id', id);
+    if (error) { showToast('Remove failed: ' + error.message, 'error', '#ef4444'); return; }
     allMembers = allMembers.filter(m => m.id !== id);
     filterMembers(); updateStats(allMembers);
     showToast('Member removed', 'person_remove', '#ef4444');
@@ -554,6 +564,7 @@ tailwind.config = {
     const user = await protectPage();
     if (!user) return;
 
+    window._cdUser = user;
     // Nav user chip
     const initEl = document.getElementById('avatar-initials');
     const emailEl = document.getElementById('user-email-short');
@@ -567,19 +578,23 @@ tailwind.config = {
       if (dl) dl.style.display = 'flex';
     }
 
-    // Load members — try Supabase, fall back to mock
-    try {
-      const { data, error } = await window.supabase
-        .from('user_profiles')
-        .select('id, display_name, email, role, status')
-        .eq('organization_id', user.organization_id);
-      if (!error && data && data.length) {
-        allMembers = data.map(m => ({ ...m, calls_today: Math.floor(Math.random() * 25) }));
-      } else { allMembers = MOCK_MEMBERS; }
-    } catch { allMembers = MOCK_MEMBERS; }
+    // Load members from user_profiles
+    const { data, error } = await window.supabase
+      .from('user_profiles')
+      .select('id, display_name, role, created_at')
+      .eq('organization_id', user.organization_id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      showToast('Failed to load team: ' + error.message, 'error', '#ef4444');
+      allMembers = [];
+    } else {
+      allMembers = data || [];
+    }
 
     renderMembers(allMembers);
     updateStats(allMembers);
+    loadPendingCount();
   }
 
   init();
