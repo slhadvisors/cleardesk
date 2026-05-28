@@ -384,19 +384,79 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <div id="toast"></div>
 
 <script>
+/* ── State ── */
+let _orgId = null;
+
+/* ── Init ── */
 (async () => {
   try {
     await requireMinimumRole('DEVELOPER', '../login.html');
     const user = await getCurrentUser();
     if (user) {
-      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      _orgId = user.organization_id;
+      const name = user.display_name || user.email || 'Developer';
       document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
       document.getElementById('topbarName').textContent = name;
     }
-  } catch(e) {}
+    await loadRealData();
+    render();
+  } catch(e) { console.error(e); }
 })();
 
-/* ── Data ── */
+/* ── Load real org data ── */
+async function loadRealData() {
+  if (!_orgId || !window.supabase) return;
+
+  // Org billing
+  const { data: org } = await window.supabase
+    .from('organizations')
+    .select('credit_balance, overdraft_allowed, overdraft_limit, billing_status')
+    .eq('id', _orgId)
+    .single();
+
+  if (org) {
+    animVal('wallet-bal', parseFloat(org.credit_balance) || 0, '$');
+    // overdraft toggle
+    const btn = document.getElementById('od-toggle');
+    const lbl = document.getElementById('od-status');
+    const odEl = document.getElementById('od-limit-val');
+    if (!org.overdraft_allowed) btn.classList.add('off');
+    lbl.textContent = org.overdraft_allowed ? 'ON' : 'OFF';
+    lbl.style.color = org.overdraft_allowed ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+    if (odEl) odEl.textContent = '$' + (parseFloat(org.overdraft_limit)||500).toFixed(2);
+  }
+
+  // Real counts
+  const [calls, sms, contacts] = await Promise.all([
+    window.supabase.from('call_logs').select('id', {count:'exact',head:true}).eq('organization_id',_orgId),
+    window.supabase.from('sms_logs').select('id', {count:'exact',head:true}).eq('organization_id',_orgId),
+    window.supabase.from('contacts').select('id', {count:'exact',head:true}).eq('organization_id',_orgId),
+  ]);
+  animCount('cnt-calls', calls.count || 0);
+  animCount('cnt-sms',   sms.count   || 0);
+  animCount('cnt-docs',  contacts.count || 0);
+
+  // All orgs snapshot (DEVELOPER sees all — direct query bypasses per-org RLS via JWT role)
+  const { data: orgs } = await window.supabase
+    .from('organizations')
+    .select('firm_name, credit_balance, billing_status')
+    .order('credit_balance', { ascending: false })
+    .limit(10);
+
+  if (orgs?.length) {
+    const snap = document.getElementById('wallet-snap');
+    snap.innerHTML = orgs.map(o => {
+      const bal = parseFloat(o.credit_balance) || 0;
+      const c = bal < 0 ? 'var(--warning-crimson)' : bal < 50 ? 'var(--amber)' : 'var(--neon-emerald)';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border-dim);">
+        <span style="font-size:13px;color:var(--text-secondary);">${o.firm_name}</span>
+        <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:${c};">$${bal.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ── Mock data (invoices + sparkline — no DB tables yet) ── */
 const INVOICES = [
   { period:'May 2026',   retail:14820, wholesale:8156, status:'pending' },
   { period:'Apr 2026',   retail:13580, wholesale:7340, status:'paid' },
@@ -405,26 +465,10 @@ const INVOICES = [
   { period:'Jan 2026',   retail:10420, wholesale:5740, status:'paid' },
 ];
 
-const ORGS_SNAP = [
-  { name:'Patel CPA Group',     balance:245.80 },
-  { name:'NYC Tax Advisors',    balance:1240.00 },
-  { name:'Sharma Tax Solutions',balance:28.40 },
-  { name:'Mehta & Mehta',       balance:0.00 },
-  { name:'TaxPro Solutions',    balance:80.20 },
-  { name:'Dubai Wealth Partners',balance:-320.00 },
-];
-
 const DAILY_BURN = [420,380,510,490,620,580,445,390,550,600,480,510,640,590,470,420,580,620,510,490,540,580,620,680,720,650,590];
 
-/* ── Render ── */
+/* ── Render static sections ── */
 function render() {
-  // wallet balance = sum of positive org balances
-  const totalBal = ORGS_SNAP.reduce((s,o) => s + Math.max(o.balance,0), 0);
-  animVal('wallet-bal', totalBal, '$');
-  animCount('cnt-calls', 1842);
-  animCount('cnt-sms',   3210);
-  animCount('cnt-docs',  247);
-
   // invoices
   const tbody = document.getElementById('invoice-tbody');
   tbody.innerHTML = INVOICES.map(inv => {
@@ -440,32 +484,18 @@ function render() {
     </tr>`;
   }).join('');
 
-  // org wallet snap
-  const snap = document.getElementById('wallet-snap');
-  snap.innerHTML = ORGS_SNAP.map(o => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border-dim);">
-      <span style="font-size:13px;color:var(--text-secondary);">${o.name}</span>
-      <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:${o.balance<0?'var(--warning-crimson)':o.balance<50?'var(--amber)':'var(--neon-emerald)'};">$${o.balance.toFixed(2)}</span>
-    </div>
-  `).join('');
-
   // sparkline
   const sl = document.getElementById('sparkline');
   const max = Math.max(...DAILY_BURN);
-  sl.innerHTML = DAILY_BURN.map((v,i) => `
+  sl.innerHTML = DAILY_BURN.map(v => `
     <div class="spark-col">
       <div class="spark-bar" style="height:0%;background:${v===max?'var(--warning-crimson)':v>500?'var(--amber)':'var(--neon-cyan)'};opacity:0.7;" data-h="${Math.round(v/max*100)}"></div>
     </div>
   `).join('');
 
-  // animate bars
   setTimeout(() => {
-    document.querySelectorAll('.usage-fill[data-w]').forEach(el => {
-      el.style.width = el.getAttribute('data-w') + '%';
-    });
-    document.querySelectorAll('.spark-bar[data-h]').forEach(el => {
-      el.style.height = el.getAttribute('data-h') + '%';
-    });
+    document.querySelectorAll('.usage-fill[data-w]').forEach(el => el.style.width = el.getAttribute('data-w') + '%');
+    document.querySelectorAll('.spark-bar[data-h]').forEach(el => el.style.height = el.getAttribute('data-h') + '%');
   }, 200);
 }
 
@@ -489,15 +519,20 @@ function animVal(id, target, prefix='') {
   })(performance.now());
 }
 
-/* ── Overdraft toggle ── */
-function toggleOverdraft() {
+/* ── Overdraft toggle ── writes to DB ── */
+async function toggleOverdraft() {
   const btn = document.getElementById('od-toggle');
   const lbl = document.getElementById('od-status');
   btn.classList.toggle('off');
   const on = !btn.classList.contains('off');
   lbl.textContent = on ? 'ON' : 'OFF';
   lbl.style.color = on ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
-  toast(on ? 'Overdraft enabled for all orgs' : 'Overdraft disabled — campaigns will pause at $0');
+  if (_orgId) {
+    await window.supabase.from('organizations')
+      .update({ overdraft_allowed: on })
+      .eq('id', _orgId);
+  }
+  toast(on ? 'Overdraft enabled — campaigns continue past $0' : 'Overdraft disabled — campaigns pause at $0');
 }
 
 /* ── Top-up modal ── */

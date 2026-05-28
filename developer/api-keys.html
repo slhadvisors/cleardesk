@@ -304,63 +304,92 @@ tbody tr:last-child td{border-bottom:none;}
     await requireMinimumRole('DEVELOPER', '../login.html');
     const user = await getCurrentUser();
     if (user) {
-      const name = user.user_metadata?.full_name || user.email || 'Developer';
+      _orgId = user.organization_id;
+      const name = user.display_name || user.email || 'Developer';
       document.getElementById('topbarAvatar').textContent = name.charAt(0).toUpperCase();
       document.getElementById('topbarName').textContent = name;
     }
-  } catch(e) {}
+    await loadKeys();
+  } catch(e) { console.error(e); render(); }
 })();
 
-/* ── Mock data ── */
-const KEYS = [
-  { id:1, name:'Zoho CRM Webhook',     key:'ck_live_z7f8Kp2mNq4rXv9', scope:'write', reqs:4218, created:'2026-03-01', expires:'2026-08-28', active:true,  desc:'Inbound lead events from Zoho CRM' },
-  { id:2, name:'LlamaParse Parser',    key:'ck_live_p2m9Wd7yJk3nBh6', scope:'read',  reqs:1840, created:'2026-02-14', expires:'2026-11-11', active:true,  desc:'Document parsing async handler' },
-  { id:3, name:'HubSpot Integration',  key:'ck_live_h4k1Tz8uLp5cVr2', scope:'full',  reqs:880,  created:'2026-01-08', expires:'2027-01-07', active:true,  desc:'Full CRM sync' },
-  { id:4, name:'Vapi Voice Dispatcher',key:'ck_live_v8n3Qe6fAj2mYw1', scope:'write', reqs:6420, created:'2026-04-10', expires:'2026-07-09', active:true,  desc:'Outbound AI call dispatcher', expiring:true },
-  { id:5, name:'Legacy Sync Key',      key:'ck_live_l1q5Xb9oSd4kGm7', scope:'read',  reqs:0,    created:'2025-11-20', expires:'2026-02-18', active:false, desc:'Decommissioned — safe to delete' },
-];
+/* ── State ── */
+let KEYS = [];
+let _orgId = null;
+
+/* ── Load from DB ── */
+async function loadKeys() {
+  if (!_orgId || !window.supabase) return;
+  const { data, error } = await window.supabase
+    .from('api_keys')
+    .select('id,name,key_prefix,scope,description,requests_30d,created_at,expires_at,revoked_at')
+    .eq('organization_id', _orgId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+  KEYS = (data || []).map(k => {
+    const now = new Date();
+    const exp = k.expires_at ? new Date(k.expires_at) : null;
+    const daysLeft = exp ? Math.ceil((exp - now) / 86400000) : Infinity;
+    return {
+      id: k.id,
+      name: k.name,
+      key: k.key_prefix,
+      scope: k.scope || 'read',
+      reqs: k.requests_30d || 0,
+      desc: k.description || '',
+      created: k.created_at ? k.created_at.split('T')[0] : '—',
+      expires: k.expires_at ? k.expires_at.split('T')[0] : 'Never',
+      active: !k.revoked_at,
+      expiring: !k.revoked_at && daysLeft > 0 && daysLeft <= 14,
+    };
+  });
+  render();
+}
 
 function render() {
   const tbody = document.getElementById('keys-tbody');
-  tbody.innerHTML = KEYS.map(k => {
-    const usagePct = Math.min(Math.round(k.reqs / 100), 100);
-    const usageColor = usagePct > 80 ? 'var(--neon-emerald)' : usagePct > 40 ? 'var(--neon-cyan)' : 'var(--slate-500)';
-    return `
-    <tr>
-      <td>
-        <div class="key-name">${k.name}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${k.desc||''}</div>
-      </td>
-      <td>
-        <span class="key-val" onclick="copyText('${k.key}')">
-          <span class="md-icon">content_copy</span>${k.key.substring(0,20)}…
-        </span>
-      </td>
-      <td><span class="scope ${k.scope}">${k.scope}</span></td>
-      <td>
-        <div style="font-family:var(--font-mono);font-size:12px;margin-bottom:4px;">${k.reqs.toLocaleString()} req</div>
-        <div class="usage-bar"><div class="usage-fill" style="width:${usagePct}%;background:${usageColor};"></div></div>
-      </td>
-      <td>
-        <div style="font-family:var(--font-mono);font-size:11px;">${k.expires}</div>
-        ${k.expiring ? '<div class="expiry-warn">⚠ expires in 14d</div>' : ''}
-      </td>
-      <td>
-        <div class="status-row">
-          <div class="status-dot ${k.active ? (k.expiring ? 'expiring' : 'active') : 'revoked'}"></div>
-          <span style="font-family:var(--font-mono);font-size:11px;color:${k.active ? (k.expiring ? 'var(--amber)' : 'var(--neon-emerald)') : 'var(--warning-crimson)'};">${k.active ? (k.expiring ? 'Expiring' : 'Active') : 'Revoked'}</span>
-        </div>
-      </td>
-      <td>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost btn-sm" onclick="rotateKey(${k.id})" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Rotate</button>
-          <button class="btn btn-danger btn-sm" onclick="revokeKey(${k.id})" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Revoke</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
+  if (!KEYS.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;font-family:var(--font-mono);font-size:12px;color:var(--text-muted);">No API keys yet — generate your first key above</td></tr>`;
+  } else {
+    tbody.innerHTML = KEYS.map(k => {
+      const usagePct = Math.min(Math.round(k.reqs / 100), 100);
+      const usageColor = usagePct > 80 ? 'var(--neon-emerald)' : usagePct > 40 ? 'var(--neon-cyan)' : 'var(--slate-500)';
+      return `
+      <tr>
+        <td>
+          <div class="key-name">${k.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${k.desc||''}</div>
+        </td>
+        <td>
+          <span class="key-val" onclick="copyText('${k.key}')">
+            <span class="md-icon">content_copy</span>${k.key}…
+          </span>
+        </td>
+        <td><span class="scope ${k.scope}">${k.scope}</span></td>
+        <td>
+          <div style="font-family:var(--font-mono);font-size:12px;margin-bottom:4px;">${k.reqs.toLocaleString()} req</div>
+          <div class="usage-bar"><div class="usage-fill" style="width:${usagePct}%;background:${usageColor};"></div></div>
+        </td>
+        <td>
+          <div style="font-family:var(--font-mono);font-size:11px;">${k.expires}</div>
+          ${k.expiring ? '<div class="expiry-warn">⚠ expires in 14d</div>' : ''}
+        </td>
+        <td>
+          <div class="status-row">
+            <div class="status-dot ${k.active ? (k.expiring ? 'expiring' : 'active') : 'revoked'}"></div>
+            <span style="font-family:var(--font-mono);font-size:11px;color:${k.active ? (k.expiring ? 'var(--amber)' : 'var(--neon-emerald)') : 'var(--warning-crimson)'};">${k.active ? (k.expiring ? 'Expiring' : 'Active') : 'Revoked'}</span>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="rotateKey('${k.id}')" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Rotate</button>
+            <button class="btn btn-danger btn-sm" onclick="revokeKey('${k.id}')" ${!k.active ? 'disabled style="opacity:0.4"' : ''}>Revoke</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
 
-  // Stats
   const active   = KEYS.filter(k => k.active).length;
   const expiring = KEYS.filter(k => k.expiring && k.active).length;
   const totalReq = KEYS.reduce((s, k) => s + k.reqs, 0);
@@ -372,7 +401,7 @@ function render() {
 }
 
 function animCount(id, target) {
-  const el = document.getElementById(id);
+  const el = document.getElementById(id); if(!el) return;
   const start = performance.now();
   (function tick(now) {
     const p = Math.min((now - start) / 1000, 1);
@@ -383,52 +412,62 @@ function animCount(id, target) {
 }
 
 /* ── Actions ── */
-function revokeKey(id) {
+async function revokeKey(id) {
   const k = KEYS.find(k => k.id === id);
-  if (!k) return;
-  k.active = false; k.expiring = false;
-  render();
+  if (!k || !confirm(`Revoke "${k.name}"? This cannot be undone.`)) return;
+  const { error } = await window.supabase.from('api_keys')
+    .update({ revoked_at: new Date().toISOString() })
+    .eq('id', id).eq('organization_id', _orgId);
+  if (error) { toast('Error: ' + error.message); return; }
+  await loadKeys();
   toast('Key revoked — ' + k.name);
 }
 
-function rotateKey(id) {
+async function rotateKey(id) {
   const k = KEYS.find(k => k.id === id);
   if (!k) return;
-  k.expiring = false;
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const rand = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
-  const newKey = 'ck_live_' + rand(16);
-  k.key = newKey;
-  // Compute new expiry
-  const expiry = document.getElementById('m-expiry')?.value || '90';
+  const fullKey = 'ck_live_' + rand(24);
+  const prefix  = fullKey.substring(0, 20);
   const d = new Date(); d.setDate(d.getDate() + 90);
-  k.expires = d.toISOString().split('T')[0];
-  render();
-  showReveal(newKey);
+  const { error } = await window.supabase.from('api_keys')
+    .update({ key_prefix: prefix, key_hash: fullKey, expires_at: d.toISOString(), revoked_at: null })
+    .eq('id', id).eq('organization_id', _orgId);
+  if (error) { toast('Error: ' + error.message); return; }
+  await loadKeys();
+  showReveal(fullKey);
   toast('Key rotated — ' + k.name);
 }
 
 function openModal() { document.getElementById('modal').classList.add('open'); }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-function generateKey() {
+async function generateKey() {
   const name = document.getElementById('m-name').value.trim();
   if (!name) { toast('Enter a key name first'); return; }
+  if (!_orgId) { toast('Not authenticated'); return; }
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const rand = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
   const fullKey = 'ck_live_' + rand(24);
+  const prefix  = fullKey.substring(0, 20);
   const scope   = document.getElementById('m-scope').value;
   const expDays = parseInt(document.getElementById('m-expiry').value);
-  const d = new Date();
-  if (expDays > 0) d.setDate(d.getDate() + expDays);
-  const expires = expDays === 0 ? 'Never' : d.toISOString().split('T')[0];
-  const desc = document.getElementById('m-desc').value.trim();
+  const desc    = document.getElementById('m-desc').value.trim();
+  let expires_at = null;
+  if (expDays > 0) { const d = new Date(); d.setDate(d.getDate() + expDays); expires_at = d.toISOString(); }
 
-  KEYS.unshift({ id: Date.now(), name, key: fullKey.substring(0,20), scope, reqs:0, created: new Date().toISOString().split('T')[0], expires, active:true, desc });
+  const { error } = await window.supabase.from('api_keys').insert({
+    organization_id: _orgId,
+    name, scope, description: desc,
+    key_prefix: prefix, key_hash: fullKey,
+    expires_at,
+  });
+  if (error) { toast('Error: ' + error.message); return; }
   closeModal();
   document.getElementById('m-name').value = '';
   document.getElementById('m-desc').value = '';
-  render();
+  await loadKeys();
   showReveal(fullKey);
 }
 
@@ -467,7 +506,6 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
-render();
 </script>
 </body>
 </html>
