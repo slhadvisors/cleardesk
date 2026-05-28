@@ -354,6 +354,31 @@ tailwind.config = {
     .page-content { margin-left: 0; }
     .topbar-brand { border-right: none; }
   }
+
+  /* ── Finexy-style topbar nav tabs ── */
+  .topbar-nav { display:flex; align-items:center; gap:2px; flex:1; padding:0 16px; overflow-x:auto; }
+  .topbar-nav::-webkit-scrollbar { display:none; }
+  .tnav-tab {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:8px;
+    font-size:13px; font-weight:500; color:#64748b;
+    text-decoration:none; white-space:nowrap;
+    transition:all .18s ease;
+    border:1px solid transparent;
+  }
+  .tnav-tab:hover { color:#1b1b24; background:rgba(108,99,255,.06); }
+  .tnav-tab.active {
+    color:#1b1b24; background:#ffffff;
+    border-color:rgba(200,196,216,.6);
+    font-weight:600;
+    box-shadow:0 1px 4px rgba(77,65,223,.10);
+  }
+  .tnav-tab .md-icon { font-size:16px; }
+  /* Slim utility sidebar */
+  .sidebar { width:52px; }
+  .sidebar-item { width:38px; height:38px; border-radius:10px; }
+  .page-content { margin-left:52px; }
+  @media(max-width:640px) { .page-content { margin-left:0; } }
 </style>
 </head>
 
@@ -370,7 +395,15 @@ tailwind.config = {
   </a>
 
   <!-- Section title -->
-  <span class="topbar-page-title">Dashboard</span>
+  <nav class="topbar-nav">
+    <a href="index.html" class="tnav-tab active"><span class="md-icon">grid_view</span>Dashboard</a>
+    <a href="campaigns.html" class="tnav-tab"><span class="md-icon">campaign</span>Campaigns</a>
+    <a href="call-logs.html" class="tnav-tab"><span class="md-icon">call</span>Call Logs</a>
+    <a href="sms-logs.html" class="tnav-tab"><span class="md-icon">sms</span>SMS</a>
+    <a href="contacts.html" class="tnav-tab"><span class="md-icon">contacts</span>Contacts</a>
+    <a href="team-management.html" class="tnav-tab"><span class="md-icon">group</span>Teams</a>
+    <a href="agent-detail.html" class="tnav-tab"><span class="md-icon">support_agent</span>Agents</a>
+  </nav>
 
   <!-- Right controls -->
   <div class="flex items-center gap-3 px-4">
@@ -819,45 +852,4 @@ async function loadDashboard() {
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
 
-  // Language preference
-  if (currentUser.preferred_language) {
-    currentLanguage = currentUser.preferred_language;
-    document.getElementById('language-selector').value = currentLanguage;
-    localStorage.setItem('preferredLanguage', currentLanguage);
-  }
-
-  // Greeting
-  const name = currentUser.display_name || currentUser.email.split('@')[0];
-  document.getElementById('greeting-text').textContent = buildGreeting(name);
-
-  // Avatar initials
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials || name[0].toUpperCase();
-  document.getElementById('user-email-short').textContent = currentUser.email.split('@')[0];
-
-  // Org
-  document.getElementById('org-name').textContent =
-    currentUser.organization_name || 'Your Organisation';
-
-  // Role badge
-  const badge = document.getElementById('role-badge');
-  badge.textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
-  badge.className = 'inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full ' +
-    (ROLE_STYLES[currentUser.role] || 'bg-surface-container text-on-surface-variant');
-
-  // Developer sidebar item
-  if (currentUser.role === 'DEVELOPER') {
-    document.getElementById('sidebar-developer').style.display = 'flex';
-  }
-
-  // Load data
-  await loadStats();
-  await loadActivityFeed();
-  applyTranslations();
-}
-
-loadDashboard();
-</script>
-<script src="intelligent-desk.js"></script>
-</body>
-</html>
+  // Language

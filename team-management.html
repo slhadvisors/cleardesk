@@ -164,6 +164,31 @@ tailwind.config = {
   #sidebar-developer{display:none;}
   .page-content{margin-left:64px;padding-top:56px;min-height:100vh;}
   @media(max-width:640px){.sidebar{display:none;}.page-content{margin-left:0;}.topbar-brand{border-right:none;}}
+
+  /* ── Finexy-style topbar nav tabs ── */
+  .topbar-nav { display:flex; align-items:center; gap:2px; flex:1; padding:0 16px; overflow-x:auto; }
+  .topbar-nav::-webkit-scrollbar { display:none; }
+  .tnav-tab {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:8px;
+    font-size:13px; font-weight:500; color:#64748b;
+    text-decoration:none; white-space:nowrap;
+    transition:all .18s ease;
+    border:1px solid transparent;
+  }
+  .tnav-tab:hover { color:#1b1b24; background:rgba(108,99,255,.06); }
+  .tnav-tab.active {
+    color:#1b1b24; background:#ffffff;
+    border-color:rgba(200,196,216,.6);
+    font-weight:600;
+    box-shadow:0 1px 4px rgba(77,65,223,.10);
+  }
+  .tnav-tab .md-icon { font-size:16px; }
+  /* Slim utility sidebar */
+  .sidebar { width:52px; }
+  .sidebar-item { width:38px; height:38px; border-radius:10px; }
+  .page-content { margin-left:52px; }
+  @media(max-width:640px) { .page-content { margin-left:0; } }
 </style>
 </head>
 
@@ -177,7 +202,15 @@ tailwind.config = {
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
     </div>
   </a>
-  <span class="topbar-page-title">Teams</span>
+  <nav class="topbar-nav">
+    <a href="index.html" class="tnav-tab"><span class="md-icon">grid_view</span>Dashboard</a>
+    <a href="campaigns.html" class="tnav-tab"><span class="md-icon">campaign</span>Campaigns</a>
+    <a href="call-logs.html" class="tnav-tab"><span class="md-icon">call</span>Call Logs</a>
+    <a href="sms-logs.html" class="tnav-tab"><span class="md-icon">sms</span>SMS</a>
+    <a href="contacts.html" class="tnav-tab"><span class="md-icon">contacts</span>Contacts</a>
+    <a href="team-management.html" class="tnav-tab active"><span class="md-icon">group</span>Teams</a>
+    <a href="agent-detail.html" class="tnav-tab"><span class="md-icon">support_agent</span>Agents</a>
+  </nav>
   <div class="flex items-center gap-3 px-4">
     <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
       <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
