@@ -11,953 +11,678 @@
 <script src="maintenance.js"></script>
 <script src="translations.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="theme-hub.css" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-background": "#1b1b24",
+        "surface-tint": "#4f44e2",
+        "secondary-container": "#5694fe",
+        "surface-dim": "#dcd8e5",
+        "surface-variant": "#e4e1ee",
+        "on-error": "#ffffff",
+        "primary-fixed-dim": "#c4c0ff",
+        "surface-container-high": "#eae6f3",
+        "surface-container-low": "#f6f2ff",
+        "secondary": "#005bbf",
+        "tertiary": "#914800",
+        "on-primary": "#ffffff",
+        "tertiary-container": "#b65c00",
+        "on-secondary": "#ffffff",
+        "primary": "#4d41df",
+        "outline": "#777587",
+        "surface-bright": "#fcf8ff",
+        "surface-container-highest": "#e4e1ee",
+        "background": "#fcf8ff",
+        "primary-fixed": "#e3dfff",
+        "inverse-surface": "#302f39",
+        "error": "#ba1a1a",
+        "secondary-fixed": "#d7e2ff",
+        "surface-container": "#f0ecf9",
+        "on-surface-variant": "#464555",
+        "surface-container-lowest": "#ffffff",
+        "on-surface": "#1b1b24",
+        "error-container": "#ffdad6",
+        "surface": "#fcf8ff",
+        "inverse-primary": "#c4c0ff",
+        "primary-container": "#675df9",
+        "outline-variant": "#c7c4d8"
+      },
+      fontFamily: {
+        sans: ["Plus Jakarta Sans", "sans-serif"]
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        full: "9999px"
+      }
+    }
+  }
+}
+</script>
 
 <style>
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --bg:          #f0eef8;
-  --surface:     #ffffff;
-  --surface-2:   #f8f7fc;
-  --border:      rgba(108,99,255,0.10);
-  --border-soft: rgba(108,99,255,0.06);
-  --text-1:      #0f0e1a;
-  --text-2:      #6b6880;
-  --text-3:      #a09db8;
-  --accent:      #6C63FF;
-  --accent-dim:  rgba(108,99,255,0.10);
-  --accent-mid:  rgba(108,99,255,0.18);
-  --green:       #22c55e;
-  --green-dim:   rgba(34,197,94,0.12);
-  --red:         #ef4444;
-  --red-dim:     rgba(239,68,68,0.10);
-  --amber:       #f59e0b;
-  --shadow-sm:   0 1px 3px rgba(108,99,255,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:   0 4px 16px rgba(108,99,255,0.08), 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-lg:   0 8px 32px rgba(108,99,255,0.12), 0 2px 8px rgba(0,0,0,0.06);
-  --radius-xs:   8px;
-  --radius-sm:   12px;
-  --radius:      16px;
-  --radius-lg:   20px;
-  --radius-xl:   24px;
-  --sidebar-w:   68px;
-  --topbar-h:    64px;
-  --t:           0.2s cubic-bezier(0.25,1,0.5,1);
-}
+  body {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    background: #f0ecf9;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text-1);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+  /* Ambient background */
+  .ambient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(108,99,255,0.13) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 100%,  rgba(79,68,226,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 50% 50%,   rgba(198,194,255,0.08) 0%, transparent 60%),
+      linear-gradient(160deg, #ece9ff 0%, #f0ecf9 40%, #e8f0ff 100%);
+    animation: ambientShift 20s ease-in-out infinite alternate;
+  }
+  @keyframes ambientShift {
+    0%   { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(15deg); }
+  }
 
-/* ── Icons ── */
-.mi { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300;
-  font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
-  line-height:1; user-select:none; display:inline-block; }
-.mi-fill { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  /* Glass primitives */
+  .glass-nav {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 0 rgba(77,65,223,0.06);
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.62);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 24px rgba(77,65,223,0.07), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
+  .glass-card-solid {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 4px 24px rgba(77,65,223,0.08);
+  }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width:5px; height:5px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:rgba(108,99,255,0.15); border-radius:3px; }
+  /* Transitions */
+  .transition-snappy { transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1); }
 
-/* ════════════════════════════════════════
-   TOPBAR
-════════════════════════════════════════ */
-.topbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: var(--topbar-h);
-  z-index: 200;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  padding: 0 16px 0 0;
-}
+  /* Stat card hover */
+  .stat-card-hover {
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+                box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .stat-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(77,65,223,0.14), 0 1px 0 rgba(255,255,255,0.8) inset;
+  }
 
-/* Brand zone — same width as sidebar */
-.tb-brand {
-  width: var(--sidebar-w);
-  height: var(--topbar-h);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  text-decoration: none;
-  gap: 0;
-}
-.tb-logo-box {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px rgba(108,99,255,0.3);
-}
+  /* Action card hover */
+  .action-card-hover {
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+                box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+                border-color 0.22s ease;
+  }
+  .action-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(77,65,223,0.13);
+    border-color: rgba(108,99,255,0.3);
+  }
 
-/* Nav tabs */
-.tb-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  padding: 0 20px;
-  overflow-x: auto;
-}
-.tb-nav::-webkit-scrollbar { display:none; }
-.tb-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--text-2);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all var(--t);
-  border: 1px solid transparent;
-}
-.tb-tab:hover { color: var(--text-1); background: var(--accent-dim); }
-.tb-tab.active {
-  background: var(--text-1);
-  color: #ffffff;
-  font-weight: 600;
-  border-color: transparent;
-  box-shadow: 0 2px 8px rgba(15,14,26,0.2);
-}
-.tb-tab .mi { font-size: 16px; }
-.tb-tab.active .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  /* Nav link */
+  .nav-item {
+    position: relative;
+    transition: color 0.18s ease, background 0.18s ease;
+  }
+  .nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 80%;
+    height: 2px;
+    background: #6C63FF;
+    border-radius: 2px;
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .nav-item:hover::after, .nav-item.active::after { transform: translateX(-50%) scaleX(1); }
+  .nav-item.active { color: #6C63FF; }
 
-/* Right controls */
-.tb-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.tb-icon-btn {
-  width: 36px; height: 36px;
-  border-radius: var(--radius-xs);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-2);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: all var(--t);
-}
-.tb-icon-btn:hover { background: var(--accent-dim); color: var(--accent); }
-.tb-icon-btn .mi { font-size: 20px; }
+  /* Rolling counter */
+  .counter-value {
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.15s ease;
+  }
 
-.tb-user-chip {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 5px 12px 5px 5px;
-  border-radius: 24px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all var(--t);
-  text-decoration: none;
-  min-width: 0;
-}
-.tb-user-chip:hover { background: var(--accent-dim); border-color: var(--accent-mid); }
-.tb-avatar {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
-}
-.tb-user-info { min-width: 0; }
-.tb-user-name { font-size: 13px; font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
-.tb-user-email { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
-.tb-chevron { font-size: 16px; color: var(--text-3); flex-shrink: 0; }
+  /* Activity feed item */
+  .feed-item {
+    transition: background 0.18s ease;
+  }
+  .feed-item:hover { background: rgba(108,99,255,0.04); }
 
-/* Language selector */
-.tb-lang {
-  font-size: 12px; font-weight: 500;
-  color: var(--text-2);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  padding: 6px 10px;
-  cursor: pointer;
-  outline: none;
-  font-family: 'DM Sans', sans-serif;
-}
-.tb-lang:focus { border-color: var(--accent); }
+  /* Live pulse */
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+    50% { opacity: 0.7; transform: scale(0.85); box-shadow: 0 0 0 4px rgba(52,211,153,0); }
+  }
+  .live-dot { animation: livePulse 2.2s ease-in-out infinite; }
 
-/* ════════════════════════════════════════
-   SIDEBAR
-════════════════════════════════════════ */
-.sidebar {
-  position: fixed;
-  top: var(--topbar-h); left: 0; bottom: 0;
-  width: var(--sidebar-w);
-  z-index: 100;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 0;
-  gap: 4px;
-  overflow: visible;
-}
-.sb-item {
-  position: relative;
-  width: 44px; height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-3);
-  text-decoration: none;
-  transition: all var(--t);
-  cursor: pointer;
-  border: none; background: transparent;
-  flex-shrink: 0;
-}
-.sb-item .mi { font-size: 22px; }
-.sb-item:hover { background: var(--accent-dim); color: var(--accent); }
-.sb-item.active {
-  background: var(--text-1);
-  color: #ffffff;
-}
-.sb-item.active .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-.sb-sep { width: 28px; height: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
-.sb-spacer { flex: 1; }
-/* Tooltip */
-.sb-item .tip {
-  position: absolute;
-  left: calc(100% + 10px);
-  background: var(--text-1);
-  color: #fff;
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 8px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  transform: translateX(-6px);
-  z-index: 400;
-  box-shadow: var(--shadow-md);
-  font-family: 'DM Sans', sans-serif;
-}
-.sb-item:hover .tip { opacity: 1; transform: translateX(0); }
-#sidebar-developer { display: none; }
+  /* Staggered entrance */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .enter { opacity: 0; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .enter-1 { animation-delay: 0.05s; }
+  .enter-2 { animation-delay: 0.10s; }
+  .enter-3 { animation-delay: 0.15s; }
+  .enter-4 { animation-delay: 0.20s; }
+  .enter-5 { animation-delay: 0.25s; }
+  .enter-6 { animation-delay: 0.30s; }
+  .enter-7 { animation-delay: 0.35s; }
 
-/* ════════════════════════════════════════
-   PAGE SHELL
-════════════════════════════════════════ */
-.page-wrap {
-  margin-left: var(--sidebar-w);
-  padding-top: var(--topbar-h);
-  min-height: 100vh;
-}
+  /* Sandbox banner */
+  .sandbox-pill {
+    background: rgba(251,191,36,0.12);
+    border: 1px solid rgba(251,191,36,0.3);
+    color: #92400e;
+  }
 
-/* ════════════════════════════════════════
-   DASHBOARD LAYOUT  (Finexy 3-col grid)
-════════════════════════════════════════ */
-.dash-grid {
-  display: grid;
-  grid-template-columns: 300px 1fr 320px;
-  gap: 16px;
-  padding: 20px 24px 32px;
-  max-width: 1440px;
-  margin: 0 auto;
-  min-height: calc(100vh - var(--topbar-h));
-  align-items: start;
-}
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.35); }
 
-/* ── Card base ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-.card-p { padding: 20px; }
-.card-title { font-size: 13px; font-weight: 600; color: var(--text-2); }
-.card-value { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; color: var(--text-1); line-height: 1.1; }
+  /* Material icon sizing helper */
+  .md-icon { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 300;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    line-height: 1; user-select: none; }
 
-/* ── Greeting banner ── */
-.greeting-banner {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 0 8px;
-}
-.greeting-text { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); }
-.greeting-sub { font-size: 14px; color: var(--text-2); margin-top: 3px; }
-.new-campaign-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 24px;
-  background: var(--text-1);
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all var(--t);
-  box-shadow: 0 2px 8px rgba(15,14,26,0.2);
-  white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
-  border: none; cursor: pointer;
-}
-.new-campaign-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(15,14,26,0.28); }
-.new-campaign-btn .mi { font-size: 18px; }
+  /* Credit card accent stripe */
+  .credit-stripe {
+    background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
+  }
 
-/* ════════════════════════════════════════
-   LEFT COLUMN
-════════════════════════════════════════ */
-.left-col { display: flex; flex-direction: column; gap: 14px; }
+  @keyframes intelligentDeskIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-/* Credit balance card */
-.balance-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-xl);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
-}
-.balance-label { font-size: 12.5px; font-weight: 600; color: var(--text-2); letter-spacing: 0.01em; }
-.balance-amount { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-1); margin: 6px 0 4px; }
-.balance-delta {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--green);
-  background: var(--green-dim);
-  padding: 3px 8px;
-  border-radius: 20px;
-}
-.balance-delta.down { color: var(--red); background: var(--red-dim); }
+  @media (max-width: 768px) {
+    .stats-cols { grid-template-columns: repeat(2, 1fr) !important; }
+    .bottom-cols { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 480px) {
+    .stats-cols { grid-template-columns: 1fr !important; }
+  }
 
-.balance-actions { display: flex; gap: 10px; margin-top: 16px; }
-.btn-primary {
-  display: flex; align-items: center; gap: 6px;
-  flex: 1; justify-content: center;
-  padding: 10px 16px;
-  border-radius: 24px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 13px; font-weight: 600;
-  border: none; cursor: pointer;
-  transition: all var(--t);
-  font-family: 'DM Sans', sans-serif;
-  text-decoration: none;
-}
-.btn-primary:hover { background: #5550e8; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(108,99,255,0.35); }
-.btn-primary .mi { font-size: 16px; }
-.btn-outline {
-  display: flex; align-items: center; gap: 6px;
-  flex: 1; justify-content: center;
-  padding: 10px 16px;
-  border-radius: 24px;
-  background: transparent;
-  color: var(--text-1);
-  font-size: 13px; font-weight: 600;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: all var(--t);
-  font-family: 'DM Sans', sans-serif;
-  text-decoration: none;
-}
-.btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-.btn-outline .mi { font-size: 16px; }
+  /* ── Shell layout ───────────────────────────────────── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    z-index: 100;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 0 rgba(77,65,223,0.06);
+    display: flex;
+    align-items: center;
+  }
+  .topbar-brand {
+    width: 64px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(200,196,216,0.4);
+    flex-shrink: 0;
+    text-decoration: none;
+    transition: background 0.18s ease;
+  }
+  .topbar-brand:hover { background: rgba(108,99,255,0.05); }
+  .topbar-page-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #1b1b24;
+    padding-left: 20px;
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
 
-/* Sandbox banner */
-.sandbox-banner {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: rgba(245,158,11,0.08);
-  border: 1px solid rgba(245,158,11,0.25);
-  border-radius: var(--radius-sm);
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #92400e;
-}
-.sandbox-banner.show { display: flex; }
-.sandbox-banner a { color: #b45309; font-weight: 700; text-decoration: none; margin-left: auto; white-space: nowrap; }
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 56px; left: 0; bottom: 0;
+    width: 64px;
+    z-index: 90;
+    background: rgba(255,255,255,0.76);
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border-right: 1px solid rgba(200,196,216,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 2px;
+    overflow: visible;
+  }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-item {
+    position: relative;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777587;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .sidebar-item:hover {
+    background: rgba(108,99,255,0.09);
+    color: #4d41df;
+  }
+  .sidebar-item.active {
+    background: rgba(108,99,255,0.12);
+    color: #4d41df;
+  }
+  .sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%; transform: translateY(-50%);
+    width: 3px; height: 22px;
+    background: #6C63FF;
+    border-radius: 0 3px 3px 0;
+  }
+  .sidebar-item .tip {
+    position: absolute;
+    left: calc(100% + 10px);
+    background: #1b1b24;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    transform: translateX(-4px);
+    z-index: 300;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .sidebar-item:hover .tip {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  /* Sidebar developer item hidden by default */
+  #sidebar-developer { display: none; }
 
-/* Org info row */
-.org-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-soft);
-}
-.role-badge {
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: 0.02em;
-}
-.org-name {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-2);
-}
-.org-name .mi { font-size: 14px; }
+  /* Page content offset */
+  .page-content {
+    margin-left: 64px;
+    padding-top: 56px;
+    min-height: 100vh;
+  }
 
-/* Credit usage bar */
-.usage-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); }
-.usage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.usage-label { font-size: 13px; font-weight: 600; color: var(--text-1); }
-.usage-sub { font-size: 12px; color: var(--text-2); }
-.usage-bar-wrap { height: 8px; background: var(--accent-dim); border-radius: 20px; overflow: hidden; }
-.usage-bar-fill { height: 100%; background: var(--accent); border-radius: 20px; transition: width 1s cubic-bezier(0.25,1,0.5,1); width: 0%; }
-.usage-nums { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11.5px; color: var(--text-2); font-weight: 500; }
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .page-content { margin-left: 0; }
+    .topbar-brand { border-right: none; }
+  }
 
-/* Active campaigns mini-list */
-.mini-list-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); }
-.mini-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.mini-list-title { font-size: 13px; font-weight: 700; color: var(--text-1); }
-.mini-list-link { font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; }
-.mini-list-link:hover { opacity: 0.8; }
-.mini-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-.mini-item:last-child { border-bottom: none; padding-bottom: 0; }
-.mini-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.mini-item-info { flex: 1; min-width: 0; }
-.mini-item-name { font-size: 13px; font-weight: 600; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mini-item-sub { font-size: 11.5px; color: var(--text-2); margin-top: 1px; }
-.mini-status { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
-
-/* ════════════════════════════════════════
-   MIDDLE COLUMN
-════════════════════════════════════════ */
-.mid-col { display: flex; flex-direction: column; gap: 14px; }
-
-/* 2×2 stat grid */
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--t), box-shadow var(--t);
-  cursor: default;
-}
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.stat-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.stat-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-.stat-icon .mi { font-size: 20px; }
-.stat-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
-.stat-val { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-1); }
-.stat-lbl { font-size: 12px; font-weight: 500; color: var(--text-2); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
-
-/* Feature stat card (like Finexy's "Total Earnings" — accent filled) */
-.stat-card.accent-card {
-  background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 60%, #06b6d4 100%);
-  border-color: transparent;
-}
-.stat-card.accent-card .stat-val,
-.stat-card.accent-card .stat-lbl { color: rgba(255,255,255,0.95); }
-.stat-card.accent-card .stat-lbl { color: rgba(255,255,255,0.7); }
-.stat-card.accent-card .stat-badge { background: rgba(255,255,255,0.2); color: #fff; }
-.stat-card.accent-card .stat-icon { background: rgba(255,255,255,0.2); }
-.stat-card.accent-card .stat-icon .mi { color: #fff; }
-
-/* Activity table */
-.activity-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-.activity-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--border-soft);
-}
-.activity-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
-.activity-controls { display: flex; align-items: center; gap: 8px; }
-.search-pill {
-  display: flex; align-items: center; gap: 7px;
-  padding: 7px 13px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  font-size: 12.5px; color: var(--text-2);
-  font-family: 'DM Sans', sans-serif;
-}
-.search-pill .mi { font-size: 16px; }
-.filter-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 13px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  font-size: 12.5px; font-weight: 500; color: var(--text-1);
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: all var(--t);
-}
-.filter-btn:hover { background: var(--accent-dim); border-color: var(--accent-mid); }
-.filter-btn .mi { font-size: 15px; }
-
-/* Table */
-.act-table { width: 100%; border-collapse: collapse; }
-.act-table th {
-  font-size: 11.5px; font-weight: 600; color: var(--text-2);
-  text-align: left; padding: 10px 20px 10px;
-  letter-spacing: 0.04em; text-transform: uppercase;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border-soft);
-}
-.act-table td { padding: 13px 20px; font-size: 13px; color: var(--text-1); border-bottom: 1px solid var(--border-soft); }
-.act-table tr:last-child td { border-bottom: none; }
-.act-table tbody tr { transition: background var(--t); }
-.act-table tbody tr:hover { background: var(--surface-2); }
-
-.act-id { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-2); font-weight: 500; }
-.act-name-cell { display: flex; align-items: center; gap: 10px; }
-.act-icon-wrap { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.act-icon-wrap .mi { font-size: 17px; }
-.act-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
-.act-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.act-more { display: flex; gap: 3px; align-items: center; }
-.act-dot-btn { width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); }
-
-.live-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11.5px; font-weight: 600; color: var(--green);
-}
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.8)} }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
-
-/* Empty / loading state */
-.empty-row td { text-align: center; padding: 32px 20px; color: var(--text-2); font-size: 13px; }
-
-/* ════════════════════════════════════════
-   RIGHT COLUMN  — Chart card
-════════════════════════════════════════ */
-.right-col { display: flex; flex-direction: column; gap: 14px; }
-
-.chart-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-xl);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
-}
-.chart-title { font-size: 15px; font-weight: 700; color: var(--text-1); }
-.chart-sub { font-size: 12px; color: var(--text-2); margin-top: 3px; }
-.chart-legend { display: flex; align-items: center; gap: 14px; margin: 14px 0 12px; }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); }
-.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-
-/* Bar chart */
-.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; margin-bottom: 8px; }
-.bar-group { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
-.bar-pair { display: flex; align-items: flex-end; gap: 3px; flex: 1; width: 100%; }
-.bar {
-  flex: 1;
-  border-radius: 5px 5px 0 0;
-  min-height: 4px;
-  transition: opacity var(--t);
-}
-.bar:hover { opacity: 0.85; }
-.bar.primary { background: var(--accent); }
-.bar.secondary { background: var(--accent-dim); border: 1.5px solid var(--accent-mid); }
-.bar-label { font-size: 10.5px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
-.bar-y-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); font-weight: 500; margin-bottom: 4px; }
-
-/* Intelligent Desk widget */
-.id-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-.id-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border-soft);
-  background: var(--surface-2);
-}
-.id-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.id-label { font-size: 13px; font-weight: 700; color: var(--text-1); }
-.id-sub { font-size: 11.5px; color: var(--text-2); }
-.id-body { padding: 12px 18px; min-height: 60px; }
-
-/* Metrics bar (from Intelligent Desk) */
-.metric-badge-neon-cyan { display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(6,182,212,0.08);color:#0891b2;border:1px solid rgba(6,182,212,0.2); }
-
-/* ════════════════════════════════════════
-   ANIMATIONS
-════════════════════════════════════════ */
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.enter { opacity:0; animation: fadeUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards; }
-.e1 { animation-delay: 0.04s; }
-.e2 { animation-delay: 0.08s; }
-.e3 { animation-delay: 0.13s; }
-.e4 { animation-delay: 0.18s; }
-.e5 { animation-delay: 0.23s; }
-.e6 { animation-delay: 0.28s; }
-.e7 { animation-delay: 0.33s; }
-
-/* ════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════ */
-@media (max-width: 1200px) {
-  .dash-grid { grid-template-columns: 280px 1fr; }
-  .right-col { display: none; }
-}
-@media (max-width: 900px) {
-  .dash-grid { grid-template-columns: 1fr; padding: 16px; }
-  .left-col { display: none; }
-  .stat-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  .sidebar { display: none; }
-  .page-wrap { margin-left: 0; }
-  .tb-brand { border-right: none; }
-  .stat-grid { grid-template-columns: 1fr; }
-  :root { --sidebar-w: 0px; }
-}
+  /* ── Finexy-style topbar nav tabs ── */
+  .topbar-nav { display:flex; align-items:center; gap:2px; flex:1; padding:0 16px; overflow-x:auto; }
+  .topbar-nav::-webkit-scrollbar { display:none; }
+  .tnav-tab {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:8px;
+    font-size:13px; font-weight:500; color:#64748b;
+    text-decoration:none; white-space:nowrap;
+    transition:all .18s ease;
+    border:1px solid transparent;
+  }
+  .tnav-tab:hover { color:#1b1b24; background:rgba(108,99,255,.06); }
+  .tnav-tab.active {
+    color:#1b1b24; background:#ffffff;
+    border-color:rgba(200,196,216,.6);
+    font-weight:600;
+    box-shadow:0 1px 4px rgba(77,65,223,.10);
+  }
+  .tnav-tab .md-icon { font-size:16px; }
+  /* Slim utility sidebar */
+  .sidebar { width:52px; }
+  .sidebar-item { width:38px; height:38px; border-radius:10px; }
+  .page-content { margin-left:52px; }
+  @media(max-width:640px) { .page-content { margin-left:0; } }
 </style>
 </head>
 
-<body>
+<body class="text-on-surface">
+<div class="ambient-bg"></div>
 
-<!-- ════════════════════════════════════════
-     TOPBAR
-════════════════════════════════════════ -->
+<!-- ══ TOPBAR ══ -->
 <header class="topbar">
-  <a href="index.html" class="tb-brand" title="ClearDesk">
-    <div class="tb-logo-box">
+  <!-- Brand icon (same width as sidebar) -->
+  <a href="index.html" class="topbar-brand" title="ClearDesk">
+    <div class="w-9 h-9 rounded-xl credit-stripe flex items-center justify-center shadow-sm">
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
     </div>
   </a>
 
-  <!-- Horizontal tab nav -->
-  <nav class="tb-nav">
-    <a href="index.html"           class="tb-tab active"><span class="mi">grid_view</span>Dashboard</a>
-    <a href="campaigns.html"       class="tb-tab"><span class="mi">campaign</span>Campaigns</a>
-    <a href="call-logs.html"       class="tb-tab"><span class="mi">call</span>Call Logs</a>
-    <a href="sms-logs.html"        class="tb-tab"><span class="mi">sms</span>SMS</a>
-    <a href="contacts.html"        class="tb-tab"><span class="mi">contacts</span>Contacts</a>
-    <a href="team-management.html" class="tb-tab"><span class="mi">group</span>Teams</a>
-    <a href="agent-detail.html"    class="tb-tab"><span class="mi">support_agent</span>Agents</a>
+  <!-- Section title -->
+  <nav class="topbar-nav">
+    <a href="index.html" class="tnav-tab active"><span class="md-icon">grid_view</span>Dashboard</a>
+    <a href="campaigns.html" class="tnav-tab"><span class="md-icon">campaign</span>Campaigns</a>
+    <a href="call-logs.html" class="tnav-tab"><span class="md-icon">call</span>Call Logs</a>
+    <a href="sms-logs.html" class="tnav-tab"><span class="md-icon">sms</span>SMS</a>
+    <a href="contacts.html" class="tnav-tab"><span class="md-icon">contacts</span>Contacts</a>
+    <a href="team-management.html" class="tnav-tab"><span class="md-icon">group</span>Teams</a>
+    <a href="agent-detail.html" class="tnav-tab"><span class="md-icon">support_agent</span>Agents</a>
   </nav>
 
   <!-- Right controls -->
-  <div class="tb-right">
-    <select id="language-selector" onchange="changeLanguage()" class="tb-lang">
+  <div class="flex items-center gap-3 px-4">
+    <select id="language-selector" onchange="changeLanguage()"
+      class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
       <option value="ENGLISH">🌐 EN</option>
       <option value="HINDI">🇮🇳 HI</option>
       <option value="MARATHI">🇮🇳 MR</option>
     </select>
 
-    <button class="tb-icon-btn" title="Notifications">
-      <span class="mi">notifications</span>
-    </button>
-
-    <button onclick="signOut()" class="tb-user-chip" title="Sign out">
-      <div class="tb-avatar" id="avatar-initials">—</div>
-      <div class="tb-user-info">
-        <div class="tb-user-name" id="tb-user-name">—</div>
-        <div class="tb-user-email" id="user-email-short">—</div>
-      </div>
-      <span class="mi tb-chevron">expand_more</span>
+    <button onclick="signOut()"
+      class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+      <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+      <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+      <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
     </button>
   </div>
 </header>
 
-<!-- ════════════════════════════════════════
-     SIDEBAR
-════════════════════════════════════════ -->
+<!-- ══ SIDEBAR ══ -->
 <nav class="sidebar">
-  <a href="index.html"           class="sb-item active"><span class="mi">grid_view</span><span class="tip">Dashboard</span></a>
-  <a href="campaigns.html"       class="sb-item"><span class="mi">campaign</span><span class="tip">Campaigns</span></a>
-  <a href="call-logs.html"       class="sb-item"><span class="mi">call</span><span class="tip">Call Logs</span></a>
-  <a href="sms-logs.html"        class="sb-item"><span class="mi">sms</span><span class="tip">SMS</span></a>
-  <div class="sb-sep"></div>
-  <a href="contacts.html"        class="sb-item"><span class="mi">contacts</span><span class="tip">Contacts</span></a>
-  <a href="team-management.html" class="sb-item"><span class="mi">group</span><span class="tip">Teams</span></a>
-  <a href="agent-detail.html"    class="sb-item"><span class="mi">support_agent</span><span class="tip">Agents</span></a>
-  <div class="sb-spacer"></div>
-  <a href="developer/index.html" class="sb-item" id="sidebar-developer"><span class="mi">terminal</span><span class="tip">Developer</span></a>
-  <a href="settings.html"        class="sb-item"><span class="mi">settings</span><span class="tip">Settings</span></a>
+  <a href="index.html"           class="sidebar-item active">
+    <span class="md-icon text-[22px]">grid_view</span>
+    <span class="tip">Dashboard</span>
+  </a>
+  <a href="campaigns.html"       class="sidebar-item">
+    <span class="md-icon text-[22px]">campaign</span>
+    <span class="tip">Campaigns</span>
+  </a>
+  <a href="call-logs.html"       class="sidebar-item">
+    <span class="md-icon text-[22px]">call</span>
+    <span class="tip">Call Logs</span>
+  </a>
+  <a href="sms-logs.html"        class="sidebar-item">
+    <span class="md-icon text-[22px]">sms</span>
+    <span class="tip">SMS Logs</span>
+  </a>
+  <a href="contacts.html"        class="sidebar-item">
+    <span class="md-icon text-[22px]">contacts</span>
+    <span class="tip">Contacts</span>
+  </a>
+  <a href="team-management.html" class="sidebar-item">
+    <span class="md-icon text-[22px]">group</span>
+    <span class="tip">Teams</span>
+  </a>
+  <a href="agent-detail.html"    class="sidebar-item">
+    <span class="md-icon text-[22px]">support_agent</span>
+    <span class="tip">Agents</span>
+  </a>
+
+  <div class="sidebar-spacer"></div>
+
+  <a href="developer/index.html" class="sidebar-item" id="sidebar-developer">
+    <span class="md-icon text-[22px]" style="color:#6C63FF">terminal</span>
+    <span class="tip">Developer</span>
+  </a>
+  <a href="settings.html"        class="sidebar-item">
+    <span class="md-icon text-[22px]">settings</span>
+    <span class="tip">Settings</span>
+  </a>
 </nav>
 
-<!-- ════════════════════════════════════════
-     PAGE CONTENT
-════════════════════════════════════════ -->
-<div class="page-wrap">
-<div class="dash-grid">
+<!-- ══ PAGE CONTENT ══ -->
+<div class="page-content">
+  <main class="max-w-[1256px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
 
-  <!-- ── Greeting banner (full width) ── -->
-  <div class="greeting-banner enter e1">
-    <div>
-      <div class="greeting-text" id="greeting-text">Good morning ✨</div>
-      <div class="greeting-sub" id="subtitle-text">Your compliance automation dashboard is live and ready.</div>
-    </div>
-    <a href="campaigns.html" class="new-campaign-btn">
-      <span class="mi">add</span>New Campaign
-    </a>
-  </div>
-
-  <!-- ════ LEFT COLUMN ════ -->
-  <div class="left-col">
-
-    <!-- Credit balance -->
-    <div class="balance-card enter e2">
-      <div class="balance-label">AI Credit Balance</div>
-      <div class="balance-amount" id="credit-balance">—</div>
-      <span class="balance-delta" id="credit-badge">
-        <span class="mi" style="font-size:13px">trending_up</span>Active
+    <!-- Sandbox banner -->
+    <div id="sandbox-banner" class="sandbox-pill hidden rounded-2xl px-5 py-3 flex items-center gap-3 enter enter-1">
+      <span class="md-icon text-amber-600 text-[20px]">warning</span>
+      <span class="text-[13px] font-medium">
+        <strong>Sandbox mode</strong> — Demo limits: 3 documents · 2 min voice. Records auto-purge in 2 hours.
       </span>
-
-      <div class="balance-actions">
-        <a href="developer/credits.html" class="btn-primary"><span class="mi">add_card</span>Top Up</a>
-        <a href="settings.html" class="btn-outline"><span class="mi">tune</span>Settings</a>
-      </div>
-
-      <div id="sandbox-banner" class="sandbox-banner">
-        <span class="mi" style="font-size:18px;color:#d97706">warning</span>
-        <span><strong>Sandbox</strong> — 3 docs · 2 min voice. Auto-purge in 2h.</span>
-        <a href="settings.html">Upgrade →</a>
-      </div>
-
-      <div class="org-row">
-        <span class="role-badge" id="role-badge">—</span>
-        <span class="org-name"><span class="mi">business</span><span id="org-name">Loading…</span></span>
-      </div>
+      <a href="settings.html" class="ml-auto text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 transition-snappy whitespace-nowrap">Upgrade →</a>
     </div>
 
-    <!-- Credit usage bar -->
-    <div class="usage-card enter e3">
-      <div class="usage-header">
-        <span class="usage-label">Monthly Budget</span>
-        <span class="usage-sub" id="usage-sub">Loading…</span>
-      </div>
-      <div class="usage-bar-wrap">
-        <div class="usage-bar-fill" id="usage-bar" style="width:0%"></div>
-      </div>
-      <div class="usage-nums">
-        <span id="usage-spent">—</span>
-        <span id="usage-cap">—</span>
-      </div>
-    </div>
-
-    <!-- Active campaigns mini-list -->
-    <div class="mini-list-card enter e4">
-      <div class="mini-list-header">
-        <span class="mini-list-title">Active Campaigns</span>
-        <a href="campaigns.html" class="mini-list-link">View all →</a>
-      </div>
-      <div id="mini-campaigns-list">
-        <!-- populated by JS -->
-        <div style="text-align:center;padding:20px;color:var(--text-2);font-size:13px;">Loading…</div>
-      </div>
-    </div>
-
-  </div><!-- /left-col -->
-
-  <!-- ════ MIDDLE COLUMN ════ -->
-  <div class="mid-col">
-
-    <!-- 2×2 stats -->
-    <div class="stat-grid">
-
-      <!-- Total Agents — accent card (like Finexy "Total Earnings") -->
-      <div class="stat-card accent-card enter e2">
-        <div class="stat-card-header">
-          <div class="stat-icon"><span class="mi mi-fill">group</span></div>
-          <span class="stat-badge">Active</span>
-        </div>
-        <div class="stat-val" id="total-agents">—</div>
-        <div class="stat-lbl">Total Agents</div>
-      </div>
-
-      <!-- Active Teams -->
-      <div class="stat-card enter e2" style="animation-delay:.10s">
-        <div class="stat-card-header">
-          <div class="stat-icon" style="background:var(--green-dim)"><span class="mi" style="color:var(--green)">diversity_3</span></div>
-          <span class="stat-badge" style="background:var(--green-dim);color:#16a34a">Running</span>
-        </div>
-        <div class="stat-val" id="active-teams">—</div>
-        <div class="stat-lbl">Active Teams</div>
-      </div>
-
-      <!-- Compliance rate -->
-      <div class="stat-card enter e3" style="animation-delay:.13s">
-        <div class="stat-card-header">
-          <div class="stat-icon" style="background:rgba(245,158,11,0.10)"><span class="mi" style="color:#d97706">verified</span></div>
-          <span class="stat-badge" style="background:rgba(245,158,11,0.10);color:#d97706">24h</span>
-        </div>
-        <div class="stat-val" id="compliance-rate">—</div>
-        <div class="stat-lbl">Compliance Rate</div>
-      </div>
-
-      <!-- Live Campaigns -->
-      <div class="stat-card enter e3" style="animation-delay:.16s">
-        <div class="stat-card-header">
-          <div class="stat-icon" style="background:rgba(139,92,246,0.10)"><span class="mi" style="color:#7c3aed">campaign</span></div>
-          <span class="stat-badge" style="background:rgba(139,92,246,0.10);color:#7c3aed">Live</span>
-        </div>
-        <div class="stat-val" id="active-campaigns">—</div>
-        <div class="stat-lbl">Campaigns</div>
-      </div>
-
-    </div><!-- /stat-grid -->
-
-    <!-- Activity table (like Finexy "Recent Activities") -->
-    <div class="activity-card enter e4">
-      <div class="activity-header">
+    <!-- ── Greeting ── -->
+    <div class="enter enter-1">
+      <div class="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <div class="activity-title">Recent Activity</div>
+          <h1 class="text-[28px] font-bold tracking-tight text-on-surface leading-tight" id="greeting-text">
+            Good morning ✨
+          </h1>
+          <p class="mt-1 text-[14.5px] text-on-surface-variant" id="subtitle-text">
+            Your compliance automation dashboard is live and ready.
+          </p>
+          <div class="mt-3 flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full" id="role-badge">—</span>
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant px-3 py-1 rounded-full">
+              <span class="md-icon text-[14px]">business</span>
+              <span id="org-name">Loading…</span>
+            </span>
+          </div>
         </div>
-        <div class="activity-controls">
-          <div class="live-badge"><span class="live-dot"></span>Live</div>
-          <div class="search-pill"><span class="mi">search</span>Search</div>
-          <button class="filter-btn"><span class="mi">filter_list</span>Filter</button>
-        </div>
-      </div>
 
-      <table class="act-table">
-        <thead>
-          <tr>
-            <th>Call ID</th>
-            <th>Contact</th>
-            <th>Duration</th>
-            <th>Status</th>
-            <th>Time</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="activity-list">
-          <tr class="empty-row"><td colspan="6">
-            <span class="mi" style="font-size:24px;color:var(--text-3);display:block;margin-bottom:6px">hourglass_empty</span>
-            Loading activity…
-          </td></tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div><!-- /mid-col -->
-
-  <!-- ════ RIGHT COLUMN ════ -->
-  <div class="right-col">
-
-    <!-- Intelligent Desk -->
-    <div class="id-card enter e2">
-      <div class="id-header">
-        <div class="id-icon">🧠</div>
-        <div>
-          <div class="id-label">Intelligent Desk</div>
-          <div class="id-sub">AI Financial Analyst Feed</div>
-        </div>
-        <div class="metric-badge-neon-cyan" id="txtTotalSavingsOdometer" style="margin-left:auto;font-family:'DM Mono',monospace">₹0.00</div>
-      </div>
-      <div class="id-body" id="intelligentDeskStream">
-        <div style="display:flex;align-items:center;gap:8px;color:var(--text-2);font-size:12.5px;padding:4px 0">
-          <span class="mi" style="font-size:18px;animation:pulse 1.5s infinite">sync</span>
-          Scanning transaction ledgers…
-        </div>
+        <!-- Quick launch -->
+        <a href="campaigns.html"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold text-[13px] shadow-md hover:shadow-lg transition-snappy credit-stripe whitespace-nowrap">
+          <span class="md-icon text-[18px]">add</span>
+          New Campaign
+        </a>
       </div>
     </div>
 
-    <!-- Call volume chart -->
-    <div class="chart-card enter e3">
-      <div class="chart-title">Call Performance</div>
-      <div class="chart-sub">Completed vs missed calls per month</div>
-      <div class="chart-legend">
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--accent)"></div>Completed
+    <!-- ── Intelligent Desk widget ── -->
+    <section id="intelligentDeskWidget" class="glass-card rounded-2xl overflow-hidden enter" style="animation-delay:0.18s;">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-[20px]" style="background:rgba(6,182,212,0.1);">🧠</div>
+          <div>
+            <h2 class="text-[15px] font-bold text-on-surface leading-tight">Intelligent Desk</h2>
+            <p class="text-[12px] text-on-surface-variant">Autonomous AI Financial Data Analyst &amp; Advisory Feed</p>
+          </div>
         </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:var(--accent-dim);border:1.5px solid var(--accent-mid)"></div>Missed
+        <div class="metric-badge-neon-cyan">
+          Savings Found: <span id="txtTotalSavingsOdometer" class="mono-text">₹0.00</span>
         </div>
       </div>
-      <div class="bar-y-labels">
-        <span></span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span>
+      <div id="intelligentDeskStream" class="px-4 py-3 space-y-2">
+        <div class="stream-fallback-loading">
+          <div class="spinner-pulse"></div>
+          <span style="font-size:13px;color:#777587;">Scanning transaction ledgers…</span>
+        </div>
       </div>
-      <div class="bar-chart" id="call-chart">
-        <!-- populated by JS -->
+    </section>
+
+    <!-- ── Stats row ── -->
+    <div class="grid gap-4 stats-cols" style="grid-template-columns: repeat(5, 1fr);">
+
+      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-xl bg-[#e3dfff] flex items-center justify-center">
+            <span class="md-icon text-primary text-[20px]">group</span>
+          </div>
+          <span class="text-[11px] font-semibold text-primary bg-[#e3dfff] px-2.5 py-0.5 rounded-full">Active</span>
+        </div>
+        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="total-agents">—</div>
+        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Total Agents</div>
       </div>
-      <div style="display:flex;justify-content:space-around;margin-top:6px;">
-        <span class="bar-label" id="chart-months"></span>
+
+      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-2" style="animation-delay:0.07s">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <span class="md-icon text-emerald-600 text-[20px]">diversity_3</span>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">Running</span>
+        </div>
+        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="active-teams">—</div>
+        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Active Teams</div>
       </div>
+
+      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-3" style="animation-delay:0.10s">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+            <span class="md-icon text-amber-600 text-[20px]">verified</span>
+          </div>
+          <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">24 h</span>
+        </div>
+        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="compliance-rate">—</div>
+        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Compliance Rate</div>
+      </div>
+
+      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-4" style="animation-delay:0.13s">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+            <span class="md-icon text-violet-600 text-[20px]">campaign</span>
+          </div>
+          <span class="text-[11px] font-semibold text-violet-700 bg-violet-50 px-2.5 py-0.5 rounded-full">Live</span>
+        </div>
+        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="active-campaigns">—</div>
+        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Campaigns</div>
+      </div>
+
+      <!-- Credit card — accent design -->
+      <div class="credit-stripe stat-card-hover rounded-2xl p-5 enter enter-5 relative overflow-hidden cursor-default" style="animation-delay:0.16s">
+        <!-- Decorative circles -->
+        <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
+        <div class="absolute -right-1 top-8 w-10 h-10 rounded-full bg-white/10"></div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+            <span class="md-icon text-white text-[20px]">wallet</span>
+          </div>
+          <span class="text-[11px] font-semibold text-white/90 bg-white/20 px-2.5 py-0.5 rounded-full" id="credit-badge">Balance</span>
+        </div>
+        <div class="counter-value text-[30px] font-bold tracking-tight text-white leading-none mb-1" id="credit-balance">—</div>
+        <div class="text-[12px] font-semibold text-white/70 uppercase tracking-wide">Credits</div>
+      </div>
+
     </div>
 
-    <!-- Quick action cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="enter e4">
-      <a href="contacts.html" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);text-decoration:none;gap:8px;box-shadow:var(--shadow-sm);transition:all var(--t);"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow-sm)'">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(6,182,212,0.1);display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:19px;color:#0891b2">contacts</span></div>
-        <div style="font-size:13px;font-weight:700;color:var(--text-1)">Contacts</div>
-        <div style="font-size:11.5px;color:var(--text-2)">Manage CRM</div>
-      </a>
-      <a href="team-management.html" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);text-decoration:none;gap:8px;box-shadow:var(--shadow-sm);transition:all var(--t);"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow-sm)'">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center"><span class="mi" style="font-size:19px;color:var(--accent)">group</span></div>
-        <div style="font-size:13px;font-weight:700;color:var(--text-1)">Teams</div>
-        <div style="font-size:11.5px;color:var(--text-2)">Manage staff</div>
-      </a>
+    <!-- ── Bottom grid: actions + feed ── -->
+    <div class="grid gap-6 bottom-cols" style="grid-template-columns: 1fr 360px;">
+
+      <!-- Quick actions -->
+      <div class="enter enter-5">
+        <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Quick actions</p>
+        <div class="grid grid-cols-2 gap-4">
+
+          <a href="team-management.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
+            <div class="w-11 h-11 rounded-xl bg-[#e3dfff] flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
+              <span class="md-icon text-primary text-[22px]">group</span>
+            </div>
+            <h3 class="font-bold text-[15px] text-on-surface mb-1">Team Management</h3>
+            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Organise compliance teams and assign roles</p>
+            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-snappy">
+              Open <span class="md-icon text-[15px]">arrow_forward</span>
+            </span>
+          </a>
+
+          <a href="agent-detail.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
+              <span class="md-icon text-emerald-600 text-[22px]">support_agent</span>
+            </div>
+            <h3 class="font-bold text-[15px] text-on-surface mb-1">Agent Details</h3>
+            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">View profiles, performance, and assignments</p>
+            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-600 opacity-0 group-hover:opacity-100 transition-snappy">
+              Open <span class="md-icon text-[15px]">arrow_forward</span>
+            </span>
+          </a>
+
+          <a href="campaigns.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
+            <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
+              <span class="md-icon text-violet-600 text-[22px]">campaign</span>
+            </div>
+            <h3 class="font-bold text-[15px] text-on-surface mb-1">Campaigns</h3>
+            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Launch outbound calls, chasers and reminders</p>
+            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 opacity-0 group-hover:opacity-100 transition-snappy">
+              Open <span class="md-icon text-[15px]">arrow_forward</span>
+            </span>
+          </a>
+
+          <a href="call-logs.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
+            <div class="w-11 h-11 rounded-xl bg-cyan-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
+              <span class="md-icon text-cyan-600 text-[22px]">call_log</span>
+            </div>
+            <h3 class="font-bold text-[15px] text-on-surface mb-1">Call Logs</h3>
+            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Review transcripts, outcomes, and durations</p>
+            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-600 opacity-0 group-hover:opacity-100 transition-snappy">
+              Open <span class="md-icon text-[15px]">arrow_forward</span>
+            </span>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Activity feed -->
+      <div class="enter enter-6">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest">Recent activity</p>
+          <div class="flex items-center gap-1.5 text-[11.5px] font-semibold text-emerald-600">
+            <span class="live-dot w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+            Live
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div id="activity-list" class="divide-y divide-outline-variant/40">
+            <!-- Populated by JS -->
+            <div class="px-5 py-10 text-center text-[13px] text-on-surface-variant" id="feed-loading">
+              <span class="md-icon text-[28px] text-outline-variant block mb-2">hourglass_empty</span>
+              Loading activity…
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-  </div><!-- /right-col -->
-
-</div><!-- /dash-grid -->
-</div><!-- /page-wrap -->
+  </main>
+  <div class="h-8"></div>
+</div><!-- /page-content -->
 
 <script>
 // ── State ──────────────────────────────────────────────
-let currentUser  = null;
+let currentUser = null;
 let currentLanguage = (typeof getCurrentLanguage === 'function') ? getCurrentLanguage() : 'ENGLISH';
 document.getElementById('language-selector').value = currentLanguage;
 
 // ── Rolling counter ────────────────────────────────────
 function animateCounter(el, target, suffix = '', duration = 950) {
-  if (!el) return;
   if (isNaN(parseFloat(target))) { el.textContent = target + suffix; return; }
   const numTarget = parseFloat(target);
   const start = performance.now();
@@ -981,190 +706,65 @@ function buildGreeting(name) {
   return `Working late, ${name} 🌙`;
 }
 
-// ── Time formatter ────────────────────────────────────
+// ── Activity feed ──────────────────────────────────────
 function fmtAgo(iso) {
   const d = Date.now() - new Date(iso);
-  if (d < 60000)     return 'Just now';
-  if (d < 3600000)   return Math.floor(d / 60000) + 'm ago';
-  if (d < 86400000)  return Math.floor(d / 3600000) + 'h ago';
-  if (d < 172800000) return 'Yesterday';
+  if (d < 60000)    return 'Just now';
+  if (d < 3600000)  return Math.floor(d / 60000) + 'm ago';
+  if (d < 86400000) return Math.floor(d / 3600000) + 'h ago';
+  if (d < 172800000)return 'Yesterday';
   return new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
 }
 
-// ── Activity table ────────────────────────────────────
 async function loadActivityFeed() {
   try {
+    // Fetch recent calls
     const { data: calls } = await window.supabase
       .from('call_logs')
-      .select('id, contact_name, status, duration_seconds, created_at')
+      .select('contact_name, status, created_at')
       .order('created_at', { ascending: false })
-      .limit(7);
+      .limit(6);
 
     if (calls && calls.length) {
-      renderFeed(calls); return;
+      const items = calls.map(c => {
+        const done = c.status === 'completed';
+        const failed = c.status === 'failed' || c.status === 'no_answer' || c.status === 'no-answer';
+        return {
+          icon:  done ? 'call' : failed ? 'call_missed' : 'call_made',
+          bg:    done ? 'bg-emerald-50' : failed ? 'bg-red-50' : 'bg-[#e3dfff]',
+          color: done ? 'text-emerald-600' : failed ? 'text-red-500' : 'text-primary',
+          text:  (done ? 'Call completed' : failed ? 'Call missed' : 'Call in progress') +
+                 (c.contact_name ? ` — ${c.contact_name}` : ''),
+          time:  fmtAgo(c.created_at)
+        };
+      });
+      renderFeed(items);
+      return;
     }
-  } catch {}
+  } catch { /* fall through to placeholder */ }
+
+  // Empty state — no calls yet
   renderFeed([]);
 }
 
-function statusProps(s) {
-  if (s === 'completed') return { dot:'#22c55e', label:'Completed' };
-  if (s === 'failed' || s === 'no_answer' || s === 'no-answer') return { dot:'#ef4444', label:'Missed' };
-  if (s === 'in_progress') return { dot:'#f59e0b', label:'In Progress' };
-  return { dot:'#a09db8', label: s || 'Unknown' };
-}
-
-function renderFeed(calls) {
-  const tbody = document.getElementById('activity-list');
-  if (!calls.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6" style="text-align:center;padding:32px;color:var(--text-2);font-size:13px">No recent activity.</td></tr>';
+function renderFeed(items) {
+  const list = document.getElementById('activity-list');
+  if (!items.length) {
+    list.innerHTML = '<div class="px-5 py-8 text-center text-[13px] text-on-surface-variant">No recent activity.</div>';
     return;
   }
-  const ICONS = ['local_phone','call','phone_forwarded','phone_callback','contact_phone','phone_in_talk','call_end'];
-  const COLORS = ['#6C63FF','#06b6d4','#22c55e','#f59e0b','#8b5cf6','#ec4899','#ef4444'];
-  const BG     = ['rgba(108,99,255,0.1)','rgba(6,182,212,0.1)','rgba(34,197,94,0.1)','rgba(245,158,11,0.1)','rgba(139,92,246,0.1)','rgba(236,72,153,0.1)','rgba(239,68,68,0.1)'];
-
-  tbody.innerHTML = calls.map((c, i) => {
-    const sp = statusProps(c.status);
-    const icon = ICONS[i % ICONS.length];
-    const col  = COLORS[i % COLORS.length];
-    const bg   = BG[i % BG.length];
-    const dur  = c.duration_seconds ? `${Math.floor(c.duration_seconds/60)}m ${c.duration_seconds%60}s` : '—';
-    const id   = (c.id || '').toString().slice(-8).toUpperCase().padStart(8,'0');
-    return `
-    <tr style="animation:fadeUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*50}ms both">
-      <td><span class="act-id">CD-${id}</span></td>
-      <td>
-        <div class="act-name-cell">
-          <div class="act-icon-wrap" style="background:${bg}">
-            <span class="mi" style="color:${col};font-size:16px">${icon}</span>
-          </div>
-          <span style="font-weight:600">${c.contact_name || 'Unknown'}</span>
-        </div>
-      </td>
-      <td style="color:var(--text-2)">${dur}</td>
-      <td>
-        <span class="act-status">
-          <span class="act-dot" style="background:${sp.dot}"></span>
-          ${sp.label}
-        </span>
-      </td>
-      <td style="color:var(--text-2);font-size:12px">${fmtAgo(c.created_at)}</td>
-      <td>
-        <div class="act-more">
-          <div class="act-dot-btn"></div>
-          <div class="act-dot-btn"></div>
-          <div class="act-dot-btn"></div>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// ── Call volume chart ─────────────────────────────────
-function renderChart(data) {
-  const chart = document.getElementById('call-chart');
-  if (!chart) return;
-  const months = Object.keys(data).slice(-8);
-  const maxVal = Math.max(...months.map(m => (data[m].completed||0) + (data[m].missed||0)), 10);
-  chart.innerHTML = months.map(m => {
-    const total = (data[m].completed||0) + (data[m].missed||0);
-    const compH = Math.round(((data[m].completed||0) / maxVal) * 100);
-    const missH = Math.round(((data[m].missed||0) / maxVal) * 100);
-    return `
-      <div class="bar-group">
-        <div class="bar-pair">
-          <div class="bar primary" style="height:${Math.max(compH,2)}%"></div>
-          <div class="bar secondary" style="height:${Math.max(missH,2)}%"></div>
-        </div>
-        <div class="bar-label">${m}</div>
-      </div>`;
-  }).join('');
-}
-
-async function loadChart() {
-  try {
-    const { data: calls } = await window.supabase
-      .from('call_logs')
-      .select('status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(200);
-
-    if (calls && calls.length) {
-      const byMonth = {};
-      calls.forEach(c => {
-        const mo = new Date(c.created_at).toLocaleDateString('en-IN', { month: 'short' });
-        if (!byMonth[mo]) byMonth[mo] = { completed: 0, missed: 0 };
-        if (c.status === 'completed') byMonth[mo].completed++;
-        else byMonth[mo].missed++;
-      });
-      renderChart(byMonth);
-      return;
-    }
-  } catch {}
-  // Placeholder bars
-  const placeholder = { Jan:{completed:18,missed:4}, Feb:{completed:22,missed:3}, Mar:{completed:31,missed:6}, Apr:{completed:28,missed:5}, May:{completed:35,missed:4}, Jun:{completed:29,missed:7}, Jul:{completed:40,missed:5}, Aug:{completed:38,missed:4} };
-  renderChart(placeholder);
-}
-
-// ── Budget usage bar ───────────────────────────────────
-async function loadUsage() {
-  try {
-    const { data: vault } = await window.supabase
-      .from('organization_developer_vault')
-      .select('monthly_budget_cap, current_month_accumulated_spend')
-      .single();
-    if (vault) {
-      const spent = vault.current_month_accumulated_spend ?? 0;
-      const cap   = vault.monthly_budget_cap ?? 100;
-      const pct   = Math.min(Math.round((spent / cap) * 100), 100);
-      document.getElementById('usage-sub').textContent = `${pct}% used`;
-      document.getElementById('usage-spent').textContent = `₹${spent.toFixed(2)} spent`;
-      document.getElementById('usage-cap').textContent = `₹${cap.toFixed(2)} cap`;
-      setTimeout(() => {
-        const bar = document.getElementById('usage-bar');
-        if (bar) bar.style.width = pct + '%';
-      }, 400);
-      return;
-    }
-  } catch {}
-  document.getElementById('usage-sub').textContent = 'No data';
-  document.getElementById('usage-spent').textContent = '—';
-  document.getElementById('usage-cap').textContent = '—';
-}
-
-// ── Mini campaigns list ────────────────────────────────
-async function loadMiniCampaigns() {
-  const container = document.getElementById('mini-campaigns-list');
-  try {
-    const { data: campaigns } = await window.supabase
-      .from('outbound_campaigns')
-      .select('id, campaign_name, campaign_purpose, status')
-      .in('status', ['processing','scheduled','draft'])
-      .order('created_at', { ascending: false })
-      .limit(4);
-
-    if (campaigns && campaigns.length) {
-      const PURPOSE_ICON = { document_chaser:'description', sales_outreach:'trending_up', deadline_reminder:'alarm' };
-      const PURPOSE_BG   = { document_chaser:'rgba(108,99,255,0.10)', sales_outreach:'rgba(34,197,94,0.10)', deadline_reminder:'rgba(245,158,11,0.10)' };
-      const PURPOSE_COL  = { document_chaser:'#6C63FF', sales_outreach:'#16a34a', deadline_reminder:'#d97706' };
-      const STATUS_CLS   = { processing:'background:rgba(34,197,94,0.10);color:#16a34a', scheduled:'background:rgba(59,130,246,0.10);color:#2563eb', draft:'background:var(--surface-2);color:var(--text-2)', paused:'background:rgba(239,68,68,0.10);color:#dc2626' };
-
-      container.innerHTML = campaigns.map(c => `
-        <div class="mini-item">
-          <div class="mini-icon" style="background:${PURPOSE_BG[c.campaign_purpose]||'var(--accent-dim)'}">
-            <span class="mi" style="color:${PURPOSE_COL[c.campaign_purpose]||'var(--accent)'};font-size:18px">${PURPOSE_ICON[c.campaign_purpose]||'campaign'}</span>
-          </div>
-          <div class="mini-item-info">
-            <div class="mini-item-name">${c.campaign_name}</div>
-            <div class="mini-item-sub">${(c.campaign_purpose||'').replace(/_/g,' ')}</div>
-          </div>
-          <span class="mini-status" style="${STATUS_CLS[c.status]||'background:var(--surface-2);color:var(--text-2)';padding:3px 9px;border-radius:20px">${c.status}</span>
-        </div>`).join('');
-      return;
-    }
-  } catch {}
-  container.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--text-2);font-size:13px">No active campaigns yet. <a href="campaigns.html" style="color:var(--accent);font-weight:600">Create one →</a></div>';
+  list.innerHTML = items.map((item, i) => `
+    <div class="feed-item flex items-start gap-3 px-5 py-3.5 cursor-default"
+         style="animation: slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i * 55}ms both">
+      <div class="w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center shrink-0 mt-0.5">
+        <span class="md-icon ${item.color} text-[17px]">${item.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-medium text-on-surface leading-snug truncate">${item.text}</p>
+        <p class="text-[11.5px] text-on-surface-variant mt-0.5">${item.time}</p>
+      </div>
+    </div>
+  `).join('');
 }
 
 // ── Translations ───────────────────────────────────────
@@ -1174,6 +774,7 @@ function applyTranslations() {
     if (typeof t === 'function') el.textContent = t(key, currentLanguage);
   });
 }
+
 async function changeLanguage() {
   currentLanguage = document.getElementById('language-selector').value;
   if (typeof setLanguage === 'function') setLanguage(currentLanguage);
@@ -1186,39 +787,45 @@ async function loadStats() {
   try {
     const client = window.supabase;
 
-    const { count: agents } = await client.from('user_profiles').select('*', { count:'exact', head:true });
+    // Agents
+    const { count: agents } = await client.from('user_profiles')
+      .select('*', { count: 'exact', head: true });
     animateCounter(document.getElementById('total-agents'), agents ?? 0);
 
-    const { count: teams } = await client.from('teams').select('*', { count:'exact', head:true });
+    // Teams
+    const { count: teams } = await client.from('teams')
+      .select('*', { count: 'exact', head: true });
     animateCounter(document.getElementById('active-teams'), teams ?? 0);
 
+    // Live campaigns
     const { count: campaigns } = await client.from('outbound_campaigns')
-      .select('*', { count:'exact', head:true })
-      .in('status', ['processing','scheduled']);
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['processing', 'scheduled']);
     animateCounter(document.getElementById('active-campaigns'), campaigns ?? 0);
 
+    // Credits
     const { data: org } = await client.from('organizations')
       .select('credit_balance, billing_status').single();
     if (org) {
-      const bal = Math.round(org.credit_balance ?? 0);
-      animateCounter(document.getElementById('credit-balance'), bal);
+      animateCounter(document.getElementById('credit-balance'), Math.round(org.credit_balance ?? 0));
       if (org.billing_status === 'guest_trial') {
-        document.getElementById('sandbox-banner').classList.add('show');
-        const badge = document.getElementById('credit-badge');
-        badge.innerHTML = '<span class="mi" style="font-size:13px">lock</span>Sandbox';
+        document.getElementById('sandbox-banner').classList.remove('hidden');
+        document.getElementById('credit-badge').textContent = 'Sandbox';
       }
       if (org.billing_status === 'past_due') {
-        const badge = document.getElementById('credit-badge');
-        badge.innerHTML = '<span class="mi" style="font-size:13px">warning</span>Past due';
-        badge.style.cssText = 'background:rgba(239,68,68,0.12);color:#dc2626';
+        document.getElementById('credit-badge').textContent = 'Past due';
+        document.getElementById('credit-badge').classList.add('bg-red-200/30', 'text-red-100');
       }
     }
   } catch (e) {
     console.warn('Stats error:', e);
   }
 
+  // Call success rate from call_logs
   try {
-    const { data: callStats } = await window.supabase.from('call_logs').select('status');
+    const { data: callStats } = await client
+      .from('call_logs')
+      .select('status');
     if (callStats && callStats.length) {
       const completed = callStats.filter(r => r.status === 'completed').length;
       const rate = Math.round((completed / callStats.length) * 100);
@@ -1233,9 +840,9 @@ async function loadStats() {
 
 // ── Role badge ─────────────────────────────────────────
 const ROLE_STYLES = {
-  DEVELOPER: 'background:rgba(139,92,246,0.12);color:#7c3aed;border:1px solid rgba(139,92,246,0.2)',
-  ORG_ADMIN: 'background:rgba(108,99,255,0.10);color:#4d41df;border:1px solid rgba(108,99,255,0.2)',
-  ORG_STAFF: 'background:rgba(34,197,94,0.10);color:#16a34a;border:1px solid rgba(34,197,94,0.2)'
+  DEVELOPER: 'bg-violet-100 text-violet-700 border border-violet-200',
+  ORG_ADMIN: 'bg-[#e3dfff] text-primary border border-[#c4c0ff]',
+  ORG_STAFF: 'bg-emerald-50 text-emerald-700 border border-emerald-200'
 };
 const ROLE_LABELS = { DEVELOPER: 'Developer', ORG_ADMIN: 'Admin', ORG_STAFF: 'Staff' };
 
@@ -1245,49 +852,4 @@ async function loadDashboard() {
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
 
-  // Language preference
-  if (currentUser.preferred_language) {
-    currentLanguage = currentUser.preferred_language;
-    document.getElementById('language-selector').value = currentLanguage;
-    localStorage.setItem('preferredLanguage', currentLanguage);
-  }
-
-  // Greeting
-  const name = currentUser.display_name || currentUser.email.split('@')[0];
-  document.getElementById('greeting-text').textContent = buildGreeting(name);
-
-  // Avatar & user info
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || name[0].toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials;
-  document.getElementById('tb-user-name').textContent = currentUser.display_name || name;
-  document.getElementById('user-email-short').textContent = currentUser.email;
-
-  // Org name
-  document.getElementById('org-name').textContent = currentUser.organization_name || 'Your Organisation';
-
-  // Role badge
-  const badge = document.getElementById('role-badge');
-  badge.textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
-  badge.style.cssText = ROLE_STYLES[currentUser.role] || 'background:var(--surface-2);color:var(--text-2)';
-
-  // Developer sidebar item
-  if (currentUser.role === 'DEVELOPER') {
-    document.getElementById('sidebar-developer').style.display = 'flex';
-  }
-
-  // Load all data in parallel
-  await Promise.all([
-    loadStats(),
-    loadActivityFeed(),
-    loadUsage(),
-    loadMiniCampaigns(),
-    loadChart(),
-  ]);
-  applyTranslations();
-}
-
-loadDashboard();
-</script>
-<script src="intelligent-desk.js"></script>
-</body>
-</html>
+  // Language
