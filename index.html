@@ -228,247 +228,88 @@ tailwind.config = {
   }
 
   @media (max-width: 768px) {
+    .nav-scroll { overflow-x: auto; }
     .stats-cols { grid-template-columns: repeat(2, 1fr) !important; }
     .bottom-cols { grid-template-columns: 1fr !important; }
   }
   @media (max-width: 480px) {
     .stats-cols { grid-template-columns: 1fr !important; }
   }
-
-  /* ── Shell layout ───────────────────────────────────── */
-  .topbar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 56px;
-    z-index: 100;
-    background: rgba(255,255,255,0.88);
-    backdrop-filter: blur(28px) saturate(140%);
-    -webkit-backdrop-filter: blur(28px) saturate(140%);
-    border-bottom: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 1px 0 rgba(77,65,223,0.06);
-    display: flex;
-    align-items: center;
-  }
-  .topbar-brand {
-    width: 64px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid rgba(200,196,216,0.4);
-    flex-shrink: 0;
-    text-decoration: none;
-    transition: background 0.18s ease;
-  }
-  .topbar-brand:hover { background: rgba(108,99,255,0.05); }
-  .topbar-page-title {
-    font-size: 14.5px;
-    font-weight: 700;
-    color: #1b1b24;
-    padding-left: 20px;
-    flex: 1;
-    letter-spacing: -0.01em;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    position: fixed;
-    top: 56px; left: 0; bottom: 0;
-    width: 64px;
-    z-index: 90;
-    background: rgba(255,255,255,0.76);
-    backdrop-filter: blur(20px) saturate(130%);
-    -webkit-backdrop-filter: blur(20px) saturate(130%);
-    border-right: 1px solid rgba(200,196,216,0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 0;
-    gap: 2px;
-    overflow: visible;
-  }
-  .sidebar-spacer { flex: 1; }
-  .sidebar-item {
-    position: relative;
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #777587;
-    transition: all 0.18s ease;
-    cursor: pointer;
-    text-decoration: none;
-    flex-shrink: 0;
-  }
-  .sidebar-item:hover {
-    background: rgba(108,99,255,0.09);
-    color: #4d41df;
-  }
-  .sidebar-item.active {
-    background: rgba(108,99,255,0.12);
-    color: #4d41df;
-  }
-  .sidebar-item.active::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 50%; transform: translateY(-50%);
-    width: 3px; height: 22px;
-    background: #6C63FF;
-    border-radius: 0 3px 3px 0;
-  }
-  .sidebar-item .tip {
-    position: absolute;
-    left: calc(100% + 10px);
-    background: #1b1b24;
-    color: #ffffff;
-    font-size: 11.5px;
-    font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 7px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    transform: translateX(-4px);
-    z-index: 300;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-  .sidebar-item:hover .tip {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  /* Sidebar developer item hidden by default */
-  #sidebar-developer { display: none; }
-
-  /* Page content offset */
-  .page-content {
-    margin-left: 64px;
-    padding-top: 56px;
-    min-height: 100vh;
-  }
-
-  @media (max-width: 640px) {
-    .sidebar { display: none; }
-    .page-content { margin-left: 0; }
-    .topbar-brand { border-right: none; }
-  }
-
-  /* ── Finexy-style topbar nav tabs ── */
-  .topbar-nav { display:flex; align-items:center; gap:2px; flex:1; padding:0 16px; overflow-x:auto; }
-  .topbar-nav::-webkit-scrollbar { display:none; }
-  .tnav-tab {
-    display:flex; align-items:center; gap:6px;
-    padding:6px 14px; border-radius:8px;
-    font-size:13px; font-weight:500; color:#64748b;
-    text-decoration:none; white-space:nowrap;
-    transition:all .18s ease;
-    border:1px solid transparent;
-  }
-  .tnav-tab:hover { color:#1b1b24; background:rgba(108,99,255,.06); }
-  .tnav-tab.active {
-    color:#1b1b24; background:#ffffff;
-    border-color:rgba(200,196,216,.6);
-    font-weight:600;
-    box-shadow:0 1px 4px rgba(77,65,223,.10);
-  }
-  .tnav-tab .md-icon { font-size:16px; }
-  /* Slim utility sidebar */
-  .sidebar { width:52px; }
-  .sidebar-item { width:38px; height:38px; border-radius:10px; }
-  .page-content { margin-left:52px; }
-  @media(max-width:640px) { .page-content { margin-left:0; } }
 </style>
 </head>
 
 <body class="text-on-surface">
 <div class="ambient-bg"></div>
 
-<!-- ══ TOPBAR ══ -->
-<header class="topbar">
-  <!-- Brand icon (same width as sidebar) -->
-  <a href="index.html" class="topbar-brand" title="ClearDesk">
-    <div class="w-9 h-9 rounded-xl credit-stripe flex items-center justify-center shadow-sm">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
-    </div>
-  </a>
+<div class="relative z-10 min-h-screen flex flex-col">
 
-  <!-- Section title -->
-  <nav class="topbar-nav">
-    <a href="index.html" class="tnav-tab active"><span class="md-icon">grid_view</span>Dashboard</a>
-    <a href="campaigns.html" class="tnav-tab"><span class="md-icon">campaign</span>Campaigns</a>
-    <a href="call-logs.html" class="tnav-tab"><span class="md-icon">call</span>Call Logs</a>
-    <a href="sms-logs.html" class="tnav-tab"><span class="md-icon">sms</span>SMS</a>
-    <a href="contacts.html" class="tnav-tab"><span class="md-icon">contacts</span>Contacts</a>
-    <a href="team-management.html" class="tnav-tab"><span class="md-icon">group</span>Teams</a>
-    <a href="agent-detail.html" class="tnav-tab"><span class="md-icon">support_agent</span>Agents</a>
+  <!-- ══ NAVBAR ══ -->
+  <nav class="glass-nav sticky top-0 z-50">
+    <div class="max-w-[1320px] mx-auto px-6 md:px-10">
+      <div class="flex items-center justify-between h-16 gap-6">
+
+        <!-- Brand -->
+        <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
+          <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
+          </div>
+          <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
+        </a>
+
+        <!-- Nav links -->
+        <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto no-scrollbar">
+          <a href="index.html"           class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">grid_view</span>Dashboard
+          </a>
+          <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">group</span>Teams
+          </a>
+          <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">support_agent</span>Agents
+          </a>
+          <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">campaign</span>Campaigns
+          </a>
+          <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">contacts</span>Contacts
+          </a>
+          <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">call</span>Calls
+          </a>
+          <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">sms</span>SMS
+          </a>
+          <a href="developer/index.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-purple-600 hover:text-purple-700 rounded-lg whitespace-nowrap flex items-center gap-1.5" id="developer-link" style="display:none;">
+            <span class="md-icon text-[17px]">terminal</span>Developer
+          </a>
+          <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
+            <span class="md-icon text-[17px]">settings</span>Settings
+          </a>
+        </div>
+
+        <!-- Right controls -->
+        <div class="flex items-center gap-3 shrink-0">
+          <select id="language-selector" onchange="changeLanguage()"
+            class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
+            <option value="ENGLISH">🌐 EN</option>
+            <option value="HINDI">🇮🇳 HI</option>
+            <option value="MARATHI">🇮🇳 MR</option>
+          </select>
+
+          <!-- Avatar chip -->
+          <button onclick="signOut()"
+            class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+            <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+            <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+            <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </nav>
 
-  <!-- Right controls -->
-  <div class="flex items-center gap-3 px-4">
-    <select id="language-selector" onchange="changeLanguage()"
-      class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
-      <option value="ENGLISH">🌐 EN</option>
-      <option value="HINDI">🇮🇳 HI</option>
-      <option value="MARATHI">🇮🇳 MR</option>
-    </select>
-
-    <button onclick="signOut()"
-      class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
-      <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
-      <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
-      <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
-    </button>
-  </div>
-</header>
-
-<!-- ══ SIDEBAR ══ -->
-<nav class="sidebar">
-  <a href="index.html"           class="sidebar-item active">
-    <span class="md-icon text-[22px]">grid_view</span>
-    <span class="tip">Dashboard</span>
-  </a>
-  <a href="campaigns.html"       class="sidebar-item">
-    <span class="md-icon text-[22px]">campaign</span>
-    <span class="tip">Campaigns</span>
-  </a>
-  <a href="call-logs.html"       class="sidebar-item">
-    <span class="md-icon text-[22px]">call</span>
-    <span class="tip">Call Logs</span>
-  </a>
-  <a href="sms-logs.html"        class="sidebar-item">
-    <span class="md-icon text-[22px]">sms</span>
-    <span class="tip">SMS Logs</span>
-  </a>
-  <a href="contacts.html"        class="sidebar-item">
-    <span class="md-icon text-[22px]">contacts</span>
-    <span class="tip">Contacts</span>
-  </a>
-  <a href="team-management.html" class="sidebar-item">
-    <span class="md-icon text-[22px]">group</span>
-    <span class="tip">Teams</span>
-  </a>
-  <a href="agent-detail.html"    class="sidebar-item">
-    <span class="md-icon text-[22px]">support_agent</span>
-    <span class="tip">Agents</span>
-  </a>
-
-  <div class="sidebar-spacer"></div>
-
-  <a href="developer/index.html" class="sidebar-item" id="sidebar-developer">
-    <span class="md-icon text-[22px]" style="color:#6C63FF">terminal</span>
-    <span class="tip">Developer</span>
-  </a>
-  <a href="settings.html"        class="sidebar-item">
-    <span class="md-icon text-[22px]">settings</span>
-    <span class="tip">Settings</span>
-  </a>
-</nav>
-
-<!-- ══ PAGE CONTENT ══ -->
-<div class="page-content">
-  <main class="max-w-[1256px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
+  <!-- ══ MAIN ══ -->
+  <main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
 
     <!-- Sandbox banner -->
     <div id="sandbox-banner" class="sandbox-pill hidden rounded-2xl px-5 py-3 flex items-center gap-3 enter enter-1">
@@ -672,8 +513,10 @@ tailwind.config = {
     </div>
 
   </main>
+
+  <!-- Footer spacer -->
   <div class="h-8"></div>
-</div><!-- /page-content -->
+</div>
 
 <script>
 // ── State ──────────────────────────────────────────────
@@ -852,4 +695,45 @@ async function loadDashboard() {
   currentUser = await getCurrentUser();
   if (!currentUser) { location.href = 'login.html'; return; }
 
-  // Language
+  // Language preference
+  if (currentUser.preferred_language) {
+    currentLanguage = currentUser.preferred_language;
+    document.getElementById('language-selector').value = currentLanguage;
+    localStorage.setItem('preferredLanguage', currentLanguage);
+  }
+
+  // Greeting
+  const name = currentUser.display_name || currentUser.email.split('@')[0];
+  document.getElementById('greeting-text').textContent = buildGreeting(name);
+
+  // Avatar initials
+  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials || name[0].toUpperCase();
+  document.getElementById('user-email-short').textContent = currentUser.email.split('@')[0];
+
+  // Org
+  document.getElementById('org-name').textContent =
+    currentUser.organization_name || 'Your Organisation';
+
+  // Role badge
+  const badge = document.getElementById('role-badge');
+  badge.textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
+  badge.className = 'inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full ' +
+    (ROLE_STYLES[currentUser.role] || 'bg-surface-container text-on-surface-variant');
+
+  // Developer nav
+  if (currentUser.role === 'DEVELOPER') {
+    document.getElementById('developer-link').style.display = 'flex';
+  }
+
+  // Load data
+  await loadStats();
+  await loadActivityFeed();
+  applyTranslations();
+}
+
+loadDashboard();
+</script>
+<script src="intelligent-desk.js"></script>
+</body>
+</html>
