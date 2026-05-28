@@ -135,43 +135,63 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(108,99,255,.2);border-radius:3px;}
+
+  /* ── Shell layout ───────────────────────────────────── */
+  .topbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.5);box-shadow:0 1px 0 rgba(77,65,223,.06);display:flex;align-items:center;}
+  .topbar-brand{width:64px;height:56px;display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(200,196,216,.4);flex-shrink:0;text-decoration:none;transition:background .18s ease;}
+  .topbar-brand:hover{background:rgba(108,99,255,.05);}
+  .topbar-page-title{font-size:14.5px;font-weight:700;color:#1b1b24;padding-left:20px;flex:1;letter-spacing:-.01em;}
+  .sidebar{position:fixed;top:56px;left:0;bottom:0;width:64px;z-index:90;background:rgba(255,255,255,.76);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border-right:1px solid rgba(200,196,216,.4);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;overflow:visible;}
+  .sidebar-spacer{flex:1;}
+  .sidebar-item{position:relative;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#777587;transition:all .18s ease;cursor:pointer;text-decoration:none;flex-shrink:0;}
+  .sidebar-item:hover{background:rgba(108,99,255,.09);color:#4d41df;}
+  .sidebar-item.active{background:rgba(108,99,255,.12);color:#4d41df;}
+  .sidebar-item.active::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:22px;background:#6C63FF;border-radius:0 3px 3px 0;}
+  .sidebar-item .tip{position:absolute;left:calc(100% + 10px);background:#1b1b24;color:#fff;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;transform:translateX(-4px);z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+  .sidebar-item:hover .tip{opacity:1;transform:translateX(0);}
+  #sidebar-developer{display:none;}
+  .page-content{margin-left:64px;padding-top:56px;min-height:100vh;}
+  @media(max-width:640px){.sidebar{display:none;}.page-content{margin-left:0;}.topbar-brand{border-right:none;}}
 </style>
 </head>
 
 <body class="text-on-surface">
 <div class="ambient-bg"></div>
-<div class="relative z-10 min-h-screen flex flex-col">
-
-<!-- ══ NAVBAR ══ -->
-<nav class="glass-nav sticky top-0 z-50">
-  <div class="max-w-[1320px] mx-auto px-6 md:px-10">
-    <div class="flex items-center justify-between h-16 gap-6">
-      <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
-        <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
-        </div>
-        <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
-      </a>
-      <div class="flex-1 flex items-stretch gap-1 overflow-x-auto">
-        <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
-        <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
-        <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
-        <a href="campaigns.html"       class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
-        <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
-        <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
-        <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
-        <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
-      </div>
-      <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md t-snappy">
-        <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
-        <span class="md-icon text-[15px] text-outline hover:text-error t-snappy">logout</span>
-      </button>
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <a href="index.html" class="topbar-brand" title="ClearDesk">
+    <div class="w-9 h-9 rounded-xl credit-stripe flex items-center justify-center shadow-sm">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
     </div>
+  </a>
+  <span class="topbar-page-title">Campaigns</span>
+  <div class="flex items-center gap-3 px-4">
+    <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
+      <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
+      <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
+    </button>
   </div>
+</header>
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <a href="index.html" class="sidebar-item"><span class="md-icon text-[22px]">grid_view</span><span class="tip">Dashboard</span></a>
+  <a href="campaigns.html" class="sidebar-item active"><span class="md-icon text-[22px]">campaign</span><span class="tip">Campaigns</span></a>
+  <a href="call-logs.html" class="sidebar-item"><span class="md-icon text-[22px]">call</span><span class="tip">Call Logs</span></a>
+  <a href="sms-logs.html" class="sidebar-item"><span class="md-icon text-[22px]">sms</span><span class="tip">SMS Logs</span></a>
+  <a href="contacts.html" class="sidebar-item"><span class="md-icon text-[22px]">contacts</span><span class="tip">Contacts</span></a>
+  <a href="team-management.html" class="sidebar-item"><span class="md-icon text-[22px]">group</span><span class="tip">Teams</span></a>
+  <a href="agent-detail.html" class="sidebar-item"><span class="md-icon text-[22px]">support_agent</span><span class="tip">Agents</span></a>
+  <div class="sidebar-spacer"></div>
+  <a href="developer/index.html" class="sidebar-item" id="sidebar-developer"><span class="md-icon text-[22px]" style="color:#6C63FF">terminal</span><span class="tip">Developer</span></a>
+  <a href="settings.html" class="sidebar-item"><span class="md-icon text-[22px]">settings</span><span class="tip">Settings</span></a>
 </nav>
 
+<!-- ══ PAGE CONTENT ══ -->
+<div class="page-content">
+
 <!-- ══ MAIN ══ -->
-<main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-6">
+<main class="max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-6">
 
   <!-- Header -->
   <div class="flex items-start justify-between flex-wrap gap-4 enter" style="animation-delay:.05s">

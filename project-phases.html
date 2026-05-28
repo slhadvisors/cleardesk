@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Project Phases</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --obsidian: #050508;
+  --slate-deep: #0c0e14;
+  --slate-card: #10131a;
+  --slate-border: #1a1f2e;
+  --slate-hover: #1e2436;
+
+  --violet: #6C63FF;
+  --violet-dim: rgba(108,99,255,0.12);
+  --violet-glow: rgba(108,99,255,0.25);
+  --cyan: #06b6d4;
+  --cyan-dim: rgba(6,182,212,0.12);
+  --emerald: #34d399;
+  --emerald-dim: rgba(52,211,153,0.10);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.10);
+  --crimson: #dc2626;
+  --crimson-dim: rgba(220,38,38,0.10);
+
+  --text-1: #f0f2ff;
+  --text-2: #8892b0;
+  --text-3: #4a5368;
+
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --t: 0.26s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-display);
+  background: var(--obsidian);
+  color: var(--text-1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Background ── */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.bg-orb {
+  position: fixed; z-index: 0; pointer-events: none; border-radius: 50%;
+  filter: blur(120px);
+}
+.orb-1 { width:600px; height:600px; top:-200px; left:-150px; background:radial-gradient(circle, rgba(108,99,255,0.12), transparent 70%); animation: orb-drift 20s ease-in-out infinite alternate; }
+.orb-2 { width:500px; height:500px; bottom:-100px; right:-100px; background:radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%); animation: orb-drift 16s ease-in-out infinite alternate-reverse; }
+.orb-3 { width:400px; height:400px; top:40%; left:40%; background:radial-gradient(circle, rgba(52,211,153,0.05), transparent 70%); animation: orb-drift 24s ease-in-out infinite alternate; }
+@keyframes orb-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px, 30px) scale(1.08); } }
+
+/* ── Layout ── */
+.wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 32px 120px; }
+
+/* ── Hero ── */
+.hero {
+  padding: 96px 0 72px;
+  display: flex; align-items: flex-start; gap: 48px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--violet); background: var(--violet-dim);
+  border: 1px solid rgba(108,99,255,0.3); border-radius: 4px;
+  padding: 4px 12px; margin-bottom: 20px;
+}
+.hero-badge .dot { width:6px; height:6px; border-radius:50%; background:var(--violet); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
+
+.hero-title {
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--text-1);
+  margin-bottom: 16px;
+}
+.hero-title .accent { color: var(--violet); }
+.hero-title .accent-2 { color: var(--cyan); }
+
+.hero-sub {
+  font-size: 15px; color: var(--text-2); line-height: 1.7; max-width: 520px;
+  font-family: var(--font-mono); font-weight: 300;
+  margin-bottom: 32px;
+}
+
+/* Stats row */
+.hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat-n { font-family: var(--font-mono); font-size: 28px; font-weight: 700; line-height: 1; }
+.stat-l { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* Logo */
+.hero-logo { flex-shrink: 0; }
+.logo-ring {
+  width: 100px; height: 100px;
+  background: var(--violet-dim); border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(108,99,255,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+  animation: logo-float 4s ease-in-out infinite;
+}
+@keyframes logo-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* ── Progress bar ── */
+.progress-bar {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--slate-card); border: 1px solid var(--slate-border);
+  border-radius: 12px; padding: 16px 22px; margin-bottom: 64px;
+}
+.prog-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.1em; white-space: nowrap; }
+.prog-track { flex: 1; height: 6px; background: var(--slate-border); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--violet), var(--cyan)); animation: fill-in 2s cubic-bezier(0.25,1,0.5,1) forwards; transform-origin: left; }
+@keyframes fill-in { from { width: 0; } to { width: 75%; } }
+.prog-pct { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--violet); white-space: nowrap; }
+
+/* ── Timeline ── */
+.timeline { position: relative; }
+.timeline-line {
+  position: absolute; left: 28px; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(to bottom, var(--violet-glow), rgba(6,182,212,0.2), transparent);
+}
+
+/* Phase card */
+.phase {
+  display: grid; grid-template-columns: 58px 1fr;
+  gap: 0 24px; margin-bottom: 12px;
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.25,1,0.5,1);
+}
+.phase.visible { opacity: 1; transform: translateY(0); }
+
+/* Node */
+.phase-node {
+  display: flex; flex-direction: column; align-items: center; padding-top: 20px;
+}
+.node-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; position: relative; z-index: 2;
+  transition: transform var(--t), box-shadow var(--t);
+}
+.node-dot.done { background: var(--emerald); box-shadow: 0 0 12px rgba(52,211,153,0.5); }
+.node-dot.active { background: var(--violet); box-shadow: 0 0 16px rgba(108,99,255,0.7); animation: node-pulse 2s ease-in-out infinite; }
+.node-dot.next { background: var(--cyan); box-shadow: 0 0 12px rgba(6,182,212,0.5); }
+.node-dot.future { background: var(--slate-border); }
+@keyframes node-pulse { 0%,100% { box-shadow: 0 0 16px rgba(108,99,255,0.7); } 50% { box-shadow: 0 0 28px rgba(108,99,255,0.9); } }
+.node-dot::after {
+  content: ''; position: absolute; width: 8px; height: 8px;
+  border-radius: 50%; background: rgba(255,255,255,0.9);
+}
+.node-line { flex: 1; width: 2px; background: var(--slate-border); margin-top: 6px; }
+
+/* Card body */
+.phase-card {
+  background: var(--slate-card); border: 1px solid var(--slate-border);
+  border-radius: 14px; padding: 20px 24px; cursor: pointer;
+  transition: border-color var(--t), background var(--t), box-shadow var(--t);
+  margin-bottom: 12px; position: relative; overflow: hidden;
+}
+.phase-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  transition: opacity var(--t);
+}
+.phase-card.done::before { background: var(--emerald); opacity: 0.8; }
+.phase-card.active::before { background: var(--violet); opacity: 1; }
+.phase-card.next::before { background: var(--cyan); opacity: 0.8; }
+.phase-card.future::before { background: var(--slate-border); opacity: 0.5; }
+
+.phase-card:hover { border-color: rgba(108,99,255,0.3); background: var(--slate-hover); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+.phase-card.expanded { border-color: rgba(108,99,255,0.35); background: var(--slate-hover); }
+
+/* Card header */
+.card-head { display: flex; align-items: center; gap: 14px; }
+.phase-num {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--text-3); letter-spacing: 0.12em;
+  background: var(--slate-border); border-radius: 4px; padding: 3px 8px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.phase-title {
+  font-size: 16px; font-weight: 700; letter-spacing: -0.01em; flex: 1;
+}
+.phase-date {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+  letter-spacing: 0.08em; white-space: nowrap;
+}
+.status-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px; letter-spacing: 0.1em;
+  text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.status-badge.done { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.2); }
+.status-badge.active { background: var(--violet-dim); color: var(--violet); border: 1px solid rgba(108,99,255,0.3); }
+.status-badge.next { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(6,182,212,0.2); }
+.status-badge.future { background: transparent; color: var(--text-3); border: 1px solid var(--slate-border); }
+
+/* Expand toggle */
+.expand-icon {
+  font-size: 14px; color: var(--text-3); transition: transform var(--t);
+  flex-shrink: 0; line-height: 1;
+}
+.phase-card.expanded .expand-icon { transform: rotate(180deg); }
+
+/* Card body (collapsible) */
+.card-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.25,1,0.5,1), opacity 0.3s;
+  opacity: 0;
+}
+.phase-card.expanded .card-body { max-height: 600px; opacity: 1; }
+.card-body-inner { padding-top: 18px; border-top: 1px solid var(--slate-border); margin-top: 16px; }
+
+.phase-desc {
+  font-size: 13px; color: var(--text-2); line-height: 1.75;
+  font-family: var(--font-mono); font-weight: 300; margin-bottom: 16px;
+}
+
+/* Tech chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.chip {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  padding: 3px 10px; border-radius: 4px; letter-spacing: 0.06em;
+  border: 1px solid var(--slate-border); color: var(--text-2);
+  background: var(--slate-border);
+  transition: border-color var(--t), color var(--t), background var(--t);
+}
+.chip:hover { border-color: rgba(108,99,255,0.4); color: var(--violet); background: var(--violet-dim); }
+.chip.violet { border-color: rgba(108,99,255,0.3); color: var(--violet); background: var(--violet-dim); }
+.chip.cyan { border-color: rgba(6,182,212,0.3); color: var(--cyan); background: var(--cyan-dim); }
+.chip.emerald { border-color: rgba(52,211,153,0.3); color: var(--emerald); background: var(--emerald-dim); }
+.chip.amber { border-color: rgba(245,158,11,0.3); color: var(--amber); background: var(--amber-dim); }
+
+/* Deliverables list */
+.deliverables { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.deliverables li {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+  display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;
+}
+.deliverables li::before { content: '→'; color: var(--violet); flex-shrink: 0; }
+.deliverables li.done-item::before { content: '✓'; color: var(--emerald); }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--slate-border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+.footer-brand span { color: var(--violet); }
+.footer-url { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; }
+
+/* Scroll hint */
+.scroll-hint {
+  position: fixed; bottom: 32px; right: 32px; z-index: 100;
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+  display: flex; align-items: center; gap: 8px;
+  background: var(--slate-card); border: 1px solid var(--slate-border);
+  border-radius: 8px; padding: 8px 14px;
+  opacity: 1; transition: opacity 0.4s;
+}
+.scroll-hint.hidden { opacity: 0; pointer-events: none; }
+.scroll-arrow { animation: bounce 1.5s ease-in-out infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .hero { flex-direction: column-reverse; gap: 24px; }
+  .hero-logo { align-self: flex-start; }
+  .hero-stats { gap: 20px; }
+  .wrap { padding: 0 18px 80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<div class="wrap">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div>
+      <div class="hero-badge"><span class="dot"></span> Live Project Documentation</div>
+      <h1 class="hero-title">
+        ClearDesk<br/>
+        <span class="accent">Build</span> <span class="accent-2">Roadmap</span>
+      </h1>
+      <p class="hero-sub">End-to-end AI Tax Operations Hub — multi-tenant, multi-jurisdiction, production-grade. From blank canvas to sovereign vault.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-n" style="color:var(--emerald)">12</span>
+          <span class="stat-l">Total Phases</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n" style="color:var(--violet)">9</span>
+          <span class="stat-l">Completed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n" style="color:var(--cyan)">3</span>
+          <span class="stat-l">In Progress / Next</span>
+        </div>
+        <div class="stat">
+          <span class="stat-n" style="color:var(--amber)">23+</span>
+          <span class="stat-l">DB Migrations</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-logo">
+      <div class="logo-ring">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:60px;height:60px">
+          <defs><mask id="gm2"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
+          <path fill="#6C63FF" mask="url(#gm2)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/>
+          <path d="M58.5,41.5 A12,12 0 1,0 58.5,58.5" stroke="#6C63FF" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+          <line x1="50" y1="40" x2="50" y2="60" stroke="#6C63FF" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+          <path d="M50,40 A10,10 0 0,1 50,60" stroke="#6C63FF" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress bar -->
+  <div class="progress-bar">
+    <span class="prog-label">BUILD PROGRESS</span>
+    <div class="prog-track"><div class="prog-fill"></div></div>
+    <span class="prog-pct">75% complete</span>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <div class="timeline-line"></div>
+
+    <!-- Phase 1 -->
+    <div class="phase" data-phase="1">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 01</span>
+          <span class="phase-title">Foundation & Auth Architecture</span>
+          <span class="phase-date">Jan 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Bootstrapped the entire platform from scratch. Defined the multi-tenant PostgreSQL schema with RLS, built the 3-tier role system, and wired Supabase Auth with custom metadata for org assignment at signup time.</p>
+            <div class="chips">
+              <span class="chip violet">Supabase Auth</span>
+              <span class="chip violet">PostgreSQL RLS</span>
+              <span class="chip">handle_new_user trigger</span>
+              <span class="chip">organizations table</span>
+              <span class="chip">user_profiles table</span>
+              <span class="chip cyan">JWT metadata</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">Multi-tenant DB schema (organizations, user_profiles, outbound_campaigns)</li>
+              <li class="done-item">3-role system: DEVELOPER &gt; ORG_ADMIN &gt; ORG_STAFF</li>
+              <li class="done-item">Row-Level Security policies on all tables</li>
+              <li class="done-item">handle_new_user trigger: creates org + user_profile on signup</li>
+              <li class="done-item">Jurisdictions: IN / US / AE with country_code routing</li>
+              <li class="done-item">supabase-config.js + auth.js shared across all pages</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase" data-phase="2">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 02</span>
+          <span class="phase-title">Three-Pillar Design System</span>
+          <span class="phase-date">Jan 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Established three distinct UI identities for different audience contexts. Each pillar has its own visual language, atmosphere, and interaction paradigm — zero visual overlap between them.</p>
+            <div class="chips">
+              <span class="chip">CSS Variables</span>
+              <span class="chip violet">Glassmorphism</span>
+              <span class="chip">Backdrop blur</span>
+              <span class="chip cyan">Terminal aesthetic</span>
+              <span class="chip" style="color:var(--crimson);border-color:rgba(220,38,38,0.3);background:var(--crimson-dim);">Sovereign Black</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">Pillar A — Client Dashboard: glassmorphic panels, mesh gradients, blur(16px)</li>
+              <li class="done-item">Pillar B — Developer Portal: dark slate, neon cyan, JetBrains Mono, terminal logs</li>
+              <li class="done-item">Pillar C — Sovereign Vault: absolute black #050505, crimson accents only, watermark</li>
+              <li class="done-item">Shared CSS token architecture (--radius-standard, --transition-snappy, etc.)</li>
+              <li class="done-item">Micro-animation rules: &lt;250ms, transform+opacity only</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase" data-phase="3">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 03</span>
+          <span class="phase-title">Auth Flow — Login, Invite, Reset</span>
+          <span class="phase-date">Jan 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Built the complete authentication surface: a premium two-card-swap login page, multi-step org registration wizard, invite flow with org_id token passing, and password reset. Fixed critical signup bug where missing email column crashed every new user registration.</p>
+            <div class="chips">
+              <span class="chip violet">signInWithPassword</span>
+              <span class="chip">signUp + metadata</span>
+              <span class="chip cyan">invite token flow</span>
+              <span class="chip">updateUser password</span>
+              <span class="chip">Pillar A glassmorphic cards</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">login.html — animated card swap, org registration wizard (firm name + country)</li>
+              <li class="done-item">invite.html — validates token, assigns invitee to existing org</li>
+              <li class="done-item">reset-password.html — full reset + confirm flow</li>
+              <li class="done-item">CRITICAL FIX: added email column to user_profiles; backfilled from auth.users</li>
+              <li class="done-item">CRITICAL FIX: rewrote handle_new_user trigger with ON CONFLICT DO UPDATE</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase" data-phase="4">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 04</span>
+          <span class="phase-title">Core Dashboard & Intelligent Desk</span>
+          <span class="phase-date">Feb 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Built the main client dashboard with real-time stats, animated counter tickers, time-of-day greeting, and the Intelligent Desk AI widget. All metrics wired to live Supabase queries.</p>
+            <div class="chips">
+              <span class="chip violet">Glassmorphic panels</span>
+              <span class="chip cyan">Animated counters</span>
+              <span class="chip">Supabase real-time counts</span>
+              <span class="chip emerald">Intelligent Desk widget</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">index.html — Pillar A glassmorphic dashboard</li>
+              <li class="done-item">Time-of-day greeting: "Good morning / afternoon / evening, {name} ✨"</li>
+              <li class="done-item">Live stats: active campaigns, call volume, SMS sent, credit balance</li>
+              <li class="done-item">Intelligent Desk AI task widget</li>
+              <li class="done-item">Sidebar navigation with role-gated menu items</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase" data-phase="5">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 05</span>
+          <span class="phase-title">Campaign Workspace — Track A + B</span>
+          <span class="phase-date">Feb 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Full campaign engine with two execution tracks. Track A for manual batch execution and Track B for automated event-driven triggers. Supports Document Chasers, Sales Outreach, and Deadline Reminders with jurisdiction-aware scheduling.</p>
+            <div class="chips">
+              <span class="chip violet">Track A — Manual Batch</span>
+              <span class="chip cyan">Track B — Automated</span>
+              <span class="chip">Vapi call dispatch</span>
+              <span class="chip">Budget circuit breaker</span>
+              <span class="chip amber">Cron scheduling</span>
+              <span class="chip">CRM webhook trigger</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">campaigns.html — full Pillar B workspace</li>
+              <li class="done-item">Document Chasers, Sales Outreach, Deadline Reminders campaign types</li>
+              <li class="done-item">Budget cap enforcement + overdraft logic per campaign</li>
+              <li class="done-item">Automated circuit breaker: pause all campaigns when wallet depleted</li>
+              <li class="done-item">Jurisdiction-aware cron: GSTR-1 (IN), Form 1099-NEC (US), UAE deadlines</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase" data-phase="6">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 06</span>
+          <span class="phase-title">Comms Logs + Contacts CRM</span>
+          <span class="phase-date">Mar 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Built full call and SMS logging with real Supabase data. Fixed critical column name mismatches between legacy DB schema and new code. Added transcript drawer, cost tracking per call, and send-from-UI SMS action.</p>
+            <div class="chips">
+              <span class="chip">call_logs table</span>
+              <span class="chip">sms_logs table</span>
+              <span class="chip cyan">contacts table</span>
+              <span class="chip violet">Transcript drawer</span>
+              <span class="chip">Cost per call (INR/USD)</span>
+              <span class="chip">Send SMS from UI</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">call-logs.html — live data, transcript drawer, cost column, filters</li>
+              <li class="done-item">sms-logs.html — send action, delivery status, reply tracking</li>
+              <li class="done-item">contacts.html — full CRM: import, tag, filter, bulk select</li>
+              <li class="done-item">Fixed: recipient_phone / message NOT NULL legacy column fallbacks</li>
+              <li class="done-item">Fixed: INSERT RLS WITH CHECK on sms_logs + call_logs</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 7 -->
+    <div class="phase" data-phase="7">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 07</span>
+          <span class="phase-title">Team Management & Agent Profiles</span>
+          <span class="phase-date">Mar 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Full team management suite including invite flow, member roles, avatar uploads, and AI agent profile pages. Removed all mock data — fully wired to live DB.</p>
+            <div class="chips">
+              <span class="chip violet">send-invite Edge Function</span>
+              <span class="chip">avatars storage bucket</span>
+              <span class="chip cyan">pending_invites table</span>
+              <span class="chip">agents table</span>
+              <span class="chip">Avatar upload</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">team-management.html — real user_profiles data, invite modal, remove member</li>
+              <li class="done-item">agent-detail.html — real agents table, performance metrics</li>
+              <li class="done-item">send-invite Edge Function — email delivery + org_id token</li>
+              <li class="done-item">Avatars public bucket (2MB limit, image MIME types only)</li>
+              <li class="done-item">Role badge rendering for ORG_ADMIN / ORG_STAFF / DEVELOPER</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 8 -->
+    <div class="phase" data-phase="8">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 08</span>
+          <span class="phase-title">Settings + Developer Portal (Pillar B)</span>
+          <span class="phase-date">Apr 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Built the full developer environment — settings with live terminal connection testing, and a complete developer portal with API key management (real DB CRUD), credits + wallet (wired to organizations table), and model/webhook config pages.</p>
+            <div class="chips">
+              <span class="chip cyan">Pillar B terminal UI</span>
+              <span class="chip violet">organization_developer_vault</span>
+              <span class="chip">api_keys table</span>
+              <span class="chip">CRM integration config</span>
+              <span class="chip">Budget caps</span>
+              <span class="chip emerald">Live connection test stream</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">settings.html — vault config, CRM token, budget cap, test connection terminal</li>
+              <li class="done-item">developer/index.html — portal overview with health metrics</li>
+              <li class="done-item">developer/api-keys.html — generate/rotate/revoke real keys in api_keys table</li>
+              <li class="done-item">developer/credits.html — live wallet balance, overdraft toggle writes to DB</li>
+              <li class="done-item">developer/models.html + webhooks.html — Pillar B config pages</li>
+              <li class="done-item">organization_developer_vault auto-trigger + backfill migration</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 9 -->
+    <div class="phase" data-phase="9">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 09</span>
+          <span class="phase-title">Edge Functions + Vapi Integration</span>
+          <span class="phase-date">Apr 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Deployed four Supabase Edge Functions powering the real-time AI call infrastructure. Vapi handles outbound voice calls with webhook callbacks for status and cost tracking. CRM webhooks fire automated campaigns from external lead events.</p>
+            <div class="chips">
+              <span class="chip violet">vapi-dispatch</span>
+              <span class="chip violet">vapi-webhook</span>
+              <span class="chip cyan">crm-webhook</span>
+              <span class="chip cyan">send-invite</span>
+              <span class="chip">Vapi API</span>
+              <span class="chip amber">Webhook signing secret</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">vapi-dispatch — triggers outbound AI voice call via Vapi API</li>
+              <li class="done-item">vapi-webhook — receives call status/transcript/cost, writes to call_logs</li>
+              <li class="done-item">crm-webhook — Zoho/HubSpot lead status → auto-fire campaign</li>
+              <li class="done-item">send-invite — generates invite token, sends email, writes pending_invites</li>
+              <li class="done-item">crm_webhook_logs table for audit trail</li>
+              <li class="done-item">Jurisdiction routing: VAPI_PHONE_ID_IN / _US / _AE per org country_code</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 10 -->
+    <div class="phase" data-phase="10">
+      <div class="phase-node">
+        <div class="node-dot done"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card done" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 10</span>
+          <span class="phase-title">Sovereign Master Vault (Pillar C)</span>
+          <span class="phase-date">Apr 2026</span>
+          <span class="status-badge done">✓ Done</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Built the high-security internal ops interface. Absolute matte black canvas, crimson-only accents, persistent watermark, MFA AAL2 enforcement, and gross margin monitoring with 35% circuit breaker threshold.</p>
+            <div class="chips">
+              <span class="chip" style="color:var(--crimson);border-color:rgba(220,38,38,0.3);background:var(--crimson-dim);">Pillar C — Sovereign</span>
+              <span class="chip">Supabase AAL2</span>
+              <span class="chip">TOTP MFA</span>
+              <span class="chip" style="color:var(--crimson);border-color:rgba(220,38,38,0.3);background:var(--crimson-dim);">CONFIRM OVERRIDE input</span>
+              <span class="chip amber">Gross margin 35% alert</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">ops.html — obsidian black, crimson accents, diagonal SOVEREIGN watermark</li>
+              <li class="done-item">MFA AAL2 check before any destructive action</li>
+              <li class="done-item">Gross margin formula: ((retail - wholesale) / retail) × 100</li>
+              <li class="done-item">Budget circuit breaker: auto-pause processing campaigns</li>
+              <li class="done-item">Striped hazard containers + cursor-vibration for destructive controls</li>
+              <li class="done-item">Text confirmation "CONFIRM OVERRIDE" + 6-digit TOTP required</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 11 — ACTIVE -->
+    <div class="phase" data-phase="11">
+      <div class="phase-node">
+        <div class="node-dot active"></div>
+        <div class="node-line"></div>
+      </div>
+      <div class="phase-card active" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 11</span>
+          <span class="phase-title">Branding, Hardening & Production Wiring</span>
+          <span class="phase-date">May 2026</span>
+          <span class="status-badge active">● Active</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Final production polish pass. New logo applied across all 11 pages, all mock data replaced with real DB queries, DB schema hardened with 23+ migrations, RLS WITH CHECK fixes, and trigger rewrites.</p>
+            <div class="chips">
+              <span class="chip violet">Gear+CD+arrow logo SVG</span>
+              <span class="chip">11 pages updated</span>
+              <span class="chip cyan">23+ migrations</span>
+              <span class="chip emerald">De-mocked</span>
+              <span class="chip">RLS hardening</span>
+            </div>
+            <ul class="deliverables">
+              <li class="done-item">New logo: 8-tooth gear + CD monogram + diagonal arrow cutout (SVG mask)</li>
+              <li class="done-item">Logo deployed: all 3 auth pages + 8 app nav pages</li>
+              <li class="done-item">team-management.html + agent-detail.html fully de-mocked</li>
+              <li class="done-item">developer/api-keys.html — real DB CRUD (INSERT/UPDATE/DELETE)</li>
+              <li class="done-item">developer/credits.html — live wallet + overdraft toggle writes to DB</li>
+              <li class="done-item">api_keys table created with RLS + rotation/revoke support</li>
+              <li>Supabase Edge Function secrets (manual — dashboard step pending)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 12 — NEXT -->
+    <div class="phase" data-phase="12">
+      <div class="phase-node">
+        <div class="node-dot next"></div>
+      </div>
+      <div class="phase-card next" onclick="togglePhase(this)">
+        <div class="card-head">
+          <span class="phase-num">PHASE 12</span>
+          <span class="phase-title">Sarvam AI + Domain + Go Live</span>
+          <span class="phase-date">Jun 2026</span>
+          <span class="status-badge next">→ Next</span>
+          <span class="expand-icon">▾</span>
+        </div>
+        <div class="card-body">
+          <div class="card-body-inner">
+            <p class="phase-desc">Final production launch. Wire Sarvam AI's Bulbul-v2 TTS for Indian language voice calls (IN jurisdiction routing), acquire cleardesk.com domain, configure ops.cleardesk.com subdomain, and set all Edge Function secrets.</p>
+            <div class="chips">
+              <span class="chip cyan">Sarvam AI Bulbul-v2</span>
+              <span class="chip">11 Indian languages</span>
+              <span class="chip violet">cleardesk.com domain</span>
+              <span class="chip amber">ops.cleardesk.com</span>
+              <span class="chip">Edge Function secrets</span>
+            </div>
+            <ul class="deliverables">
+              <li>Sarvam AI TTS integration — IN jurisdiction routes to Bulbul-v2 voice</li>
+              <li>sarvam_api_key in organization_developer_vault</li>
+              <li>vapi-dispatch: country_code=IN → custom Sarvam TTS endpoint</li>
+              <li>Buy cleardesk.com via Vercel domain panel</li>
+              <li>Wire ops.cleardesk.com → ops.html (Pillar C)</li>
+              <li>Set all 7 Edge Function secrets in Supabase dashboard</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-brand">
+      <span style="color:var(--violet)">ClearDesk</span> — AI Tax Operations Hub<br/>
+      <span style="font-size:10px;">Stack: Vanilla HTML · Supabase · Vapi · Vercel · Sarvam AI</span>
+    </div>
+    <div class="footer-url">cleardesk-iota.vercel.app</div>
+  </footer>
+
+</div><!-- /wrap -->
+
+<div class="scroll-hint" id="scrollHint">
+  <span>Scroll to explore</span>
+  <span class="scroll-arrow">↓</span>
+</div>
+
+<script>
+/* ── Toggle phase expand ── */
+function togglePhase(card) {
+  card.classList.toggle('expanded');
+}
+
+/* ── Scroll-triggered reveal ── */
+const phases = document.querySelectorAll('.phase');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+phases.forEach((phase, i) => {
+  phase.style.transitionDelay = `${i * 0.04}s`;
+  observer.observe(phase);
+});
+
+/* ── Hide scroll hint after scroll ── */
+const hint = document.getElementById('scrollHint');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 120) hint.classList.add('hidden');
+}, { passive: true });
+
+/* ── Auto-expand current active phase ── */
+document.querySelector('.phase-card.active')?.classList.add('expanded');
+
+/* ── Counter animations on hero stats ── */
+function animCount(el, target, duration = 1400) {
+  const start = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(e * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
+  })(performance.now());
+}
+document.querySelectorAll('.stat-n').forEach(el => {
+  const val = parseInt(el.textContent);
+  animCount(el, val);
+});
+</script>
+</body>
+</html>
