@@ -214,6 +214,7 @@ tailwind.config = {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 768px) {
     .nav-scroll { overflow-x: auto; }
@@ -336,8 +337,15 @@ tailwind.config = {
             <p class="text-[12px] text-on-surface-variant">Autonomous AI Financial Data Analyst &amp; Advisory Feed</p>
           </div>
         </div>
-        <div class="metric-badge-neon-cyan">
-          Savings Found: <span id="txtTotalSavingsOdometer" class="mono-text">₹0.00</span>
+        <div class="flex items-center gap-3">
+          <div class="metric-badge-neon-cyan">
+            Savings Found: <span id="txtTotalSavingsOdometer" class="mono-text">₹0.00</span>
+          </div>
+          <button id="refresh-insights-btn" onclick="refreshInsights()" title="Generate fresh AI insights"
+            class="w-8 h-8 rounded-lg flex items-center justify-center transition-snappy hover:bg-outline-variant/20"
+            style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);">
+            <span class="md-icon text-[17px]" style="color:#0e7490;" id="refresh-icon">refresh</span>
+          </button>
         </div>
       </div>
       <div id="intelligentDeskStream" class="px-4 py-3 space-y-2">
@@ -349,7 +357,7 @@ tailwind.config = {
     </section>
 
     <!-- ── Stats row ── -->
-    <div class="grid gap-4 stats-cols" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="grid gap-4 stats-cols" id="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
 
       <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-2">
         <div class="flex items-center justify-between mb-3">
@@ -620,7 +628,22 @@ async function changeLanguage(lang) {
 }
 
 // ── Stats ──────────────────────────────────────────────
+function showStatSkeletons() {
+  // Pulse the counter elements while loading
+  ['total-agents','active-teams','compliance-rate','active-campaigns','credit-balance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('skeleton'); el.style.borderRadius = '6px'; el.style.color = 'transparent'; }
+  });
+}
+function hideStatSkeletons() {
+  ['total-agents','active-teams','compliance-rate','active-campaigns','credit-balance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('skeleton'); el.style.color = ''; el.style.borderRadius = ''; }
+  });
+}
+
 async function loadStats() {
+  showStatSkeletons();
   try {
     const client = window.supabase;
 
@@ -673,6 +696,7 @@ async function loadStats() {
   } catch {
     document.getElementById('compliance-rate').textContent = '—';
   }
+  hideStatSkeletons();
 }
 
 // ── Role badge ─────────────────────────────────────────
@@ -743,7 +767,77 @@ async function loadDashboard() {
 }
 
 loadDashboard();
+
+// ── Refresh AI insights ────────────────────────────────────────
+async function refreshInsights() {
+  const btn  = document.getElementById('refresh-insights-btn');
+  const icon = document.getElementById('refresh-icon');
+  if (!btn || btn.disabled) return;
+
+  btn.disabled = true;
+  icon.style.animation = 'spin 1s linear infinite';
+
+  try {
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (!session) return;
+
+    const supabaseUrl = (window.supabase.supabaseUrl || '').replace(/\/$/, '');
+    const res = await fetch(`${supabaseUrl}/functions/v1/generate-insights`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    if (res.ok && data.insights_generated > 0) {
+      // Reload the Intelligent Desk stream
+      if (window.IntelligentDesk) window.IntelligentDesk.load();
+    } else if (!res.ok) {
+      console.warn('[Insights] generate failed:', data.error);
+    }
+  } catch(e) {
+    console.warn('[Insights] refresh error:', e.message);
+  } finally {
+    btn.disabled = false;
+    icon.style.animation = '';
+  }
+}
 </script>
 <script src="intelligent-desk.js"></script>
+
+<!-- Offline banner -->
+<div class="offline-banner" id="offline-banner">
+  <span class="ob-icon">wifi_off</span>
+  <span id="offline-msg">You appear to be offline</span>
+</div>
+
+<script>
+// ── Offline / connection monitor ───────────────────────────────
+const offlineBanner = document.getElementById('offline-banner');
+function showBanner(msg, type = '') {
+  offlineBanner.className = `offline-banner show ${type}`;
+  document.getElementById('offline-msg').textContent = msg;
+}
+function hideBanner() { offlineBanner.classList.remove('show'); }
+window.addEventListener('offline', () => showBanner('You appear to be offline', 'warn'));
+window.addEventListener('online',  () => { showBanner('Back online ✓', 'ok'); setTimeout(hideBanner, 2500); });
+
+// ── Activity feed skeleton shown immediately ───────────────────
+(function() {
+  const list = document.getElementById('activity-list');
+  if (list) {
+    list.innerHTML = Array(5).fill(0).map(() => `
+      <div class="skeleton-feed">
+        <div class="skeleton sk-dot"></div>
+        <div class="sk-text">
+          <div class="skeleton sk-t1"></div>
+          <div class="skeleton sk-t2"></div>
+        </div>
+      </div>`).join('');
+  }
+})();
+</script>
 </body>
 </html>

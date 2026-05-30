@@ -10,6 +10,7 @@
 <script src="auth.js"></script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 
@@ -495,8 +496,53 @@ body::after {
           </div>
         </div>
 
+        <!-- 7-day margin sparkline -->
+        <div class="ops-panel fade-in delay-4" style="margin-top:16px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <span style="font-size:11.5px; color:var(--text-secondary); letter-spacing:0.08em;">7-DAY MARGIN TREND</span>
+            <span style="font-size:10px; color:var(--text-muted);">retail − wholesale / retail</span>
+          </div>
+          <canvas id="margin-chart" height="80" style="width:100%;display:block;"></canvas>
+        </div>
+
+        <!-- Per-org usage breakdown -->
+        <div class="ops-panel fade-in delay-5" style="margin-top:16px; overflow:hidden;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">PER-ORG USAGE (30 DAYS)</span>
+            <button class="btn-ghost" style="font-size:10px; padding:5px 10px;" onclick="loadOrgBreakdown()">↻ REFRESH</button>
+          </div>
+          <div id="org-breakdown-table" style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:12px; font-family:var(--font-mono);">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <th style="padding:10px 16px; text-align:left; color:var(--text-muted); font-weight:500; letter-spacing:0.06em;">ORG</th>
+                  <th style="padding:10px 16px; text-align:right; color:var(--text-muted); font-weight:500;">CALLS</th>
+                  <th style="padding:10px 16px; text-align:right; color:var(--text-muted); font-weight:500;">COST</th>
+                  <th style="padding:10px 16px; text-align:right; color:var(--text-muted); font-weight:500;">SUCCESS%</th>
+                  <th style="padding:10px 16px; text-align:right; color:var(--text-muted); font-weight:500;">BALANCE</th>
+                  <th style="padding:10px 16px; text-align:left; color:var(--text-muted); font-weight:500;">STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="org-breakdown-body">
+                <tr><td colspan="6" style="padding:20px; text-align:center; color:var(--text-muted);">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Platform alert feed -->
+        <div class="ops-panel fade-in delay-5" style="margin-top:16px;">
+          <div style="padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
+            <div class="crimson-dot" style="width:6px;height:6px;animation:crimsonPulse 1.5s ease-in-out infinite;"></div>
+            <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">PLATFORM ALERTS</span>
+          </div>
+          <div id="platform-alerts" style="max-height:200px; overflow-y:auto;">
+            <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">Scanning…</div>
+          </div>
+        </div>
+
         <!-- Recent activity feed -->
-        <div class="ops-panel fade-in delay-4" style="margin-top:16px;">
+        <div class="ops-panel fade-in delay-5" style="margin-top:16px;">
           <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;">
             <div class="crimson-dot" style="width:6px;height:6px;"></div>
             <span style="font-size:11px; letter-spacing:0.1em; color:var(--text-secondary);">LIVE AUDIT LOG</span>
@@ -894,8 +940,181 @@ async function loadOverview() {
     document.getElementById('s-margin').textContent = '—';
   }
 
-  // 5. Audit feed — crm_webhook_logs + call_logs (failed/circuit) unified
-  await loadAuditFeed();
+  // 5. Audit feed + new panels
+  await Promise.all([
+    loadAuditFeed(),
+    loadMarginChart(),
+    loadOrgBreakdown(),
+    loadPlatformAlerts(),
+  ]);
+}
+
+// ── 7-day margin sparkline chart ────────────────────────────────
+let marginChartInstance = null;
+async function loadMarginChart() {
+  const canvas = document.getElementById('margin-chart');
+  if (!canvas) return;
+
+  try {
+    const days = 7;
+    const labels = [];
+    const marginData = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      labels.push(d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }));
+
+      const start = new Date(d); start.setHours(0,0,0,0);
+      const end   = new Date(d); end.setHours(23,59,59,999);
+
+      const { data: logs } = await db().from('call_logs')
+        .select('cost_credits')
+        .eq('status', 'completed')
+        .gte('created_at', start.toISOString())
+        .lte('created_at', end.toISOString());
+
+      const retail = (logs || []).reduce((s, l) => s + parseFloat(l.cost_credits || 0), 0);
+      const margin = retail > 0 ? Math.round(((retail - retail/1.4) / retail) * 100) : 28.6;
+      marginData.push(margin);
+    }
+
+    if (marginChartInstance) marginChartInstance.destroy();
+    marginChartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Gross Margin %',
+          data: marginData,
+          borderColor: '#34d399',
+          backgroundColor: 'rgba(52,211,153,0.08)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#34d399',
+          fill: true,
+          tension: 0.4,
+        }, {
+          label: '35% Threshold',
+          data: Array(days).fill(35),
+          borderColor: 'rgba(220,38,38,0.5)',
+          borderWidth: 1,
+          borderDash: [4,4],
+          pointRadius: 0,
+          fill: false,
+        }],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { ticks: { color: '#64748b', font: { size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 },
+        },
+      },
+    });
+  } catch(e) {
+    console.warn('[ops] margin chart error:', e);
+  }
+}
+
+// ── Per-org usage breakdown ─────────────────────────────────────
+async function loadOrgBreakdown() {
+  const tbody = document.getElementById('org-breakdown-body');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center; color:#475569; font-size:12px;">Loading…</td></tr>';
+
+  try {
+    const since = new Date(Date.now() - 30 * 86400000).toISOString();
+
+    const { data: orgs } = await db().from('organizations')
+      .select('id, firm_name, billing_status, credit_balance, country_code');
+
+    const { data: calls } = await db().from('call_logs')
+      .select('organization_id, status, cost_credits')
+      .gte('created_at', since);
+
+    if (!orgs?.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center; color:#475569; font-size:12px;">No organizations found.</td></tr>';
+      return;
+    }
+
+    const callMap = {};
+    for (const c of (calls || [])) {
+      if (!callMap[c.organization_id]) callMap[c.organization_id] = { total:0, completed:0, cost:0 };
+      callMap[c.organization_id].total++;
+      if (c.status === 'completed') callMap[c.organization_id].completed++;
+      callMap[c.organization_id].cost += parseFloat(c.cost_credits || 0);
+    }
+
+    tbody.innerHTML = orgs.sort((a,b) => (callMap[b.id]?.cost||0) - (callMap[a.id]?.cost||0)).map(org => {
+      const m = callMap[org.id] || { total:0, completed:0, cost:0 };
+      const successRate = m.total > 0 ? Math.round((m.completed/m.total)*100) : '—';
+      const statusColor = org.billing_status === 'active' ? '#34d399' : org.billing_status === 'trial' ? '#fbbf24' : '#f87171';
+      const balColor = org.credit_balance < 10 ? '#f87171' : '#94a3b8';
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+        <td style="padding:10px 16px; color:#e2e8f0;">${org.firm_name}<br><span style="font-size:10px;color:#475569;">${org.country_code} · ${org.id.slice(0,8)}…</span></td>
+        <td style="padding:10px 16px; text-align:right; color:#94a3b8;">${m.total}</td>
+        <td style="padding:10px 16px; text-align:right; color:#94a3b8;">${m.cost.toFixed(2)}</td>
+        <td style="padding:10px 16px; text-align:right; color:#94a3b8;">${successRate}${m.total>0?'%':''}</td>
+        <td style="padding:10px 16px; text-align:right; color:${balColor};">${Number(org.credit_balance||0).toFixed(2)}</td>
+        <td style="padding:10px 16px;"><span style="font-size:10px;font-weight:600;color:${statusColor};background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:999px;border:1px solid ${statusColor}33;">${org.billing_status.toUpperCase()}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; text-align:center; color:#f87171; font-size:12px;">Error: ${e.message}</td></tr>`;
+  }
+}
+
+// ── Platform alerts ─────────────────────────────────────────────
+async function loadPlatformAlerts() {
+  const el = document.getElementById('platform-alerts');
+  if (!el) return;
+  const alerts = [];
+
+  try {
+    // Low balance orgs
+    const { data: orgs } = await db().from('organizations')
+      .select('firm_name, credit_balance, billing_status')
+      .lt('credit_balance', 20)
+      .not('billing_status', 'eq', 'past_due');
+
+    for (const o of (orgs || [])) {
+      alerts.push({ level: o.credit_balance < 5 ? 'critical' : 'warn', msg: `${o.firm_name} — credit balance low: ${Number(o.credit_balance).toFixed(2)}` });
+    }
+
+    // High call failure orgs (last 7 days)
+    const since = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data: failedCalls } = await db().from('call_logs')
+      .select('organization_id')
+      .in('status', ['failed', 'no_answer'])
+      .gte('created_at', since);
+
+    const failMap = {};
+    for (const c of (failedCalls || [])) failMap[c.organization_id] = (failMap[c.organization_id] || 0) + 1;
+    for (const [orgId, count] of Object.entries(failMap)) {
+      if (count > 20) {
+        const org = allOrgs.find(o => o.id === orgId);
+        alerts.push({ level: 'warn', msg: `${org?.firm_name || orgId.slice(0,8)} — ${count} failed calls in 7 days` });
+      }
+    }
+
+    if (!alerts.length) {
+      el.innerHTML = '<div style="padding:16px; text-align:center; color:#334155; font-size:12px;">✓ No active alerts. Platform healthy.</div>';
+      return;
+    }
+
+    el.innerHTML = alerts.map(a => {
+      const color = a.level === 'critical' ? '#f87171' : '#fbbf24';
+      const icon  = a.level === 'critical' ? '🚨' : '⚠️';
+      return `<div style="padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; gap:10px;">
+        <span style="font-size:14px;">${icon}</span>
+        <span style="font-size:12px; color:${color}; font-family:var(--font-mono);">${a.msg}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+      el.innerHTML = `<div style="padding:16px; color:#f87171; font-size:12px;">Alert scan error: ${e.message}</div>`;
+  }
 }
 
 // ── Audit feed ──────────────────────────────────────────────────────

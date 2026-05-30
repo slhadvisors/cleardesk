@@ -348,16 +348,42 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
       <!-- Automation trigger (shown only for automated mode) -->
       <div id="automation-section" class="hidden space-y-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant">
         <p class="text-[12.5px] font-semibold text-on-surface">Automation trigger</p>
+
+        <!-- Webhook URL display -->
+        <div class="p-3.5 rounded-xl border border-outline-variant bg-white/60" style="backdrop-filter:blur(8px);">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-wider">Your CRM webhook URL</span>
+            <span class="text-[10.5px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">POST</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <code id="webhook-url-display" class="flex-1 text-[11.5px] font-mono text-primary bg-surface-container px-3 py-2 rounded-lg truncate">Loading…</code>
+            <button onclick="copyWebhookUrl()" title="Copy URL"
+              class="shrink-0 w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-white flex items-center justify-center t-snappy" id="copy-webhook-btn">
+              <span class="md-icon text-[16px]">content_copy</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-on-surface-variant mt-2">
+            Paste this URL into your CRM webhook settings. Include your API key in the payload as <code class="font-mono">cleardesk_api_key</code>.
+          </p>
+        </div>
+
         <div>
-          <label class="block text-[12px] text-on-surface-variant mb-1.5">Trigger condition (CRM or cron)</label>
-          <input id="inp-trigger" type="text" placeholder='e.g. "Zoho: lead_status = Inquiry - Warm Open" or "cron: 5 days before GSTR-1"'
+          <label class="block text-[12px] text-on-surface-variant mb-1.5">Trigger condition — what event fires this campaign?</label>
+          <input id="inp-trigger" type="text" placeholder='e.g. lead_status:Inquiry - Warm Open'
             class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
+          <p class="text-[11px] text-on-surface-variant mt-1">Must match the field:value from the CRM payload. Case-insensitive.</p>
         </div>
         <div>
-          <label class="block text-[12px] text-on-surface-variant mb-1.5">Cron schedule expression (optional)</label>
+          <label class="block text-[12px] text-on-surface-variant mb-1.5">Cron schedule (optional — for time-based triggers)</label>
           <input id="inp-cron" type="text" placeholder="e.g.  0 9 6 * *  (9am on the 6th of every month)"
             class="w-full px-3.5 py-2.5 rounded-xl border border-outline-variant text-[13px] font-mono focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary t-snappy"/>
         </div>
+
+        <!-- Test webhook button -->
+        <button onclick="sendTestWebhook()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-white/80 text-[12.5px] font-semibold text-on-surface-variant hover:border-primary hover:text-primary t-snappy">
+          <span class="md-icon text-[16px]">webhook</span>Send test webhook ping
+        </button>
+        <div id="webhook-test-result" class="hidden text-[12px] font-mono"></div>
       </div>
 
       <!-- Budget cap -->
@@ -451,7 +477,78 @@ async function boot() {
   const name = currentUser.display_name || currentUser.email.split('@')[0];
   const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() || name[0].toUpperCase();
   document.getElementById('avatar-initials').textContent = initials;
+  buildWebhookUrl();
   await loadCampaigns();
+}
+
+// ── Webhook URL helpers ───────────────────────────────────────────
+function buildWebhookUrl() {
+  const supabaseUrl = (window.SUPABASE_URL || '').match(/https:\/\/([a-z0-9]+)\.supabase\.co/);
+  const ref = supabaseUrl ? supabaseUrl[1] : null;
+  const url = ref
+    ? `https://${ref}.supabase.co/functions/v1/crm-webhook`
+    : 'Deploy crm-webhook Edge Function first';
+  document.getElementById('webhook-url-display').textContent = url;
+  window._webhookUrl = url;
+}
+
+function copyWebhookUrl() {
+  const url = document.getElementById('webhook-url-display').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copy-webhook-btn');
+    btn.innerHTML = '<span class="md-icon text-[16px]">check</span>';
+    btn.classList.add('bg-primary', 'text-white');
+    setTimeout(() => {
+      btn.innerHTML = '<span class="md-icon text-[16px]">content_copy</span>';
+      btn.classList.remove('bg-primary', 'text-white');
+    }, 1800);
+  });
+}
+
+async function sendTestWebhook() {
+  const url = window._webhookUrl;
+  const trigger = document.getElementById('inp-trigger').value.trim() || 'lead_status:Test Ping';
+  const resultEl = document.getElementById('webhook-test-result');
+  resultEl.classList.remove('hidden');
+  resultEl.style.color = '#777587';
+  resultEl.textContent = '⏳ Sending test ping…';
+
+  // Get org API key from vault
+  let apiKey = '';
+  try {
+    const { data: vault } = await db().from('organization_developer_vault')
+      .select('crm_access_token').single();
+    apiKey = vault?.crm_access_token || '';
+  } catch(_) {}
+
+  if (!apiKey) {
+    resultEl.style.color = '#f59e0b';
+    resultEl.textContent = '⚠ No CRM API key found. Save one in Settings → CRM Integration first.';
+    return;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cleardesk_api_key: apiKey,
+        trigger_condition: trigger,
+        contacts: [{ phone: '+919999999999', name: 'Test Contact' }],
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      resultEl.style.color = '#10b981';
+      resultEl.textContent = `✓ Received. Campaigns triggered: ${data.campaigns_triggered ?? 0} | Calls queued: ${data.calls_queued ?? 0}`;
+    } else {
+      resultEl.style.color = '#ef4444';
+      resultEl.textContent = `✗ ${data.error || 'Webhook returned ' + res.status}`;
+    }
+  } catch(e) {
+    resultEl.style.color = '#ef4444';
+    resultEl.textContent = `✗ Network error: ${e.message}`;
+  }
 }
 
 // ── Load campaigns ───────────────────────────────────────────────
@@ -571,10 +668,13 @@ function renderCampaigns() {
               <span class="md-icon text-[15px]">calendar_today</span>
               ${created}
             </div>
-            ${c.execution_mode === 'automated' && c.automation_trigger_condition ? `
-            <div class="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
-              <span class="md-icon text-[15px]">auto_mode</span>
-              <span class="font-medium truncate max-w-[180px]">${c.automation_trigger_condition}</span>
+            ${c.execution_mode === 'automated' ? `
+            <div class="flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"
+              style="background:rgba(108,99,255,0.08);color:#4d41df;border:1px solid rgba(108,99,255,0.2);">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary inline-block" style="animation:livePulse 2s ease-in-out infinite;"></span>
+              ${c.automation_trigger_condition
+                ? `Listening: <span class="font-mono ml-1 truncate max-w-[140px]">${c.automation_trigger_condition}</span>`
+                : 'Trigger not set'}
             </div>` : ''}
           </div>
 

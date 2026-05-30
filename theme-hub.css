@@ -180,3 +180,96 @@
   font-size: 13px;
   color: #777587;
 }
+
+/* ── Skeleton shimmer ─────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(199,196,216,0.18) 25%,
+    rgba(199,196,216,0.38) 50%,
+    rgba(199,196,216,0.18) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* Stat card skeleton */
+.skeleton-stat {
+  background: rgba(255,255,255,0.62);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 16px;
+  padding: 20px;
+}
+.skeleton-stat .sk-icon  { width: 36px; height: 36px; border-radius: 10px; margin-bottom: 14px; }
+.skeleton-stat .sk-num   { width: 60%; height: 28px; border-radius: 6px; margin-bottom: 8px; }
+.skeleton-stat .sk-label { width: 80%; height: 12px; border-radius: 4px; }
+
+/* Table row skeleton */
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(199,196,216,0.2);
+}
+.skeleton-row .sk-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-row .sk-line-1 { height: 13px; border-radius: 4px; flex: 1; }
+.skeleton-row .sk-line-2 { height: 11px; border-radius: 4px; width: 25%; }
+.skeleton-row .sk-badge  { height: 20px; width: 60px; border-radius: 999px; }
+
+/* Feed item skeleton */
+.skeleton-feed {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 20px;
+}
+.skeleton-feed .sk-dot  { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; }
+.skeleton-feed .sk-text { flex: 1; }
+.skeleton-feed .sk-t1   { height: 13px; border-radius: 4px; width: 75%; margin-bottom: 6px; }
+.skeleton-feed .sk-t2   { height: 11px; border-radius: 4px; width: 35%; }
+
+/* ── Offline / error banner ──────────────────────────────────── */
+.offline-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #1b1b24;
+  color: #f1f5f9;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  transition: transform 0.3s cubic-bezier(0.25,1,0.5,1), opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.offline-banner.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.offline-banner.error  { background: #dc2626; }
+.offline-banner.warn   { background: #d97706; }
+.offline-banner.ok     { background: #059669; }
+.offline-banner .ob-icon {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  font-size: 18px;
+  line-height: 1;
+}
+

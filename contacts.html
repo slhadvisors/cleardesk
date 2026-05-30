@@ -63,6 +63,7 @@ body { font-family:"Plus Jakarta Sans",sans-serif; background:#f0ecf9; min-heigh
 .transition-snappy { transition:all 0.22s cubic-bezier(0.25,1,0.5,1); }
 .card-hover { transition:transform 0.22s cubic-bezier(0.25,1,0.5,1),box-shadow 0.22s cubic-bezier(0.25,1,0.5,1); }
 .card-hover:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(77,65,223,0.14),0 1px 0 rgba(255,255,255,0.8) inset; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .nav-item { position:relative; transition:color 0.18s ease,background 0.18s ease; }
 .nav-item.active { color:#6C63FF; }
@@ -140,6 +141,11 @@ body { font-family:"Plus Jakarta Sans",sans-serif; background:#f0ecf9; min-heigh
       <p class="text-[14px] text-on-surface-variant mt-0.5">Your client and lead contact database</p>
     </div>
     <div class="flex items-center gap-2.5">
+      <button onclick="syncCRMContacts()" id="crm-sync-btn"
+        class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40">
+        <span class="md-icon text-[18px] text-emerald-600">sync</span>
+        <span id="crm-sync-label">CRM Sync</span>
+      </button>
       <button onclick="openImportDrawer()" class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40">
         <span class="md-icon text-[18px] text-[#6C63FF]">upload_file</span>Import CSV
       </button>
@@ -462,6 +468,55 @@ async function importCSV(){
   const imported=(data||[]).map(dbToContact);
   allContacts=[...imported,...allContacts];filterContacts();updateStats();
   showToast(`${imported.length} contacts imported`,'upload_file','#6C63FF');closeDrawers();csvParsed=[];
+}
+
+// ── CRM Sync ─────────────────────────────────────────────────────
+async function syncCRMContacts() {
+  const btn   = document.getElementById('crm-sync-btn');
+  const label = document.getElementById('crm-sync-label');
+  btn.disabled = true;
+  label.textContent = 'Syncing…';
+  btn.querySelector('.md-icon').style.animation = 'spin 1s linear infinite';
+
+  try {
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+
+    const supabaseUrl = (window.supabase.supabaseUrl || '').replace(/\/$/, '');
+    const fnUrl = supabaseUrl + '/functions/v1/sync-contacts';
+
+    const res = await fetch(fnUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // If not configured, show helpful message
+      if (res.status === 503 || data.error?.includes('not configured')) {
+        showToast('CRM not connected — configure in Settings → CRM Integration', 'settings', '#f59e0b');
+      } else {
+        showToast(data.error || 'Sync failed', 'error', '#ef4444');
+      }
+      return;
+    }
+
+    // Success — reload contacts
+    showToast(`✓ ${data.synced} contacts synced from ${data.crm_type}`, 'sync', '#10b981');
+    await loadContacts();
+
+  } catch(e) {
+    console.error('[CRM Sync]', e);
+    showToast('Sync error: ' + e.message, 'error', '#ef4444');
+  } finally {
+    btn.disabled = false;
+    label.textContent = 'CRM Sync';
+    btn.querySelector('.md-icon').style.animation = '';
+  }
 }
 
 async function loadContacts(){

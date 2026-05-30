@@ -521,4 +521,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Avatar
   const name = user.display_name || user.email || '';
-  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '
+  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'name[0]?.toUpperCase() || '?';
+  document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
+
+  await loadLogs();
+
+  // ── Supabase Realtime — live call status updates ──────────────
+  try {
+    window.supabase
+      .channel('call_logs_live')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'call_logs',
+      }, (payload) => {
+        const updated = payload.new;
+        // Find row in allLogs and update it
+        const idx = allLogs.findIndex(l => l.id === updated.id);
+        if (idx !== -1) {
+          allLogs[idx] = { ...allLogs[idx], ...dbToLog(updated) };
+          filtered = allLogs.filter(l => activeFilter === 'all' || l.status === activeFilter);
+          renderPage();
+          // Flash the updated row
+          const row = document.querySelector(`[data-id="${updated.id}"]`);
+          if (row) {
+            row.style.transition = 'background 0.3s ease';
+            row.style.background = 'rgba(108,99,255,0.06)';
+            setTimeout(() => { row.style.background = ''; }, 1200);
+          }
+        } else {
+          // New call not in list yet — reload
+          loadLogs();
+        }
+      })
+      .subscribe();
+  } catch(e) {
+    console.warn('[Realtime] subscription failed:', e);
+    // Fallback: poll every 15s
+    setInterval(loadLogs, 15000);
+  }
+});
+</script>
+</body>
+</html>

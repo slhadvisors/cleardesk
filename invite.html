@@ -412,30 +412,29 @@ async function submitInvite() {
       return showFormAlert(updateErr.message, 'err');
     }
 
-    // Update display name in user_profiles if table exists
+    // Call accept-invite Edge Function — stamps app_metadata so RLS works immediately
     try {
-      const { data: { user } } = await window.supabase.auth.getUser();
-      if (user) {
-        await window.supabase.from('user_profiles').upsert({
-          id: user.id,
-          display_name: name,
-          role: invitedUserMeta.user_role || 'ORG_STAFF',
-          organization_id: invitedUserMeta.organization_id,
-          email: invitedUserEmail,
-          updated_at: new Date().toISOString(),
-        });
+      const { data: { session: freshSession } } = await window.supabase.auth.getSession();
+      if (freshSession) {
+        const supabaseUrl = window.SUPABASE_URL || 'https://grudvsgmbyobilqnvoof.supabase.co';
+        const match = supabaseUrl.match(/https:\/\/([a-z0-9]+)\.supabase\.co/);
+        const fnUrl = match
+          ? `https://${match[1]}.supabase.co/functions/v1/accept-invite`
+          : null;
+
+        if (fnUrl) {
+          await fetch(fnUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${freshSession.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        }
       }
     } catch(e) {
-      // table may not exist yet — non-fatal
-      console.warn('user_profiles upsert skipped:', e);
+      console.warn('[invite] accept-invite fn error (non-fatal):', e);
     }
-
-    // Mark pending_invite resolved
-    try {
-      await window.supabase.from('pending_invites')
-        .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-        .eq('email', invitedUserEmail);
-    } catch(e) { /* non-fatal */ }
 
     document.getElementById('success-sub').textContent =
       `Welcome to ClearDesk, ${name.split(' ')[0]}! Your account is active. Redirecting…`;
