@@ -612,8 +612,8 @@ function applyTranslations() {
   });
 }
 
-async function changeLanguage() {
-  currentLanguage = document.getElementById('language-selector').value;
+async function changeLanguage(lang) {
+  if (lang) currentLanguage = lang;
   if (typeof setLanguage === 'function') setLanguage(currentLanguage);
   if (currentUser && typeof updateLanguage === 'function') await updateLanguage(currentLanguage);
   applyTranslations();
@@ -692,15 +692,24 @@ async function loadDashboard() {
   // Language preference
   if (currentUser.preferred_language) {
     currentLanguage = currentUser.preferred_language;
-    document.getElementById('language-selector').value = currentLanguage;
     localStorage.setItem('preferredLanguage', currentLanguage);
   }
 
-  // Greeting
-  // Prefer display_name / full_name from metadata, fallback to email prefix
-  const name = currentUser.display_name ||
-               currentUser.full_name ||
-               (currentUser.email || '').split('@')[0];
+  // Resolve name — read directly from Supabase session metadata
+  // in case getCurrentUser fallback chain didn't catch it
+  let name = currentUser.display_name || currentUser.full_name || '';
+  if (!name || name === currentUser.email) {
+    // Read raw from session
+    try {
+      const { data: { session } } = await window.supabase.auth.getSession();
+      const meta = session?.user?.user_metadata || {};
+      name = meta.full_name || meta.display_name || meta.name || '';
+    } catch(_) {}
+  }
+  // Final fallback: use part before @ in email
+  if (!name) name = (currentUser.email || '').split('@')[0];
+  // Capitalise first letter of each word
+  name = name.replace(/\b\w/g, c => c.toUpperCase());
 
   document.getElementById('greeting-text').textContent = buildGreeting(name);
 
