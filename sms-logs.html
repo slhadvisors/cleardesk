@@ -342,35 +342,103 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 });
 async function sendSMS(){
-  const orgId=getOrgId();
-  const phone  =document.getElementById('cmp-phone').value.trim();
-  const name   =document.getElementById('cmp-name').value.trim();
-  const message=document.getElementById('cmp-message').value.trim();
-  const alert  =document.getElementById('compose-alert');
-  const btn    =document.getElementById('cmp-send-btn');
-  const showErr=msg=>{alert.textContent=msg;alert.hidden=false;};
-  if(!phone){showErr('Phone number is required.');return;}
-  if(!message){showErr('Message body is required.');return;}
-  if(message.length>160){showErr('Message exceeds 160 characters.');return;}
-  if(!orgId){showErr('Session error — please reload.');return;}
-  btn.disabled=true;btn.textContent='Sending…';
-  alert.hidden=true;
-  const{data,error}=await window.supabase.from('sms_logs').insert({
+  const phone   = document.getElementById('cmp-phone').value.trim();
+  const name    = document.getElementById('cmp-name').value.trim();
+  const message = document.getElementById('cmp-message').value.trim();
+  const alertEl = document.getElementById('compose-alert');
+  const btn     = document.getElementById('cmp-send-btn');
+  const showErr = msg => { alertEl.textContent = msg; alertEl.hidden = false; };
+
+  if (!phone)   { showErr('Phone number is required.'); return; }
+  if (!message) { showErr('Message body is required.'); return; }
+  if (message.length > 1600) { showErr('Message too long.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  alertEl.hidden = true;
+
+  try {
+    // Get auth token for Edge Function call
+    const { data: { session } } = await window.supabase.auth.getSession();
+    if (!session) { showErr('Session expired — please reload.'); btn.disabled=false; btn.textContent='Send ➔'; return; }
+
+    // Derive Edge Function URL from Supabase URL
+    const supabaseUrl = window.SUPABASE_URL || '';
+    const match = supabaseUrl.match(/https:\/\/([a-z0-9]+)\.supabase\.co/);
+    const fnUrl = match
+      ? `https://${match[1]}.supabase.co/functions/v1/send-sms`
+      : null;
+
+    if (!fnUrl) {
+      // Fallback: direct DB insert (no real SMS sent)
+      await sendSMSFallback(phone, name, message);
+      return;
+    }
+
+    const res = await fetch(fnUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ to: phone, message, name: name || phone }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      const detail = result.detail || result.error || 'Send failed';
+      // If Twilio not configured yet, fall back to DB-only log
+      if (res.status === 503) {
+        console.warn('[SMS] Twilio not configured, logging only');
+        await sendSMSFallback(phone, name, message);
+        return;
+      }
+      showErr(`Failed: ${detail}`);
+      btn.disabled = false;
+      btn.textContent = 'Send ➔';
+      return;
+    }
+
+    // Success — refresh log list
+    btn.disabled = false;
+    btn.textContent = 'Send ➔';
+    closeCompose();
+    await loadLogs(); // reload from DB to get the new row with twilio_sid
+    updateStats();
+
+  } catch (e) {
+    console.error('[SMS] send error:', e);
+    showErr('Network error — check connection.');
+    btn.disabled = false;
+    btn.textContent = 'Send ➔';
+  }
+}
+
+// Fallback when Edge Function not deployed yet — logs to DB without real SMS
+async function sendSMSFallback(phone, name, message) {
+  const orgId = getOrgId();
+  const { data, error } = await window.supabase.from('sms_logs').insert({
     organization_id: orgId,
     user_id:         window._cdSession?.user?.id,
-    contact_name:    name||phone,
+    contact_name:    name || phone,
     phone_number:    phone,
     recipient_phone: phone,
     message_body:    message,
     message:         message,
-    delivery_status: 'sent',
+    delivery_status: 'queued',
     status:          'sent',
   }).select().single();
-  btn.disabled=false;btn.textContent='Send ➔';
-  if(error){showErr('Failed: '+error.message);return;}
+
+  const btn     = document.getElementById('cmp-send-btn');
+  const alertEl = document.getElementById('compose-alert');
+  btn.disabled = false;
+  btn.textContent = 'Send ➔';
+
+  if (error) { alertEl.textContent = 'Failed: ' + error.message; alertEl.hidden = false; return; }
   closeCompose();
   allLogs.unshift(dbToLog(data));
-  filtered=[...allLogs];
+  filtered = [...allLogs];
   renderPage();
   updateStats();
 }

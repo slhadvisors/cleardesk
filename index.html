@@ -279,9 +279,6 @@ tailwind.config = {
           <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
             <span class="md-icon text-[17px]">sms</span>SMS
           </a>
-          <a href="developer/index.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-purple-600 hover:text-purple-700 rounded-lg whitespace-nowrap flex items-center gap-1.5" id="developer-link" style="display:none;">
-            <span class="md-icon text-[17px]">terminal</span>Developer
-          </a>
           <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
             <span class="md-icon text-[17px]">settings</span>Settings
           </a>
@@ -512,6 +509,22 @@ tailwind.config = {
 
     </div>
 
+    <!-- ── Developer portal entry (role-gated) ── -->
+    <div id="developer-section" class="enter enter-7" style="display:none;">
+      <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Developer</p>
+      <a href="developer/index.html" id="developer-link"
+        class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline flex items-center gap-5 group">
+        <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 transition-snappy group-hover:scale-110">
+          <span class="md-icon text-violet-600 text-[24px]">terminal</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-bold text-[15px] text-on-surface mb-1">Developer Portal</h3>
+          <p class="text-[13px] text-on-surface-variant">API keys, webhooks, models, usage analytics and vault configuration.</p>
+        </div>
+        <span class="md-icon text-[22px] text-outline-variant group-hover:text-violet-600 group-hover:translate-x-1 transition-snappy">arrow_forward</span>
+      </a>
+    </div>
+
   </main>
 
   <!-- Footer spacer -->
@@ -723,7 +736,7 @@ async function loadDashboard() {
 
   // Developer nav
   if (currentUser.role === 'DEVELOPER') {
-    document.getElementById('developer-link').style.display = 'flex';
+    document.getElementById('developer-section').style.display = 'block';
   }
 
   // Load data

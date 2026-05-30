@@ -542,7 +542,7 @@ function renderCampaigns() {
     const created   = new Date(c.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
 
     return `
-    <div class="glass-card campaign-card rounded-2xl p-6 enter" style="animation-delay:${i*0.04}s">
+    <div class="glass-card campaign-card rounded-2xl p-6 enter" id="campaign-${c.id}" data-status="${c.status}" style="animation-delay:${i*0.04}s">
       <div class="flex items-start gap-4">
         <!-- Icon -->
         <div class="w-11 h-11 rounded-xl ${pm.iconBg} flex items-center justify-center shrink-0">
@@ -607,10 +607,11 @@ function renderCampaigns() {
             class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12.5px] font-semibold t-snappy hover:bg-emerald-100">
             <span class="md-icon text-[16px]">play_arrow</span>Resume
           </button>` : ''}
-          <button onclick="deleteCampaign('${c.id}')"
+          ${['draft','paused','completed'].includes(c.status) ? `
+          <button onclick="deleteCampaign('${c.id}','${c.status}')"
             class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container text-on-surface-variant text-[12.5px] font-medium t-snappy hover:bg-error-container hover:text-error">
             <span class="md-icon text-[16px]">delete</span>Delete
-          </button>
+          </button>` : ''}
         </div>
       </div>
     </div>`;
@@ -684,10 +685,46 @@ async function resumeCampaign(id) {
   await db().from('outbound_campaigns').update({ status:'processing' }).eq('id', id);
   await loadCampaigns();
 }
-async function deleteCampaign(id) {
-  if (!confirm('Delete this campaign? This cannot be undone.')) return;
-  await db().from('outbound_campaigns').delete().eq('id', id);
-  await loadCampaigns();
+async function deleteCampaign(id, status) {
+  if (status === 'processing') {
+    alert('Cannot delete a campaign that is currently running. Pause it first.');
+    return;
+  }
+  const label = status === 'draft' ? 'draft' : `${status} campaign`;
+  if (!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+
+  const btn = document.querySelector(`[onclick="deleteCampaign('${id}','${status}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+
+  const { error } = await db().from('outbound_campaigns').delete().eq('id', id);
+
+  if (error) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="md-icon text-[16px]">delete</span>Delete'; }
+    alert('Delete failed: ' + error.message);
+    return;
+  }
+
+  // Remove card from DOM immediately (no reload flash)
+  const card = document.getElementById(`campaign-${id}`);
+  if (card) {
+    card.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.97)';
+    setTimeout(() => { card.remove(); updateChips(); }, 220);
+  } else {
+    await loadCampaigns();
+  }
+}
+
+function updateChips() {
+  const cards = document.querySelectorAll('[id^="campaign-"]');
+  const statuses = [...cards].map(c => c.dataset.status);
+  const total = cards.length;
+  const live  = statuses.filter(s => s === 'processing').length;
+  const draft = statuses.filter(s => s === 'draft').length;
+  document.getElementById('chip-total')?.textContent && (document.getElementById('chip-total').textContent = `${total} total`);
+  document.getElementById('chip-live')?.textContent  && (document.getElementById('chip-live').textContent  = `${live} live`);
+  document.getElementById('chip-draft')?.textContent && (document.getElementById('chip-draft').textContent = `${draft} draft`);
 }
 
 // ── Drawer logic ─────────────────────────────────────────────────
