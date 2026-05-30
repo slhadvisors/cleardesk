@@ -972,11 +972,22 @@ body::before {
       </div>
 
       <div class="settings-card enter" style="animation-delay:.07s">
-        <div class="settings-card-title"><span class="md-icon">badge</span>Identity</div>
+        <div class="settings-card-title">
+          <span class="md-icon">badge</span>Identity
+          <button id="account-edit-btn" onclick="toggleAccountEdit()" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.08);color:var(--neon-cyan);font-family:var(--font-mono);font-size:11.5px;font-weight:600;cursor:pointer;transition:all var(--t-snappy);" onmouseover="this.style.background='rgba(6,182,212,0.15)'" onmouseout="this.style.background='rgba(6,182,212,0.08)'">
+            <span class="md-icon" style="font-size:15px;">edit</span>Edit
+          </button>
+        </div>
         <div class="field-grid" style="gap:14px;">
-          <div>
-            <div class="term-label">email</div>
-            <input class="term-input" type="email" id="account-email" readonly/>
+          <div class="field-grid cols-2">
+            <div>
+              <div class="term-label">full_name</div>
+              <input class="term-input" type="text" id="account-name" readonly placeholder="—"/>
+            </div>
+            <div>
+              <div class="term-label">email</div>
+              <input class="term-input" type="email" id="account-email" readonly/>
+            </div>
           </div>
           <div class="field-grid cols-2">
             <div>
@@ -999,6 +1010,15 @@ body::before {
             </div>
           </div>
         </div>
+
+        <!-- Save row — hidden until edit mode -->
+        <div id="account-save-row" style="display:none;margin-top:16px;display:none;align-items:center;gap:10px;">
+          <button class="btn-primary" onclick="saveAccountDetails()">
+            <span class="md-icon" style="font-size:16px;">save</span>Save Changes
+          </button>
+          <button class="btn-ghost" onclick="cancelAccountEdit()" style="margin-top:0;">Cancel</button>
+        </div>
+        <div id="account-save-alert" style="margin-top:10px;"></div>
       </div>
 
       <div class="settings-card enter" style="animation-delay:.10s">
@@ -1220,6 +1240,75 @@ function confirmSignOut() {
   if (confirm('Sign out from all devices?')) signOut();
 }
 
+// ── Account edit ─────────────────────────────────────────────────
+let _accountEditMode = false;
+let _accountOrigName = '';
+
+function toggleAccountEdit() {
+  _accountEditMode = !_accountEditMode;
+  const nameInput  = document.getElementById('account-name');
+  const editBtn    = document.getElementById('account-edit-btn');
+  const saveRow    = document.getElementById('account-save-row');
+
+  if (_accountEditMode) {
+    _accountOrigName = nameInput.value;
+    nameInput.removeAttribute('readonly');
+    nameInput.focus();
+    nameInput.style.borderColor = 'var(--neon-cyan)';
+    nameInput.style.boxShadow   = '0 0 0 3px rgba(6,182,212,0.12)';
+    editBtn.innerHTML = '<span class="md-icon" style="font-size:15px;">close</span>Cancel';
+    saveRow.style.display = 'flex';
+  } else {
+    cancelAccountEdit();
+  }
+}
+
+function cancelAccountEdit() {
+  _accountEditMode = false;
+  const nameInput = document.getElementById('account-name');
+  nameInput.value = _accountOrigName;
+  nameInput.setAttribute('readonly', true);
+  nameInput.style.borderColor = '';
+  nameInput.style.boxShadow   = '';
+  document.getElementById('account-edit-btn').innerHTML = '<span class="md-icon" style="font-size:15px;">edit</span>Edit';
+  document.getElementById('account-save-row').style.display = 'none';
+  document.getElementById('account-save-alert').innerHTML  = '';
+}
+
+async function saveAccountDetails() {
+  const name = document.getElementById('account-name').value.trim();
+  const alertEl = document.getElementById('account-save-alert');
+  alertEl.innerHTML = '';
+
+  if (!name) {
+    alertEl.innerHTML = `<div style="color:#ef4444;font-size:12px;font-family:var(--font-mono);">✗ Name cannot be empty.</div>`;
+    return;
+  }
+
+  try {
+    // Update Supabase auth user_metadata
+    const { error } = await window.supabase.auth.updateUser({
+      data: { full_name: name, display_name: name }
+    });
+    if (error) throw error;
+
+    // Also update user_profiles table if it exists
+    try {
+      await db().from('user_profiles')
+        .update({ display_name: name })
+        .eq('id', currentUser.id);
+    } catch(_) {}
+
+    _accountOrigName = name;
+    cancelAccountEdit();
+    alertEl.innerHTML = `<div style="color:var(--neon-emerald);font-size:12px;font-family:var(--font-mono);">✓ Name updated successfully.</div>`;
+    setTimeout(() => alertEl.innerHTML = '', 3000);
+
+  } catch(err) {
+    alertEl.innerHTML = `<div style="color:#ef4444;font-size:12px;font-family:var(--font-mono);">✗ ${err.message}</div>`;
+  }
+}
+
 // ── Sarvam AI ─────────────────────────────────────────────────────
 async function saveSarvamSettings() {
   const key = document.getElementById('sarvam-api-key').value.trim();
@@ -1239,92 +1328,4 @@ async function testSarvamConnection() {
   const language = document.getElementById('sarvam-language').value;
   const terminal = document.getElementById('sarvam-terminal');
   const logLines = document.getElementById('sarvam-log-lines');
-  if (!key) { alert('Enter Sarvam API key first.'); return; }
-  terminal.style.display = 'block';
-  terminal.classList.add('visible');
-  logLines.innerHTML = '';
-  const log = (text, cls = 't-info') => {
-    const ts  = new Date().toTimeString().slice(0,8);
-    const div = document.createElement('div');
-    div.className = 't-line';
-    div.innerHTML = `<span class="t-time">[${ts}]</span> <span class="${cls}">${text}</span>`;
-    logLines.appendChild(div);
-    terminal.scrollTop = terminal.scrollHeight;
-  };
-  log('Connecting to api.sarvam.ai…');
-  log(`Model: bulbul:v2 · Speaker: ${speaker} · Language: ${language}`);
-  try {
-    const res = await fetch('https://api.sarvam.ai/text-to-speech', {
-      method: 'POST',
-      headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        inputs: ['Namaste, ClearDesk connection test successful.'],
-        target_language_code: language, speaker,
-        pitch: 0, pace: 1.0, loudness: 1.5,
-        speech_sample_rate: 8000, enable_preprocessing: true, model: 'bulbul:v2',
-      }),
-    });
-    if (!res.ok) { log(`✗ HTTP ${res.status}: ${await res.text()}`, 't-error'); return; }
-    const data = await res.json();
-    if (data.audios?.[0]) {
-      log('✓ Bulbul-v2 synthesized audio successfully', 't-success');
-      log(`✓ Audio: ${Math.round(data.audios[0].length/1024)} KB · Ready for IN calls`, 't-success');
-      document.getElementById('sarvam-status-badge').textContent = '● active';
-      document.getElementById('sarvam-status-badge').className = 'status-badge connected';
-    } else {
-      log('✗ No audio returned — check key permissions', 't-error');
-    }
-  } catch(e) {
-    log(`✗ ${e.message}`, 't-error');
-    log('CORS may block browser test. Key will work server-side from Edge Function.', 't-info');
-  }
-}
-
-// ── Bootstrap ─────────────────────────────────────────────────────
-async function boot() {
-  await checkMaintenanceMode();
-  currentUser = await getCurrentUser();
-  if (!currentUser) { location.href = 'login.html'; return; }
-
-  const name = currentUser.display_name || currentUser.email.split('@')[0];
-  const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials || name[0].toUpperCase();
-
-  document.getElementById('account-email').value   = currentUser.email;
-  document.getElementById('account-id').value      = currentUser.id || '—';
-  document.getElementById('account-role').value    = currentUser.role || '—';
-  document.getElementById('account-org').value     = currentUser.organization_name || '—';
-  document.getElementById('account-billing').value = '—';
-
-  try {
-    const { data: org } = await db().from('organizations').select('billing_status').single();
-    if (org) document.getElementById('account-billing').value = org.billing_status;
-  } catch(e) {}
-
-  // Load vault — populate Sarvam key status
-  try {
-    const { data: vault } = await db().from('organization_developer_vault')
-      .select('sarvam_api_key, crm_type, crm_access_token').single();
-    if (vault?.sarvam_api_key) {
-      document.getElementById('sarvam-api-key').value = vault.sarvam_api_key;
-      document.getElementById('sarvam-status-badge').textContent = '● active';
-      document.getElementById('sarvam-status-badge').className = 'status-badge connected';
-    }
-    if (vault?.crm_type) {
-      document.getElementById('crm-type').value = vault.crm_type;
-      updateCRMFields();
-    }
-    if (vault?.crm_access_token) {
-      document.getElementById('crm-token').value = vault.crm_access_token;
-      document.getElementById('crm-status-badge').textContent = '● connected';
-      document.getElementById('crm-status-badge').className = 'status-badge connected';
-    }
-  } catch(e) {}
-
-  await loadBudget();
-}
-
-boot();
-</script>
-</body>
-</html>
+  if (!ke

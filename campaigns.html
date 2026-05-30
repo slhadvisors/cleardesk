@@ -57,8 +57,6 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 
 /* Nav item */
 .nav-item{position:relative;transition:color .18s ease,background .18s ease;}
-.nav-item::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:#6C63FF;border-radius:2px;transition:transform .22s cubic-bezier(.25,1,.5,1);}
-.nav-item:hover::after,.nav-item.active::after{transform:translateX(-50%) scaleX(1);}
 .nav-item.active{color:#6C63FF;}
 
 .credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
@@ -861,43 +859,4 @@ async function saveCampaign() {
       campaign_name:              document.getElementById('inp-name').value.trim(),
       campaign_purpose:           form.purpose,
       execution_mode:             form.mode,
-      custom_script_prompt:       document.getElementById('inp-script').value.trim() || `Default ${form.purpose} script.`,
-      contact_list_json:          contacts,
-      status:                     'draft',
-      allocated_budget_cap:       parseFloat(document.getElementById('inp-budget').value) || 50,
-      automation_trigger_condition: document.getElementById('inp-trigger').value.trim() || null,
-      cron_schedule_expression:   document.getElementById('inp-cron').value.trim() || null,
-    };
-    const { error } = await db().from('outbound_campaigns').insert(payload);
-    if (error) throw error;
-    closeDrawer();
-    await loadCampaigns();
-  } catch(err) {
-    alert('Error saving campaign: ' + err.message);
-    btn.textContent = '🚀 Create Campaign'; btn.disabled = false;
-  }
-}
-
-// ── Toast helper ─────────────────────────────────────────────────
-function showToast(msg, duration = 4000) {
-  const t = document.createElement('div');
-  t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] glass-solid rounded-full px-5 py-3 text-[13px] font-semibold text-on-surface shadow-xl flex items-center gap-2 t-snappy';
-  t.style.cssText = 'opacity:0;transform:translate(-50%,12px);';
-  t.innerHTML = msg;
-  document.body.appendChild(t);
-  requestAnimationFrame(() => {
-    t.style.opacity = '1';
-    t.style.transform = 'translate(-50%,0)';
-  });
-  setTimeout(() => {
-    t.style.opacity = '0';
-    t.style.transform = 'translate(-50%,12px)';
-    setTimeout(() => t.remove(), 300);
-  }, duration);
-}
-
-// ── Init ──────────────────────────────────────────────────────────
-boot();
-</script>
-</body>
-</html>
+      custom_script_prompt:       document.getElementById('inp-script').value.trim() || `Default ${fo

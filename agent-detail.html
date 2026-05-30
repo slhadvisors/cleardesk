@@ -34,8 +34,6 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 .card-hover{transition:transform 0.22s cubic-bezier(0.25,1,0.5,1),box-shadow 0.22s cubic-bezier(0.25,1,0.5,1),border-color 0.22s ease;}
 .card-hover:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(77,65,223,0.14),0 1px 0 rgba(255,255,255,0.8) inset;border-color:rgba(108,99,255,0.25);}
 .nav-item{position:relative;transition:color 0.18s ease;}
-.nav-item::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%) scaleX(0);width:80%;height:2px;background:#6C63FF;border-radius:2px;transition:transform 0.22s cubic-bezier(0.25,1,0.5,1);}
-.nav-item:hover::after,.nav-item.active::after{transform:translateX(-50%) scaleX(1);}
 .nav-item.active{color:#6C63FF;}
 @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .enter{opacity:0;animation:slideUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards;}
@@ -104,9 +102,6 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
         <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
       </div>
       <div class="flex items-center gap-3 shrink-0">
-        <select id="language-selector" class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none transition-snappy">
-          <option value="ENGLISH">🌐 EN</option><option value="HINDI">🇮🇳 HI</option><option value="MARATHI">🇮🇳 MR</option>
-        </select>
         <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
           <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
           <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
