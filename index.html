@@ -151,19 +151,7 @@ tailwind.config = {
     position: relative;
     transition: color 0.18s ease, background 0.18s ease;
   }
-  .nav-item::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 80%;
-    height: 2px;
-    background: #6C63FF;
-    border-radius: 2px;
-    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .nav-item:hover::after, .nav-item.active::after { transform: translateX(-50%) scaleX(1); }
+  .nav-item::after { display: none; }
   .nav-item.active { color: #6C63FF; }
 
   /* Rolling counter */
@@ -286,18 +274,11 @@ tailwind.config = {
 
         <!-- Right controls -->
         <div class="flex items-center gap-3 shrink-0">
-          <select id="language-selector" onchange="changeLanguage()"
-            class="text-[12.5px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-snappy">
-            <option value="ENGLISH">🌐 EN</option>
-            <option value="HINDI">🇮🇳 HI</option>
-            <option value="MARATHI">🇮🇳 MR</option>
-          </select>
-
           <!-- Avatar chip -->
           <button onclick="signOut()"
             class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
             <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
-            <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
+            <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-display-name">—</span>
             <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
           </button>
         </div>
@@ -716,13 +697,20 @@ async function loadDashboard() {
   }
 
   // Greeting
-  const name = currentUser.display_name || currentUser.email.split('@')[0];
+  // Prefer display_name / full_name from metadata, fallback to email prefix
+  const name = currentUser.display_name ||
+               currentUser.full_name ||
+               (currentUser.email || '').split('@')[0];
+
   document.getElementById('greeting-text').textContent = buildGreeting(name);
 
-  // Avatar initials
-  const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials || name[0].toUpperCase();
-  document.getElementById('user-email-short').textContent = currentUser.email.split('@')[0];
+  // Avatar initials from full name
+  const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials || (name[0] || '?').toUpperCase();
+
+  // Show first name only on logout chip
+  const firstName = name.split(' ')[0];
+  document.getElementById('user-display-name').textContent = firstName;
 
   // Org
   document.getElementById('org-name').textContent =

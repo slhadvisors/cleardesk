@@ -27,7 +27,12 @@ async function getCurrentUser() {
     const role = user.role || session.user.app_metadata?.user_role || 'ORG_STAFF';
     const organizationId = session.user.app_metadata?.organization_id;
     const preferredLanguage = session.user.app_metadata?.preferred_language || 'ENGLISH';
-    const displayName = session.user.app_metadata?.display_name || user.email;
+    // Prefer full_name from user_metadata (set during signup), fallback to app_metadata, then email
+    const displayName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.display_name ||
+      session.user.app_metadata?.display_name ||
+      user.email;
 
     // If role not in JWT, fetch from database (fallback)
     let userProfile = {
@@ -55,7 +60,9 @@ async function getCurrentUser() {
       role: userProfile.role,
       organization_id: userProfile.organization_id,
       preferred_language: userProfile.preferred_language,
-      display_name: userProfile.display_name,
+      display_name: userProfile.display_name || displayName,
+      full_name: user.user_metadata?.full_name || userProfile.display_name || displayName,
+      organization_name: userProfile.organizations?.name || user.user_metadata?.firm_name || null,
       organization: userProfile.organizations || null
     };
   } catch (error) {
