@@ -961,4 +961,28 @@ async function saveCampaign() {
       campaign_name:              document.getElementById('inp-name').value.trim(),
       campaign_purpose:           form.purpose,
       execution_mode:             form.mode,
-      custom_script_prompt:       document.getElementById('inp-script').value.trim() || `Default ${fo
+      custom_script_prompt:       document.getElementById('inp-script').value.trim() || `Default ${form.purpose} script for this campaign.`,
+      contact_list_json:          contacts,
+      status:                     form.mode === 'automated' ? 'scheduled' : 'draft',
+      automation_trigger_condition: form.mode === 'automated' ? (document.getElementById('inp-trigger').value.trim() || null) : null,
+      cron_schedule_expression:   form.mode === 'automated' ? (document.getElementById('inp-cron').value.trim() || null) : null,
+      allocated_budget_cap:       parseFloat(document.getElementById('inp-budget').value) || 50,
+      organization_id:            currentUser.organization_id,
+    };
+
+    const { error } = await db().from('campaigns').insert(payload);
+    if (error) { alert('Error: ' + error.message); return; }
+
+    closeDrawer();
+    await loadCampaigns();
+  } catch (e) {
+    console.error('saveCampaign error:', e);
+    alert('Failed to save campaign.');
+  } finally {
+    btn.textContent = '🚀 Create Campaign';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
