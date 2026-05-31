@@ -477,3 +477,45 @@ function showReveal(key) {
   document.getElementById('reveal-box').scrollIntoView({behavior:'smooth'});
 }
 function closeReveal() {
+  document.getElementById('reveal-box').style.display = 'none';
+}
+
+function copyReveal() {
+  const val = document.getElementById('reveal-val').textContent;
+  navigator.clipboard.writeText(val).then(() => toast('Key copied to clipboard'));
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'));
+}
+
+function exportKeys() {
+  const rows = [['Name','Prefix','Scope','Requests','Created','Expires','Status']];
+  KEYS.forEach(k => {
+    rows.push([k.name, k.key, k.scope, k.reqs, k.created, k.expires, k.active ? 'Active' : 'Revoked']);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'api-keys-audit-' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Audit exported');
+}
+
+function toast(msg) {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:999;background:var(--slate-800);border:1px solid var(--border-med);border-radius:8px;padding:12px 18px;font-family:var(--font-mono);font-size:13px;color:var(--neon-cyan);box-shadow:0 8px 32px rgba(0,0,0,0.35);opacity:0;transform:translateY(12px);transition:opacity 0.22s,transform 0.22s;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1'; el.style.transform = 'none';
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(12px)'; }, 2800);
+}
+</script>
+</body>
+</html>

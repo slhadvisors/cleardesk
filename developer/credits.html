@@ -557,4 +557,74 @@ async function toggleOverdraft() {
   const btn = document.getElementById('od-toggle');
   const lbl = document.getElementById('od-status');
   btn.classList.toggle('off');
-  const on = !btn.cl
+  const on = !btn.classList.contains('off');
+  lbl.textContent = on ? 'ON' : 'OFF';
+  lbl.style.color = on ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+  if (_orgId && window.supabase) {
+    await window.supabase.from('organizations').update({ overdraft_allowed: on }).eq('id', _orgId);
+  }
+}
+
+/* ── Toast ── */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ── Top-up modal ── */
+let _selectedAmount = 0;
+
+function openTopup() {
+  document.getElementById('topup-modal').style.display = 'flex';
+  _selectedAmount = 0;
+  document.getElementById('custom-amount').value = '';
+  document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+}
+
+function closeTopup() {
+  document.getElementById('topup-modal').style.display = 'none';
+}
+
+function selectAmount(val, btn) {
+  _selectedAmount = val;
+  document.getElementById('custom-amount').value = '';
+  document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function clearSelected() {
+  _selectedAmount = 0;
+  document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+}
+
+async function processTopup() {
+  const custom = parseFloat(document.getElementById('custom-amount').value);
+  const amount = custom > 0 ? custom : _selectedAmount;
+  if (!amount || amount < 10) { toast('Minimum top-up is $10'); return; }
+  if (!_orgId || !window.supabase) { toast('Not authenticated'); return; }
+
+  const { data: org } = await window.supabase
+    .from('organizations')
+    .select('credit_balance')
+    .eq('id', _orgId)
+    .single();
+
+  if (!org) { toast('Could not fetch balance'); return; }
+
+  const newBal = (parseFloat(org.credit_balance) || 0) + amount;
+  const { error } = await window.supabase
+    .from('organizations')
+    .update({ credit_balance: newBal })
+    .eq('id', _orgId);
+
+  if (error) { toast('Top-up failed: ' + error.message); return; }
+
+  closeTopup();
+  toast('Added $' + amount.toFixed(2) + ' to wallet');
+  animVal('wallet-bal', newBal, '$');
+}
+</script>
+</body>
+</html>
