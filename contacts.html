@@ -541,4 +541,24 @@ async function loadContacts(){
 async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
-  window._cdUser=user;                
+  window._cdUser=user;
+
+  // Store session for user id access
+  const { data: { session } } = await window.supabase.auth.getSession();
+  window._cdSession = session;
+
+  // Set avatar
+  const name = user.display_name || user.email || 'User';
+  const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const avatarEl = document.getElementById('avatar-initials');
+  if (avatarEl) avatarEl.textContent = initials;
+  const nameEl = document.getElementById('user-name');
+  if (nameEl) nameEl.textContent = name;
+
+  await loadContacts();
+}
+
+init();
+</script>
+</body>
+</html>
