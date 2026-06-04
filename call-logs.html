@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Avatar
   const name = user.display_name || user.email || '';
-  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'name[0]?.toUpperCase() || '?';
+  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
   document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
 
   await loadLogs();

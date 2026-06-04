@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title id="page-title">ClearDesk — Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Dashboard</title>
 
+<!-- ══════════════════════════════════════════════
+     SCRIPT LOAD ORDER — DO NOT REORDER (CLAUDE.md)
+     1. Supabase UMD bundle
+     2. Client init
+     3. Auth helpers
+     4. Translations
+     ══════════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
@@ -13,559 +20,134 @@
 <script src="sandbox-guard.js"></script>
 <script>protectPage(); initSandboxGuard();</script>
 
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- React 18 + Babel Standalone (CDN — no build step) -->
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link href="theme-hub.css" rel="stylesheet"/>
-
-<script>
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        "on-background": "#1b1b24",
-        "surface-tint": "#4f44e2",
-        "secondary-container": "#5694fe",
-        "surface-dim": "#dcd8e5",
-        "surface-variant": "#e4e1ee",
-        "on-error": "#ffffff",
-        "primary-fixed-dim": "#c4c0ff",
-        "surface-container-high": "#eae6f3",
-        "surface-container-low": "#f6f2ff",
-        "secondary": "#005bbf",
-        "tertiary": "#914800",
-        "on-primary": "#ffffff",
-        "tertiary-container": "#b65c00",
-        "on-secondary": "#ffffff",
-        "primary": "#4d41df",
-        "outline": "#777587",
-        "surface-bright": "#fcf8ff",
-        "surface-container-highest": "#e4e1ee",
-        "background": "#fcf8ff",
-        "primary-fixed": "#e3dfff",
-        "inverse-surface": "#302f39",
-        "error": "#ba1a1a",
-        "secondary-fixed": "#d7e2ff",
-        "surface-container": "#f0ecf9",
-        "on-surface-variant": "#464555",
-        "surface-container-lowest": "#ffffff",
-        "on-surface": "#1b1b24",
-        "error-container": "#ffdad6",
-        "surface": "#fcf8ff",
-        "inverse-primary": "#c4c0ff",
-        "primary-container": "#675df9",
-        "outline-variant": "#c7c4d8"
-      },
-      fontFamily: {
-        sans: ["Plus Jakarta Sans", "sans-serif"]
-      },
-      borderRadius: {
-        DEFAULT: "0.25rem",
-        lg: "0.5rem",
-        xl: "0.75rem",
-        "2xl": "1rem",
-        "3xl": "1.5rem",
-        full: "9999px"
-      }
-    }
-  }
-}
-</script>
-
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: "Plus Jakarta Sans", sans-serif;
-    background: #f0ecf9;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Ambient background */
-  .ambient-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background:
-      radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(108,99,255,0.13) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 85% 100%,  rgba(79,68,226,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 35% at 50% 50%,   rgba(198,194,255,0.08) 0%, transparent 60%),
-      linear-gradient(160deg, #ece9ff 0%, #f0ecf9 40%, #e8f0ff 100%);
-    animation: ambientShift 20s ease-in-out infinite alternate;
-  }
-  @keyframes ambientShift {
-    0%   { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(15deg); }
-  }
-
-  /* Glass primitives */
-  .glass-nav {
-    background: rgba(255,255,255,0.82);
-    backdrop-filter: blur(28px) saturate(140%);
-    -webkit-backdrop-filter: blur(28px) saturate(140%);
-    border-bottom: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 1px 0 rgba(77,65,223,0.06);
-  }
-  .glass-card {
-    background: rgba(255,255,255,0.62);
-    backdrop-filter: blur(20px) saturate(130%);
-    -webkit-backdrop-filter: blur(20px) saturate(130%);
-    border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 4px 24px rgba(77,65,223,0.07), 0 1px 0 rgba(255,255,255,0.8) inset;
-  }
-  .glass-card-solid {
-    background: rgba(255,255,255,0.88);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.6);
-    box-shadow: 0 4px 24px rgba(77,65,223,0.08);
-  }
-
-  /* Transitions */
-  .transition-snappy { transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1); }
-
-  /* Stat card hover */
-  .stat-card-hover {
-    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1),
-                box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-  .stat-card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(77,65,223,0.14), 0 1px 0 rgba(255,255,255,0.8) inset;
-  }
-
-  /* Action card hover */
-  .action-card-hover {
-    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1),
-                box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1),
-                border-color 0.22s ease;
-  }
-  .action-card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 36px rgba(77,65,223,0.13);
-    border-color: rgba(108,99,255,0.3);
-  }
-
-  /* Nav link */
-  .nav-item {
-    position: relative;
-    transition: color 0.18s ease, background 0.18s ease;
-  }
-  .nav-item::after { display: none; }
-  .nav-item.active { color: #6C63FF; }
-
-  /* Rolling counter */
-  .counter-value {
-    font-variant-numeric: tabular-nums;
-    transition: opacity 0.15s ease;
-  }
-
-  /* Activity feed item */
-  .feed-item {
-    transition: background 0.18s ease;
-  }
-  .feed-item:hover { background: rgba(108,99,255,0.04); }
-
-  /* Live pulse */
-  @keyframes livePulse {
-    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
-    50% { opacity: 0.7; transform: scale(0.85); box-shadow: 0 0 0 4px rgba(52,211,153,0); }
-  }
-  .live-dot { animation: livePulse 2.2s ease-in-out infinite; }
-
-  /* Staggered entrance */
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .enter { opacity: 0; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-  .enter-1 { animation-delay: 0.05s; }
-  .enter-2 { animation-delay: 0.10s; }
-  .enter-3 { animation-delay: 0.15s; }
-  .enter-4 { animation-delay: 0.20s; }
-  .enter-5 { animation-delay: 0.25s; }
-  .enter-6 { animation-delay: 0.30s; }
-  .enter-7 { animation-delay: 0.35s; }
-
-  /* Sandbox banner */
-  .sandbox-pill {
-    background: rgba(251,191,36,0.12);
-    border: 1px solid rgba(251,191,36,0.3);
-    color: #92400e;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.2); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.35); }
-
-  /* Material icon sizing helper */
-  .md-icon { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 300;
-    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
-    line-height: 1; user-select: none; }
-
-  /* Credit card accent stripe */
-  .credit-stripe {
-    background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%);
-  }
-
-  @keyframes intelligentDeskIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 768px) {
-    .nav-scroll { overflow-x: auto; }
-    .stats-cols { grid-template-columns: repeat(2, 1fr) !important; }
-    .bottom-cols { grid-template-columns: 1fr !important; }
-  }
-  @media (max-width: 480px) {
-    .stats-cols { grid-template-columns: 1fr !important; }
-  }
-</style>
 </head>
 
-<body class="text-on-surface">
-<div class="ambient-bg"></div>
+<!--
+  body starts in theme-dark so dark styles apply before React mounts
+  (avoids a flash of unstyled canvas)
+-->
+<body class="theme-dark">
 
-<div class="relative z-10 min-h-screen flex flex-col">
+<!-- React mount point -->
+<div id="react-root"></div>
 
-  <!-- ══ NAVBAR ══ -->
-  <nav class="glass-nav sticky top-0 z-50">
-    <div class="max-w-[1320px] mx-auto px-6 md:px-10">
-      <div class="flex items-center justify-between h-16 gap-6">
+<!-- ══════════════════════════════════════════════
+     REACT APPLICATION
+     ══════════════════════════════════════════════ -->
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-        <!-- Brand -->
-        <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
-          <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm">
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg>
-          </div>
-          <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
-        </a>
+/* ─── Helpers ─────────────────────────────────────────────────── */
 
-        <!-- Nav links -->
-        <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto no-scrollbar">
-          <a href="index.html"           class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">grid_view</span>Dashboard
-          </a>
-          <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">group</span>Teams
-          </a>
-          <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">support_agent</span>Agents
-          </a>
-          <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">campaign</span>Campaigns
-          </a>
-          <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">contacts</span>Contacts
-          </a>
-          <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">call</span>Calls
-          </a>
-          <a href="sms-logs.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">sms</span>SMS
-          </a>
-          <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5">
-            <span class="md-icon text-[17px]">settings</span>Settings
-          </a>
-        </div>
-
-        <!-- Right controls -->
-        <div class="flex items-center gap-3 shrink-0">
-          <!-- Avatar chip -->
-          <button onclick="signOut()"
-            class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
-            <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
-            <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-display-name">—</span>
-            <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ══ MAIN ══ -->
-  <main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
-
-    <!-- Sandbox banner -->
-    <div id="sandbox-banner" class="sandbox-pill hidden rounded-2xl px-5 py-3 flex items-center gap-3 enter enter-1">
-      <span class="md-icon text-amber-600 text-[20px]">warning</span>
-      <span class="text-[13px] font-medium">
-        <strong>Sandbox mode</strong> — Demo limits: 3 documents · 2 min voice. Records auto-purge in 2 hours.
-      </span>
-      <a href="settings.html" class="ml-auto text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 transition-snappy whitespace-nowrap">Upgrade →</a>
-    </div>
-
-    <!-- ── Greeting ── -->
-    <div class="enter enter-1">
-      <div class="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <h1 class="text-[28px] font-bold tracking-tight text-on-surface leading-tight" id="greeting-text">
-            Good morning ✨
-          </h1>
-          <p class="mt-1 text-[14.5px] text-on-surface-variant" id="subtitle-text">
-            Your compliance automation dashboard is live and ready.
-          </p>
-          <div class="mt-3 flex items-center gap-2 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full" id="role-badge">—</span>
-            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-on-surface-variant bg-surface-container border border-outline-variant px-3 py-1 rounded-full">
-              <span class="md-icon text-[14px]">business</span>
-              <span id="org-name">Loading…</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Quick launch -->
-        <a href="campaigns.html"
-          class="flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold text-[13px] shadow-md hover:shadow-lg transition-snappy credit-stripe whitespace-nowrap">
-          <span class="md-icon text-[18px]">add</span>
-          New Campaign
-        </a>
-      </div>
-    </div>
-
-    <!-- ── Intelligent Desk widget ── -->
-    <section id="intelligentDeskWidget" class="glass-card rounded-2xl overflow-hidden enter" style="animation-delay:0.18s;">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-[20px]" style="background:rgba(6,182,212,0.1);">🧠</div>
-          <div>
-            <h2 class="text-[15px] font-bold text-on-surface leading-tight">Intelligent Desk</h2>
-            <p class="text-[12px] text-on-surface-variant">Autonomous AI Financial Data Analyst &amp; Advisory Feed</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="metric-badge-neon-cyan">
-            Savings Found: <span id="txtTotalSavingsOdometer" class="mono-text">₹0.00</span>
-          </div>
-          <button id="refresh-insights-btn" onclick="refreshInsights()" title="Generate fresh AI insights"
-            class="w-8 h-8 rounded-lg flex items-center justify-center transition-snappy hover:bg-outline-variant/20"
-            style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);">
-            <span class="md-icon text-[17px]" style="color:#0e7490;" id="refresh-icon">refresh</span>
-          </button>
-        </div>
-      </div>
-      <div id="intelligentDeskStream" class="px-4 py-3 space-y-2">
-        <div class="stream-fallback-loading">
-          <div class="spinner-pulse"></div>
-          <span style="font-size:13px;color:#777587;">Scanning transaction ledgers…</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Stats row ── -->
-    <div class="grid gap-4 stats-cols" id="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
-
-      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-2">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl bg-[#e3dfff] flex items-center justify-center">
-            <span class="md-icon text-primary text-[20px]">group</span>
-          </div>
-          <span class="text-[11px] font-semibold text-primary bg-[#e3dfff] px-2.5 py-0.5 rounded-full">Active</span>
-        </div>
-        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="total-agents">—</div>
-        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Total Agents</div>
-      </div>
-
-      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-2" style="animation-delay:0.07s">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-            <span class="md-icon text-emerald-600 text-[20px]">diversity_3</span>
-          </div>
-          <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">Running</span>
-        </div>
-        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="active-teams">—</div>
-        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Active Teams</div>
-      </div>
-
-      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-3" style="animation-delay:0.10s">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-            <span class="md-icon text-amber-600 text-[20px]">verified</span>
-          </div>
-          <span class="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">24 h</span>
-        </div>
-        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="compliance-rate">—</div>
-        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Compliance Rate</div>
-      </div>
-
-      <div class="glass-card stat-card-hover rounded-2xl p-5 enter enter-4" style="animation-delay:0.13s">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-            <span class="md-icon text-violet-600 text-[20px]">campaign</span>
-          </div>
-          <span class="text-[11px] font-semibold text-violet-700 bg-violet-50 px-2.5 py-0.5 rounded-full">Live</span>
-        </div>
-        <div class="counter-value text-[30px] font-bold tracking-tight text-on-surface leading-none mb-1" id="active-campaigns">—</div>
-        <div class="text-[12px] font-medium text-on-surface-variant uppercase tracking-wide">Campaigns</div>
-      </div>
-
-      <!-- Credit card — accent design -->
-      <div class="credit-stripe stat-card-hover rounded-2xl p-5 enter enter-5 relative overflow-hidden cursor-default" style="animation-delay:0.16s">
-        <!-- Decorative circles -->
-        <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-        <div class="absolute -right-1 top-8 w-10 h-10 rounded-full bg-white/10"></div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-            <span class="md-icon text-white text-[20px]">wallet</span>
-          </div>
-          <span class="text-[11px] font-semibold text-white/90 bg-white/20 px-2.5 py-0.5 rounded-full" id="credit-badge">Balance</span>
-        </div>
-        <div class="counter-value text-[30px] font-bold tracking-tight text-white leading-none mb-1" id="credit-balance">—</div>
-        <div class="text-[12px] font-semibold text-white/70 uppercase tracking-wide">Credits</div>
-      </div>
-
-    </div>
-
-    <!-- ── Bottom grid: actions + feed ── -->
-    <div class="grid gap-6 bottom-cols" style="grid-template-columns: 1fr 360px;">
-
-      <!-- Quick actions -->
-      <div class="enter enter-5">
-        <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Quick actions</p>
-        <div class="grid grid-cols-2 gap-4">
-
-          <a href="team-management.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
-            <div class="w-11 h-11 rounded-xl bg-[#e3dfff] flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
-              <span class="md-icon text-primary text-[22px]">group</span>
-            </div>
-            <h3 class="font-bold text-[15px] text-on-surface mb-1">Team Management</h3>
-            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Organise compliance teams and assign roles</p>
-            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-snappy">
-              Open <span class="md-icon text-[15px]">arrow_forward</span>
-            </span>
-          </a>
-
-          <a href="agent-detail.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
-            <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
-              <span class="md-icon text-emerald-600 text-[22px]">support_agent</span>
-            </div>
-            <h3 class="font-bold text-[15px] text-on-surface mb-1">Agent Details</h3>
-            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">View profiles, performance, and assignments</p>
-            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-600 opacity-0 group-hover:opacity-100 transition-snappy">
-              Open <span class="md-icon text-[15px]">arrow_forward</span>
-            </span>
-          </a>
-
-          <a href="campaigns.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
-            <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
-              <span class="md-icon text-violet-600 text-[22px]">campaign</span>
-            </div>
-            <h3 class="font-bold text-[15px] text-on-surface mb-1">Campaigns</h3>
-            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Launch outbound calls, chasers and reminders</p>
-            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-violet-600 opacity-0 group-hover:opacity-100 transition-snappy">
-              Open <span class="md-icon text-[15px]">arrow_forward</span>
-            </span>
-          </a>
-
-          <a href="call-logs.html" class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline block group">
-            <div class="w-11 h-11 rounded-xl bg-cyan-50 flex items-center justify-center mb-4 transition-snappy group-hover:scale-110">
-              <span class="md-icon text-cyan-600 text-[22px]">call_log</span>
-            </div>
-            <h3 class="font-bold text-[15px] text-on-surface mb-1">Call Logs</h3>
-            <p class="text-[12.5px] text-on-surface-variant leading-relaxed">Review transcripts, outcomes, and durations</p>
-            <span class="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-cyan-600 opacity-0 group-hover:opacity-100 transition-snappy">
-              Open <span class="md-icon text-[15px]">arrow_forward</span>
-            </span>
-          </a>
-
-        </div>
-      </div>
-
-      <!-- Activity feed -->
-      <div class="enter enter-6">
-        <div class="flex items-center justify-between mb-4">
-          <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest">Recent activity</p>
-          <div class="flex items-center gap-1.5 text-[11.5px] font-semibold text-emerald-600">
-            <span class="live-dot w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-            Live
-          </div>
-        </div>
-
-        <div class="glass-card rounded-2xl overflow-hidden">
-          <div id="activity-list" class="divide-y divide-outline-variant/40">
-            <!-- Populated by JS -->
-            <div class="px-5 py-10 text-center text-[13px] text-on-surface-variant" id="feed-loading">
-              <span class="md-icon text-[28px] text-outline-variant block mb-2">hourglass_empty</span>
-              Loading activity…
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── Developer portal entry (role-gated) ── -->
-    <div id="developer-section" class="enter enter-7" style="display:none;">
-      <p class="text-[11.5px] font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Developer</p>
-      <a href="developer/index.html" id="developer-link"
-        class="glass-card-solid action-card-hover rounded-2xl p-6 no-underline flex items-center gap-5 group">
-        <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 transition-snappy group-hover:scale-110">
-          <span class="md-icon text-violet-600 text-[24px]">terminal</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-[15px] text-on-surface mb-1">Developer Portal</h3>
-          <p class="text-[13px] text-on-surface-variant">API keys, webhooks, models, usage analytics and vault configuration.</p>
-        </div>
-        <span class="md-icon text-[22px] text-outline-variant group-hover:text-violet-600 group-hover:translate-x-1 transition-snappy">arrow_forward</span>
-      </a>
-    </div>
-
-  </main>
-
-  <!-- Footer spacer -->
-  <div class="h-8"></div>
-</div>
-
-<script>
-// ── State ──────────────────────────────────────────────
-let currentUser = null;
-let currentLanguage = (typeof getCurrentLanguage === 'function') ? getCurrentLanguage() : 'ENGLISH';
-document.getElementById('language-selector').value = currentLanguage;
-
-// ── Rolling counter ────────────────────────────────────
-function animateCounter(el, target, suffix = '', duration = 950) {
+function animateCounterById(id, target, suffix = '', duration = 950) {
+  const el = document.getElementById(id);
+  if (!el) return;
   if (isNaN(parseFloat(target))) { el.textContent = target + suffix; return; }
   const numTarget = parseFloat(target);
   const start = performance.now();
-  function tick(now) {
-    const p = Math.min((now - start) / duration, 1);
+  (function tick(now) {
+    const p     = Math.min((now - start) / duration, 1);
     const eased = 1 - Math.pow(1 - p, 3);
-    const val = numTarget * eased;
-    el.textContent = (Number.isInteger(numTarget) ? Math.round(val) : val.toFixed(1)) + suffix;
+    const val   = numTarget * eased;
+    el.textContent = (Number.isInteger(numTarget)
+      ? Math.round(val)
+      : val.toFixed(1)) + suffix;
     if (p < 1) requestAnimationFrame(tick);
     else el.textContent = target + suffix;
-  }
-  requestAnimationFrame(tick);
+  })(start);
 }
 
-// ── Greeting ───────────────────────────────────────────
 function buildGreeting(name) {
-  const istHour = new Date(Date.now() + 5.5 * 3600 * 1000).getUTCHours();
-  if (istHour >= 5  && istHour < 12) return `Good morning, ${name} ✨`;
-  if (istHour >= 12 && istHour < 17) return `Good afternoon, ${name} ☀️`;
-  if (istHour >= 17 && istHour < 21) return `Good evening, ${name} 🌇`;
+  const h = new Date(Date.now() + 5.5 * 3600 * 1000).getUTCHours();
+  if (h >= 5  && h < 12) return `Good morning, ${name} ✨`;
+  if (h >= 12 && h < 17) return `Good afternoon, ${name} ☀️`;
+  if (h >= 17 && h < 21) return `Good evening, ${name} 🌇`;
   return `Working late, ${name} 🌙`;
 }
 
-// ── Activity feed ──────────────────────────────────────
 function fmtAgo(iso) {
   const d = Date.now() - new Date(iso);
-  if (d < 60000)    return 'Just now';
-  if (d < 3600000)  return Math.floor(d / 60000) + 'm ago';
-  if (d < 86400000) return Math.floor(d / 3600000) + 'h ago';
-  if (d < 172800000)return 'Yesterday';
-  return new Date(iso).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+  if (d < 60000)     return 'Just now';
+  if (d < 3600000)   return `${Math.floor(d / 60000)}m ago`;
+  if (d < 86400000)  return `${Math.floor(d / 3600000)}h ago`;
+  if (d < 172800000) return 'Yesterday';
+  return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-async function loadActivityFeed() {
+/* ─── Data loaders ────────────────────────────────────────────── */
+
+async function loadStats(onSandbox) {
+  const ids = ['total-agents','active-teams','compliance-rate','active-campaigns','credit-balance'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('skeleton'); el.style.borderRadius = '6px'; }
+  });
+
   try {
-    // Fetch recent calls
+    const db = window.supabase;
+
+    const [{ count: agents }, { count: teams }, { count: campaigns }] = await Promise.all([
+      db.from('user_profiles').select('*', { count: 'exact', head: true }),
+      db.from('teams').select('*', { count: 'exact', head: true }),
+      db.from('outbound_campaigns').select('*', { count: 'exact', head: true }).in('status', ['processing','scheduled']),
+    ]);
+
+    animateCounterById('total-agents',    agents    ?? 0);
+    animateCounterById('active-teams',    teams     ?? 0);
+    animateCounterById('active-campaigns', campaigns ?? 0);
+
+    const { data: org } = await db.from('organizations')
+      .select('credit_balance, billing_status').single();
+
+    if (org) {
+      animateCounterById('credit-balance', Math.round(org.credit_balance ?? 0));
+      const badge = document.getElementById('credit-badge');
+      if (org.billing_status === 'guest_trial') {
+        onSandbox(true);
+        if (badge) badge.textContent = 'Sandbox';
+      }
+      if (org.billing_status === 'past_due' && badge) {
+        badge.textContent = 'Past due';
+        badge.style.background = 'rgba(244,63,94,0.14)';
+        badge.style.color = '#f43f5e';
+      }
+    }
+  } catch (e) {
+    console.warn('[Stats]', e);
+  }
+
+  /* Call success rate */
+  try {
+    const { data: rows } = await window.supabase.from('call_logs').select('status');
+    if (rows && rows.length) {
+      const rate = Math.round(rows.filter(r => r.status === 'completed').length / rows.length * 100);
+      setTimeout(() => animateCounterById('compliance-rate', rate, '%'), 180);
+    } else {
+      const el = document.getElementById('compliance-rate');
+      if (el) el.textContent = '—';
+    }
+  } catch {
+    const el = document.getElementById('compliance-rate');
+    if (el) el.textContent = '—';
+  }
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('skeleton'); el.style.borderRadius = ''; }
+  });
+}
+
+async function loadFeed() {
+  try {
     const { data: calls } = await window.supabase
       .from('call_logs')
       .select('contact_name, status, created_at')
@@ -573,273 +155,552 @@ async function loadActivityFeed() {
       .limit(6);
 
     if (calls && calls.length) {
-      const items = calls.map(c => {
-        const done = c.status === 'completed';
-        const failed = c.status === 'failed' || c.status === 'no_answer' || c.status === 'no-answer';
+      return calls.map(c => {
+        const done   = c.status === 'completed';
+        const failed = ['failed','no_answer','no-answer'].includes(c.status);
         return {
           icon:  done ? 'call' : failed ? 'call_missed' : 'call_made',
-          bg:    done ? 'bg-emerald-50' : failed ? 'bg-red-50' : 'bg-[#e3dfff]',
-          color: done ? 'text-emerald-600' : failed ? 'text-red-500' : 'text-primary',
-          text:  (done ? 'Call completed' : failed ? 'Call missed' : 'Call in progress') +
-                 (c.contact_name ? ` — ${c.contact_name}` : ''),
-          time:  fmtAgo(c.created_at)
+          bg:    done ? 'rgba(74,222,128,0.10)'  : failed ? 'rgba(244,63,94,0.10)'  : 'rgba(163,255,18,0.10)',
+          color: done ? '#4ade80'                : failed ? '#f43f5e'               : '#a3ff12',
+          text: (done ? 'Call completed' : failed ? 'Call missed' : 'Call in progress') +
+                (c.contact_name ? ` — ${c.contact_name}` : ''),
+          time: fmtAgo(c.created_at),
         };
       });
-      renderFeed(items);
-      return;
     }
-  } catch { /* fall through to placeholder */ }
-
-  // Empty state — no calls yet
-  renderFeed([]);
+  } catch {}
+  return [];
 }
 
-function renderFeed(items) {
-  const list = document.getElementById('activity-list');
-  if (!items.length) {
-    list.innerHTML = '<div class="px-5 py-8 text-center text-[13px] text-on-surface-variant">No recent activity.</div>';
-    return;
-  }
-  list.innerHTML = items.map((item, i) => `
-    <div class="feed-item flex items-start gap-3 px-5 py-3.5 cursor-default"
-         style="animation: slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i * 55}ms both">
-      <div class="w-8 h-8 rounded-xl ${item.bg} flex items-center justify-center shrink-0 mt-0.5">
-        <span class="md-icon ${item.color} text-[17px]">${item.icon}</span>
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-[13px] font-medium text-on-surface leading-snug truncate">${item.text}</p>
-        <p class="text-[11.5px] text-on-surface-variant mt-0.5">${item.time}</p>
-      </div>
+/* ─── ClearDesk Logo SVG ──────────────────────────────────────── */
+function ClearDeskLogo({ size = 18 }) {
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none"
+         style={{ width: size, height: size }}>
+      <defs>
+        <mask id="cdmask">
+          <rect width="100" height="100" fill="white"/>
+          <circle cx="50" cy="50" r="20.5" fill="black"/>
+          <polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/>
+        </mask>
+      </defs>
+      <path fill="currentColor" mask="url(#cdmask)"
+        d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25
+           L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99
+           L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66
+           L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65
+           L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75
+           L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01
+           L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34
+           L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 Z"/>
+    </svg>
+  );
+}
+
+/* ─── AmbientCanvas ───────────────────────────────────────────── */
+function AmbientCanvas() {
+  return (
+    <div className="ambient-canvas" aria-hidden="true">
+      <div className="orb orb-1"/>
+      <div className="orb orb-2"/>
+      <div className="orb orb-3"/>
+      <div className="grid-overlay"/>
     </div>
-  `).join('');
+  );
 }
 
-// ── Translations ───────────────────────────────────────
-function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (typeof t === 'function') el.textContent = t(key, currentLanguage);
-  });
+/* ─── TopNav ──────────────────────────────────────────────────── */
+const NAV_LINKS = [
+  { href: 'index.html',            icon: 'grid_view',     label: 'Dashboard',  active: true },
+  { href: 'team-management.html',  icon: 'group',         label: 'Teams' },
+  { href: 'agent-detail.html',     icon: 'support_agent', label: 'Agents' },
+  { href: 'campaigns.html',        icon: 'campaign',      label: 'Campaigns' },
+  { href: 'contacts.html',         icon: 'contacts',      label: 'Contacts' },
+  { href: 'call-logs.html',        icon: 'call',          label: 'Calls' },
+  { href: 'sms-logs.html',         icon: 'sms',           label: 'SMS' },
+  { href: 'settings.html',         icon: 'settings',      label: 'Settings' },
+];
+
+function TopNav({ user, onSignOut, dark, onThemeToggle }) {
+  return (
+    <nav className="top-nav">
+      <div className="nav-inner">
+        {/* Brand */}
+        <a href="index.html" className="brand-link">
+          <div className="brand-icon">
+            <ClearDeskLogo size={18}/>
+          </div>
+          <span className="brand-name">ClearDesk</span>
+        </a>
+
+        {/* Navigation links */}
+        <div className="nav-links">
+          {NAV_LINKS.map(({ href, icon, label, active }) => (
+            <a key={href} href={href}
+               className={`nav-link${active ? ' nav-link--active' : ''}`}>
+              <span className="md-icon" style={{ fontSize: 16 }}>{icon}</span>
+              {label}
+            </a>
+          ))}
+        </div>
+
+        {/* Right controls */}
+        <div className="nav-right">
+          <button className="theme-toggle" onClick={onThemeToggle}
+                  title={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <span className="md-icon" style={{ fontSize: 17 }}>
+              {dark ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+
+          <button className="user-chip" onClick={onSignOut}>
+            <div className="user-avatar">{user?.initials || '—'}</div>
+            <span className="user-name">{user?.firstName || '—'}</span>
+            <span className="md-icon user-logout-icon" style={{ fontSize: 14 }}>logout</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
 }
 
-async function changeLanguage(lang) {
-  if (lang) currentLanguage = lang;
-  if (typeof setLanguage === 'function') setLanguage(currentLanguage);
-  if (currentUser && typeof updateLanguage === 'function') await updateLanguage(currentLanguage);
-  applyTranslations();
+/* ─── SandboxBanner ───────────────────────────────────────────── */
+function SandboxBanner({ show }) {
+  if (!show) return null;
+  return (
+    <div className="sandbox-banner enter enter-1">
+      <span className="md-icon" style={{ color: '#fbbf24', fontSize: 20 }}>warning</span>
+      <span className="sandbox-text">
+        <strong>Sandbox mode</strong> — Demo limits: 3 documents · 2 min voice.
+        Records auto-purge in 2 hours.
+      </span>
+      <a href="settings.html" className="sandbox-upgrade">Upgrade →</a>
+    </div>
+  );
 }
 
-// ── Stats ──────────────────────────────────────────────
-function showStatSkeletons() {
-  // Pulse the counter elements while loading
-  ['total-agents','active-teams','compliance-rate','active-campaigns','credit-balance'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.classList.add('skeleton'); el.style.borderRadius = '6px'; el.style.color = 'transparent'; }
-  });
-}
-function hideStatSkeletons() {
-  ['total-agents','active-teams','compliance-rate','active-campaigns','credit-balance'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) { el.classList.remove('skeleton'); el.style.color = ''; el.style.borderRadius = ''; }
-  });
-}
-
-async function loadStats() {
-  showStatSkeletons();
-  try {
-    const client = window.supabase;
-
-    // Agents
-    const { count: agents } = await client.from('user_profiles')
-      .select('*', { count: 'exact', head: true });
-    animateCounter(document.getElementById('total-agents'), agents ?? 0);
-
-    // Teams
-    const { count: teams } = await client.from('teams')
-      .select('*', { count: 'exact', head: true });
-    animateCounter(document.getElementById('active-teams'), teams ?? 0);
-
-    // Live campaigns
-    const { count: campaigns } = await client.from('outbound_campaigns')
-      .select('*', { count: 'exact', head: true })
-      .in('status', ['processing', 'scheduled']);
-    animateCounter(document.getElementById('active-campaigns'), campaigns ?? 0);
-
-    // Credits
-    const { data: org } = await client.from('organizations')
-      .select('credit_balance, billing_status').single();
-    if (org) {
-      animateCounter(document.getElementById('credit-balance'), Math.round(org.credit_balance ?? 0));
-      if (org.billing_status === 'guest_trial') {
-        document.getElementById('sandbox-banner').classList.remove('hidden');
-        document.getElementById('credit-badge').textContent = 'Sandbox';
-      }
-      if (org.billing_status === 'past_due') {
-        document.getElementById('credit-badge').textContent = 'Past due';
-        document.getElementById('credit-badge').classList.add('bg-red-200/30', 'text-red-100');
-      }
-    }
-  } catch (e) {
-    console.warn('Stats error:', e);
-  }
-
-  // Call success rate from call_logs
-  try {
-    const { data: callStats } = await client
-      .from('call_logs')
-      .select('status');
-    if (callStats && callStats.length) {
-      const completed = callStats.filter(r => r.status === 'completed').length;
-      const rate = Math.round((completed / callStats.length) * 100);
-      setTimeout(() => animateCounter(document.getElementById('compliance-rate'), rate, '%'), 180);
-    } else {
-      document.getElementById('compliance-rate').textContent = '—';
-    }
-  } catch {
-    document.getElementById('compliance-rate').textContent = '—';
-  }
-  hideStatSkeletons();
-}
-
-// ── Role badge ─────────────────────────────────────────
+/* ─── GreetingSection ─────────────────────────────────────────── */
 const ROLE_STYLES = {
-  DEVELOPER: 'bg-violet-100 text-violet-700 border border-violet-200',
-  ORG_ADMIN: 'bg-[#e3dfff] text-primary border border-[#c4c0ff]',
-  ORG_STAFF: 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+  DEVELOPER: { bg: 'rgba(163,255,18,0.12)', color: '#a3ff12', border: 'rgba(163,255,18,0.24)' },
+  ORG_ADMIN: { bg: 'rgba(163,255,18,0.08)', color: '#a3ff12', border: 'rgba(163,255,18,0.18)' },
+  ORG_STAFF: { bg: 'rgba(74,222,128,0.10)', color: '#4ade80', border: 'rgba(74,222,128,0.22)' },
 };
 const ROLE_LABELS = { DEVELOPER: 'Developer', ORG_ADMIN: 'Admin', ORG_STAFF: 'Staff' };
 
-// ── Bootstrap ──────────────────────────────────────────
-async function loadDashboard() {
-  await checkMaintenanceMode();
-  currentUser = await getCurrentUser();
-  if (!currentUser) { location.href = 'login.html'; return; }
+function GreetingSection({ user }) {
+  const rs = ROLE_STYLES[user?.role] || ROLE_STYLES.ORG_STAFF;
+  return (
+    <div className="greeting-section enter enter-1">
+      <div>
+        <h1 className="greeting-text">{user?.greeting || 'Good morning ✨'}</h1>
+        <p className="greeting-sub">Your compliance automation dashboard is live and ready.</p>
+        <div className="greeting-badges">
+          <span className="role-badge"
+                style={{ background: rs.bg, color: rs.color, borderColor: rs.border }}>
+            {ROLE_LABELS[user?.role] || user?.role || '—'}
+          </span>
+          <span className="org-badge">
+            <span className="md-icon" style={{ fontSize: 13 }}>business</span>
+            {user?.org || 'Your Organisation'}
+          </span>
+        </div>
+      </div>
+      <a href="campaigns.html" className="new-campaign-btn">
+        <span className="md-icon" style={{ fontSize: 18 }}>add</span>
+        New Campaign
+      </a>
+    </div>
+  );
+}
 
-  // Language preference
-  if (currentUser.preferred_language) {
-    currentLanguage = currentUser.preferred_language;
-    localStorage.setItem('preferredLanguage', currentLanguage);
-  }
+/* ─── IntelligentDeskWidget ───────────────────────────────────── */
+function IntelligentDeskWidget() {
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Resolve name — read directly from Supabase session metadata
-  // in case getCurrentUser fallback chain didn't catch it
-  let name = currentUser.display_name || currentUser.full_name || '';
-  if (!name || name === currentUser.email) {
-    // Read raw from session
+  /* Trigger IntelligentDesk after mount (gives intelligent-desk.js
+     time to run and initialise window.IntelligentDesk) */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (window.IntelligentDesk && typeof window.IntelligentDesk.load === 'function') {
+        window.IntelligentDesk.load();
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
     try {
       const { data: { session } } = await window.supabase.auth.getSession();
-      const meta = session?.user?.user_metadata || {};
-      name = meta.full_name || meta.display_name || meta.name || '';
-    } catch(_) {}
-  }
-  // Final fallback: use part before @ in email
-  if (!name) name = (currentUser.email || '').split('@')[0];
-  // Capitalise first letter of each word
-  name = name.replace(/\b\w/g, c => c.toUpperCase());
-
-  document.getElementById('greeting-text').textContent = buildGreeting(name);
-
-  // Avatar initials from full name
-  const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials || (name[0] || '?').toUpperCase();
-
-  // Show first name only on logout chip
-  const firstName = name.split(' ')[0];
-  document.getElementById('user-display-name').textContent = firstName;
-
-  // Org
-  document.getElementById('org-name').textContent =
-    currentUser.organization_name || 'Your Organisation';
-
-  // Role badge
-  const badge = document.getElementById('role-badge');
-  badge.textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
-  badge.className = 'inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full ' +
-    (ROLE_STYLES[currentUser.role] || 'bg-surface-container text-on-surface-variant');
-
-  // Developer nav
-  if (currentUser.role === 'DEVELOPER') {
-    document.getElementById('developer-section').style.display = 'block';
-  }
-
-  // Load data
-  await loadStats();
-  await loadActivityFeed();
-  applyTranslations();
-}
-
-loadDashboard();
-
-// ── Refresh AI insights ────────────────────────────────────────
-async function refreshInsights() {
-  const btn  = document.getElementById('refresh-insights-btn');
-  const icon = document.getElementById('refresh-icon');
-  if (!btn || btn.disabled) return;
-
-  btn.disabled = true;
-  icon.style.animation = 'spin 1s linear infinite';
-
-  try {
-    const { data: { session } } = await window.supabase.auth.getSession();
-    if (!session) return;
-
-    const supabaseUrl = (window.supabase.supabaseUrl || '').replace(/\/$/, '');
-    const res = await fetch(`${supabaseUrl}/functions/v1/generate-insights`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await res.json();
-    if (res.ok && data.insights_generated > 0) {
-      // Reload the Intelligent Desk stream
-      if (window.IntelligentDesk) window.IntelligentDesk.load();
-    } else if (!res.ok) {
-      console.warn('[Insights] generate failed:', data.error);
+      if (!session) return;
+      const base = (window.supabase.supabaseUrl || '').replace(/\/$/, '');
+      const res  = await fetch(`${base}/functions/v1/generate-insights`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type':  'application/json',
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.insights_generated > 0) {
+        window.IntelligentDesk?.load?.();
+      }
+    } catch (e) {
+      console.warn('[Insights]', e.message);
+    } finally {
+      setRefreshing(false);
     }
-  } catch(e) {
-    console.warn('[Insights] refresh error:', e.message);
-  } finally {
-    btn.disabled = false;
-    icon.style.animation = '';
-  }
+  }, [refreshing]);
+
+  return (
+    <section id="intelligentDeskWidget"
+             className="glass-panel i-desk-widget enter"
+             style={{ animationDelay: '0.18s' }}>
+      <div className="i-desk-header">
+        <div className="i-desk-title-group">
+          <div className="i-desk-icon-wrap">🧠</div>
+          <div>
+            <h2 className="i-desk-title">Intelligent Desk</h2>
+            <p className="i-desk-sub">Autonomous AI Financial Data Analyst &amp; Advisory Feed</p>
+          </div>
+        </div>
+        <div className="i-desk-controls">
+          <div className="metric-badge-neon-cyan">
+            Savings Found:&nbsp;
+            <span id="txtTotalSavingsOdometer" className="mono-text">₹0.00</span>
+          </div>
+          <button id="refresh-insights-btn"
+                  className={`refresh-btn${refreshing ? ' refreshing' : ''}`}
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  title="Generate fresh AI insights">
+            <span className="md-icon" id="refresh-icon" style={{ fontSize: 17 }}>refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Stream target — populated by intelligent-desk.js */}
+      <div id="intelligentDeskStream" className="i-desk-stream">
+        <div className="stream-fallback-loading">
+          <div className="spinner-pulse"/>
+          <span>Scanning transaction ledgers…</span>
+        </div>
+      </div>
+    </section>
+  );
 }
+
+/* ─── StatCard ────────────────────────────────────────────────── */
+function StatCard({ id, icon, iconBg, iconColor, label, badge, badgeBg, badgeColor, delay }) {
+  return (
+    <div className="stat-card glass-panel enter" style={{ animationDelay: delay }}>
+      <div className="stat-card-header">
+        <div className="stat-icon-wrap" style={{ background: iconBg }}>
+          <span className="md-icon" style={{ color: iconColor, fontSize: 20 }}>{icon}</span>
+        </div>
+        <span className="stat-badge"
+              style={{ background: badgeBg, color: badgeColor }}>{badge}</span>
+      </div>
+      <div className="stat-value counter-value" id={id}>—</div>
+      <div className="stat-label">{label}</div>
+    </div>
+  );
+}
+
+/* ─── CreditTile ──────────────────────────────────────────────── */
+function CreditTile({ delay }) {
+  return (
+    <div className="credit-card-tile enter" style={{ animationDelay: delay }}>
+      <div className="credit-orb credit-orb-1"/>
+      <div className="credit-orb credit-orb-2"/>
+      <div className="credit-card-header">
+        <div className="credit-icon-wrap">
+          <span className="md-icon" style={{ color: '#fff', fontSize: 20 }}>wallet</span>
+        </div>
+        <span className="credit-badge-pill" id="credit-badge">Balance</span>
+      </div>
+      <div className="stat-value credit-value counter-value" id="credit-balance">—</div>
+      <div className="credit-label">Credits</div>
+    </div>
+  );
+}
+
+/* ─── StatsGrid ───────────────────────────────────────────────── */
+function StatsGrid() {
+  return (
+    <div className="stats-grid">
+      <StatCard id="total-agents"
+        icon="group"       iconBg="rgba(163,255,18,0.10)"  iconColor="#a3ff12"
+        label="Total Agents"   badge="Active"  badgeBg="rgba(163,255,18,0.10)"  badgeColor="#a3ff12"
+        delay="0.08s"/>
+      <StatCard id="active-teams"
+        icon="diversity_3" iconBg="rgba(74,222,128,0.10)"  iconColor="#4ade80"
+        label="Active Teams"   badge="Running" badgeBg="rgba(74,222,128,0.10)"  badgeColor="#4ade80"
+        delay="0.11s"/>
+      <StatCard id="compliance-rate"
+        icon="verified"    iconBg="rgba(251,191,36,0.10)"  iconColor="#fbbf24"
+        label="Compliance Rate" badge="24 h"  badgeBg="rgba(251,191,36,0.10)"  badgeColor="#fbbf24"
+        delay="0.14s"/>
+      <StatCard id="active-campaigns"
+        icon="campaign"    iconBg="rgba(167,139,250,0.10)" iconColor="#a78bfa"
+        label="Campaigns"      badge="Live"   badgeBg="rgba(167,139,250,0.10)" badgeColor="#a78bfa"
+        delay="0.17s"/>
+      <CreditTile delay="0.20s"/>
+    </div>
+  );
+}
+
+/* ─── ActionCard ──────────────────────────────────────────────── */
+function ActionCard({ href, icon, iconBg, iconColor, accentColor, title, desc, delay }) {
+  return (
+    <a href={href} className="action-card glass-panel enter" style={{ animationDelay: delay }}>
+      <div className="action-icon-wrap" style={{ background: iconBg }}>
+        <span className="md-icon" style={{ color: iconColor, fontSize: 22 }}>{icon}</span>
+      </div>
+      <h3 className="action-title">{title}</h3>
+      <p className="action-desc">{desc}</p>
+      <span className="action-arrow" style={{ color: accentColor }}>
+        Open&nbsp;<span className="md-icon" style={{ fontSize: 15 }}>arrow_forward</span>
+      </span>
+    </a>
+  );
+}
+
+/* ─── ActivityFeed ────────────────────────────────────────────── */
+function ActivityFeed({ items, loading }) {
+  if (loading) {
+    return (
+      <div className="glass-panel activity-feed-panel">
+        {[0,1,2,3,4].map(i => (
+          <div key={i} className="skeleton-feed">
+            <div className="skeleton sk-dot"/>
+            <div className="sk-text">
+              <div className="skeleton sk-t1"/>
+              <div className="skeleton sk-t2"/>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (!items || !items.length) {
+    return (
+      <div className="glass-panel activity-feed-panel">
+        <div className="feed-empty">No recent activity.</div>
+      </div>
+    );
+  }
+  return (
+    <div className="glass-panel activity-feed-panel">
+      {items.map((item, i) => (
+        <div key={i} className="feed-item"
+             style={{ animationDelay: `${i * 55}ms` }}>
+          <div className="feed-icon-wrap" style={{ background: item.bg }}>
+            <span className="md-icon" style={{ color: item.color, fontSize: 17 }}>{item.icon}</span>
+          </div>
+          <div className="feed-content">
+            <p className="feed-text">{item.text}</p>
+            <p className="feed-time">{item.time}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── DeveloperSection ────────────────────────────────────────── */
+function DeveloperSection({ show }) {
+  if (!show) return null;
+  return (
+    <div className="developer-section enter enter-7">
+      <span className="section-label">Developer</span>
+      <a href="developer/index.html" className="developer-card glass-panel">
+        <div className="dev-icon-wrap">
+          <span className="md-icon" style={{ color: '#a3ff12', fontSize: 24 }}>terminal</span>
+        </div>
+        <div className="dev-card-content">
+          <h3 className="dev-card-title">Developer Portal</h3>
+          <p className="dev-card-desc">
+            API keys, webhooks, models, usage analytics and vault configuration.
+          </p>
+        </div>
+        <span className="md-icon dev-card-arrow">arrow_forward</span>
+      </a>
+    </div>
+  );
+}
+
+/* ─── OfflineBanner ───────────────────────────────────────────── */
+function OfflineBanner({ visible, message, type }) {
+  return (
+    <div id="offline-banner"
+         className={`offline-banner${visible ? ' show' : ''}${type ? ` ${type}` : ''}`}>
+      <span className="ob-icon md-icon">wifi_off</span>
+      <span>{message || 'You appear to be offline'}</span>
+    </div>
+  );
+}
+
+/* ─── Root App ────────────────────────────────────────────────── */
+function ClearDeskApp() {
+  const [dark,        setDark]        = useState(true);
+  const [user,        setUser]        = useState(null);
+  const [sandbox,     setSandbox]     = useState(false);
+  const [feedItems,   setFeedItems]   = useState(null);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [showDev,     setShowDev]     = useState(false);
+  const [offline,     setOffline]     = useState({ visible: false, msg: '', type: '' });
+
+  /* ── Theme sync ── */
+  useEffect(() => {
+    document.body.classList.toggle('theme-dark',  dark);
+    document.body.classList.toggle('theme-light', !dark);
+  }, [dark]);
+
+  /* ── Connection monitor ── */
+  useEffect(() => {
+    const goOffline = () =>
+      setOffline({ visible: true, msg: 'You appear to be offline', type: 'warn' });
+    const goOnline = () => {
+      setOffline({ visible: true, msg: 'Back online ✓', type: 'ok' });
+      setTimeout(() => setOffline(o => ({ ...o, visible: false })), 2500);
+    };
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online',  goOnline);
+    return () => {
+      window.removeEventListener('offline', goOffline);
+      window.removeEventListener('online',  goOnline);
+    };
+  }, []);
+
+  /* ── Bootstrap ── */
+  useEffect(() => {
+    (async () => {
+      try { await checkMaintenanceMode?.(); } catch {}
+
+      const raw = await getCurrentUser?.();
+      if (!raw) { location.href = 'login.html'; return; }
+
+      /* Resolve display name */
+      let name = raw.display_name || raw.full_name || '';
+      if (!name || name === raw.email) {
+        try {
+          const { data: { session } } = await window.supabase.auth.getSession();
+          const meta = session?.user?.user_metadata || {};
+          name = meta.full_name || meta.display_name || meta.name || '';
+        } catch {}
+      }
+      if (!name) name = (raw.email || '').split('@')[0];
+      name = name.replace(/\b\w/g, c => c.toUpperCase());
+
+      const initials   = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+                          || (name[0] || '?').toUpperCase();
+      const firstName  = name.split(' ')[0];
+
+      setUser({ raw, name, initials, firstName, role: raw.role,
+                org: raw.organization_name || 'Your Organisation',
+                greeting: buildGreeting(name) });
+
+      if (raw.role === 'DEVELOPER') setShowDev(true);
+
+      /* Load data */
+      await loadStats(setSandbox);
+      const feed = await loadFeed();
+      setFeedItems(feed);
+      setFeedLoading(false);
+
+      /* Language preference */
+      if (raw.preferred_language && typeof setLanguage === 'function') {
+        setLanguage(raw.preferred_language);
+      }
+    })();
+  }, []);
+
+  const handleSignOut     = useCallback(() => { if (typeof signOut === 'function') signOut(); }, []);
+  const handleThemeToggle = useCallback(() => setDark(d => !d), []);
+
+  return (
+    <>
+      <AmbientCanvas/>
+      <div className="app-shell">
+        <TopNav
+          user={user}
+          onSignOut={handleSignOut}
+          dark={dark}
+          onThemeToggle={handleThemeToggle}
+        />
+
+        <main className="main-content">
+          <SandboxBanner show={sandbox}/>
+
+          <GreetingSection user={user}/>
+
+          <IntelligentDeskWidget/>
+
+          <StatsGrid/>
+
+          {/* ── Bottom grid ── */}
+          <div className="bottom-grid">
+
+            {/* Quick actions */}
+            <div className="enter enter-5">
+              <span className="section-label">Quick actions</span>
+              <div className="actions-grid">
+                <ActionCard
+                  href="team-management.html"
+                  icon="group"         iconBg="rgba(163,255,18,0.10)"  iconColor="#a3ff12" accentColor="#a3ff12"
+                  title="Team Management"  desc="Organise compliance teams and assign roles"
+                  delay="0.22s"/>
+                <ActionCard
+                  href="agent-detail.html"
+                  icon="support_agent" iconBg="rgba(74,222,128,0.10)"  iconColor="#4ade80" accentColor="#4ade80"
+                  title="Agent Details"    desc="View profiles, performance, and assignments"
+                  delay="0.24s"/>
+                <ActionCard
+                  href="campaigns.html"
+                  icon="campaign"      iconBg="rgba(167,139,250,0.10)" iconColor="#a78bfa" accentColor="#a78bfa"
+                  title="Campaigns"        desc="Launch outbound calls, chasers and reminders"
+                  delay="0.26s"/>
+                <ActionCard
+                  href="call-logs.html"
+                  icon="call_log"      iconBg="rgba(34,211,238,0.10)"  iconColor="#22d3ee" accentColor="#22d3ee"
+                  title="Call Logs"        desc="Review transcripts, outcomes, and durations"
+                  delay="0.28s"/>
+              </div>
+            </div>
+
+            {/* Activity feed */}
+            <div className="feed-col enter enter-6">
+              <div className="feed-header">
+                <span className="section-label" style={{ margin: 0 }}>Recent activity</span>
+                <div className="live-indicator">
+                  <span className="live-dot"/>
+                  Live
+                </div>
+              </div>
+              <ActivityFeed items={feedItems} loading={feedLoading}/>
+            </div>
+          </div>
+
+          <DeveloperSection show={showDev}/>
+        </main>
+
+        <div style={{ height: 32 }}/>
+      </div>
+
+      <OfflineBanner visible={offline.visible} message={offline.msg} type={offline.type}/>
+    </>
+  );
+}
+
+/* ── Mount ── */
+const root = ReactDOM.createRoot(document.getElementById('react-root'));
+root.render(<ClearDeskApp/>);
 </script>
+
+<!-- intelligent-desk.js runs after React has painted the widget container -->
 <script src="intelligent-desk.js"></script>
 
-<!-- Offline banner -->
-<div class="offline-banner" id="offline-banner">
-  <span class="ob-icon">wifi_off</span>
-  <span id="offline-msg">You appear to be offline</span>
-</div>
-
-<script>
-// ── Offline / connection monitor ───────────────────────────────
-const offlineBanner = document.getElementById('offline-banner');
-function showBanner(msg, type = '') {
-  offlineBanner.className = `offline-banner show ${type}`;
-  document.getElementById('offline-msg').textContent = msg;
-}
-function hideBanner() { offlineBanner.classList.remove('show'); }
-window.addEventListener('offline', () => showBanner('You appear to be offline', 'warn'));
-window.addEventListener('online',  () => { showBanner('Back online ✓', 'ok'); setTimeout(hideBanner, 2500); });
-
-// ── Activity feed skeleton shown immediately ───────────────────
-(function() {
-  const list = document.getElementById('activity-list');
-  if (list) {
-    list.innerHTML = Array(5).fill(0).map(() => `
-      <div class="skeleton-feed">
-        <div class="skeleton sk-dot"></div>
-        <div class="sk-text">
-          <div class="skeleton sk-t1"></div>
-          <div class="skeleton sk-t2"></div>
-        </div>
-      </div>`).join('');
-  }
-})();
-</script>
 </body>
 </html>
