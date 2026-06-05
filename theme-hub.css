@@ -701,3 +701,260 @@ body.theme-dark .bg-white\/80 {
   background: var(--bg-canvas);
   min-height: 100%;
 }
+
+/* ═══════════════════════════════════════════════
+   24. LIGHT MODE — INNER PAGE OVERRIDES
+       Flips dark-mode-specific styles back to
+       readable light values when theme-light active.
+   ═══════════════════════════════════════════════ */
+
+/* ── Background & canvas ── */
+body.theme-light .workspace-canvas > div { background: var(--bg-canvas); }
+
+/* ── Glass cards — keep white glass ── */
+body.theme-light .glass-card,
+body.theme-light .glass-solid,
+body.theme-light .glass-card-solid {
+  background: rgba(255,255,255,0.72) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+  border-color: rgba(0,0,0,0.07) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07) !important;
+  color: #0f172a !important;
+}
+
+/* ── Search inputs ── */
+body.theme-light input[type="text"],
+body.theme-light input[type="tel"],
+body.theme-light input[type="email"],
+body.theme-light textarea,
+body.theme-light select {
+  background: rgba(255,255,255,0.90) !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  color: #0f172a !important;
+}
+body.theme-light input::placeholder,
+body.theme-light textarea::placeholder { color: #94a3b8 !important; }
+body.theme-light input:focus,
+body.theme-light textarea:focus,
+body.theme-light select:focus {
+  border-color: rgba(76,206,0,0.55) !important;
+  box-shadow: 0 0 0 3px rgba(76,206,0,0.12) !important;
+}
+
+/* ── bg-white/70 search inputs ── */
+body.theme-light .bg-white\/70,
+body.theme-light .bg-white\/60,
+body.theme-light .bg-white\/80 {
+  background: rgba(255,255,255,0.90) !important;
+  color: #0f172a !important;
+}
+
+/* ── Filter buttons active state ── */
+body.theme-light .filter-btn.active,
+body.theme-light .filter-btn.active:hover {
+  background: rgba(76,206,0,0.12) !important;
+  color: #4d7c0f !important;
+  border-color: rgba(76,206,0,0.35) !important;
+}
+body.theme-light .filter-tab.active {
+  color: #4d7c0f !important;
+  border-bottom-color: #4d7c0f !important;
+}
+body.theme-light #m-all.active-mode,
+body.theme-light #m-manual.active-mode,
+body.theme-light #m-automated.active-mode {
+  background: rgba(76,206,0,0.12) !important;
+  color: #4d7c0f !important;
+  border-color: rgba(76,206,0,0.35) !important;
+}
+
+/* ── Log row hover ── */
+body.theme-light .log-row:hover,
+body.theme-light .member-row:hover { background: rgba(0,0,0,0.03) !important; }
+
+/* ── Table header ── */
+body.theme-light thead,
+body.theme-light .bg-surface-container\/40 {
+  background: rgba(0,0,0,0.03) !important;
+}
+body.theme-light th, body.theme-light td { color: #0f172a !important; border-color: rgba(0,0,0,0.07) !important; }
+
+/* ── Live dot ── */
+body.theme-light .live-dot { background: #16a34a !important; }
+
+/* ── SMS bubble ── */
+body.theme-light .sms-bubble {
+  background: rgba(76,206,0,0.08) !important;
+  border-color: rgba(76,206,0,0.20) !important;
+  color: #0f172a !important;
+}
+
+/* ══════════════════════════════════════════
+   STATUS & PURPOSE BADGE COLORS — LIGHT MODE
+   Dark mode uses bright pastels (readable on dark).
+   Light mode needs darker, saturated variants.
+   ══════════════════════════════════════════ */
+
+/* Campaigns — status */
+body.theme-light .badge-draft      { background:rgba(100,116,139,.10); color:#334155; border-color:rgba(100,116,139,.22); }
+body.theme-light .badge-scheduled  { background:rgba(37,99,235,.10);   color:#1d4ed8; border-color:rgba(37,99,235,.22); }
+body.theme-light .badge-processing { background:rgba(22,163,74,.10);   color:#166534; border-color:rgba(22,163,74,.22); }
+body.theme-light .badge-completed  { background:rgba(77,124,15,.12);   color:#3f6212; border-color:rgba(77,124,15,.25); }
+body.theme-light .badge-paused     { background:rgba(194,65,12,.10);   color:#9a3412; border-color:rgba(194,65,12,.22); }
+
+/* Campaigns — purpose */
+body.theme-light .purpose-chaser   { background:rgba(190,24,93,.10);   color:#9d174d; border-color:rgba(190,24,93,.22); }
+body.theme-light .purpose-outreach { background:rgba(37,99,235,.10);   color:#1e40af; border-color:rgba(37,99,235,.22); }
+body.theme-light .purpose-deadline { background:rgba(194,65,12,.10);   color:#9a3412; border-color:rgba(194,65,12,.22); }
+
+/* Campaigns — mode pill */
+body.theme-light .mode-manual    { background:rgba(22,163,74,.10);   color:#166534; border-color:rgba(22,163,74,.22); }
+body.theme-light .mode-automated { background:rgba(124,58,237,.10);  color:#5b21b6; border-color:rgba(124,58,237,.22); }
+
+/* Call logs — status */
+body.theme-light .badge-completed   { background:rgba(22,163,74,.10);  color:#166534; border-color:rgba(22,163,74,.22); }
+body.theme-light .badge-failed      { background:rgba(220,38,38,.10);  color:#991b1b; border-color:rgba(220,38,38,.22); }
+body.theme-light .badge-no-answer   { background:rgba(217,119,6,.10);  color:#92400e; border-color:rgba(217,119,6,.22); }
+body.theme-light .badge-in_progress,
+body.theme-light .badge-in-progress { background:rgba(124,58,237,.10); color:#5b21b6; border-color:rgba(124,58,237,.22); }
+
+/* Call logs — jurisdiction */
+body.theme-light .jur-IN { background:rgba(124,58,237,.10); color:#5b21b6; border-color:rgba(124,58,237,.22); }
+body.theme-light .jur-US { background:rgba(29,78,216,.10);  color:#1e3a8a; border-color:rgba(29,78,216,.22); }
+body.theme-light .jur-AE { background:rgba(194,65,12,.10);  color:#7c2d12; border-color:rgba(194,65,12,.22); }
+
+/* SMS logs — status */
+body.theme-light .badge-delivered { background:rgba(22,163,74,.10);  color:#166534; border-color:rgba(22,163,74,.22); }
+body.theme-light .badge-sent      { background:rgba(124,58,237,.10); color:#5b21b6; border-color:rgba(124,58,237,.22); }
+body.theme-light .badge-failed    { background:rgba(220,38,38,.10);  color:#991b1b; border-color:rgba(220,38,38,.22); }
+body.theme-light .badge-pending   { background:rgba(217,119,6,.10);  color:#92400e; border-color:rgba(217,119,6,.22); }
+body.theme-light .badge-replied   { background:rgba(8,145,178,.10);  color:#0e7490; border-color:rgba(8,145,178,.22); }
+
+/* ══════════════════════════════════════════
+   DRAWERS — LIGHT MODE
+   All dark-glass drawers flip to white glass.
+   ══════════════════════════════════════════ */
+body.theme-light .drawer-panel,
+body.theme-light .drawer {
+  background: rgba(255,255,255,0.97) !important;
+  backdrop-filter: blur(28px) saturate(120%) !important;
+  border-left-color: rgba(0,0,0,0.08) !important;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.12) !important;
+}
+
+/* Drawer interior elements in light mode */
+body.theme-light .drawer-panel .bg-surface-container,
+body.theme-light .drawer-panel .bg-surface-container-low,
+body.theme-light .drawer-panel .bg-surface-container-high,
+body.theme-light .drawer [class*="bg-surface"] {
+  background: rgba(0,0,0,0.04) !important;
+}
+body.theme-light .drawer-panel [class*="bg-white"],
+body.theme-light .drawer [class*="bg-white"] {
+  background: rgba(0,0,0,0.03) !important;
+}
+body.theme-light .drawer-panel .border-outline-variant,
+body.theme-light .drawer .border-outline-variant { border-color: rgba(0,0,0,0.10) !important; }
+body.theme-light #automation-section { background: rgba(0,0,0,0.03) !important; border-color: rgba(0,0,0,0.09) !important; }
+
+/* Drawer step dots in light mode */
+body.theme-light .step-dot { background: rgba(0,0,0,0.15) !important; }
+body.theme-light .step-dot.done,
+body.theme-light .step-dot.active { background: #4d7c0f !important; box-shadow: 0 0 8px rgba(76,206,0,0.4) !important; }
+
+/* Purpose/mode cards in light mode */
+body.theme-light .purpose-card,
+body.theme-light .mode-card {
+  border-color: rgba(0,0,0,0.12) !important;
+  background: rgba(0,0,0,0.02) !important;
+}
+body.theme-light .purpose-card:hover,
+body.theme-light .mode-card:hover {
+  border-color: rgba(76,206,0,0.45) !important;
+  background: rgba(76,206,0,0.05) !important;
+}
+body.theme-light .purpose-card.selected,
+body.theme-light .mode-card.selected {
+  border-color: rgba(76,206,0,0.65) !important;
+  background: rgba(76,206,0,0.09) !important;
+  box-shadow: 0 0 14px rgba(76,206,0,0.12) !important;
+}
+
+/* Tone buttons in light mode */
+body.theme-light .tone-btn { border-color: rgba(0,0,0,0.14) !important; color: #334155 !important; background: transparent !important; }
+body.theme-light .tone-btn:hover { border-color: rgba(76,206,0,0.50) !important; color: #0f172a !important; }
+body.theme-light .tone-btn.selected { border-color: rgba(76,206,0,0.65) !important; background: rgba(76,206,0,0.10) !important; color: #4d7c0f !important; }
+
+/* Close buttons in drawers */
+body.theme-light .drawer-panel button[onclick="closeDrawer()"],
+body.theme-light .drawer button[onclick*="close"],
+body.theme-light .drawer button[onclick*="Close"] {
+  background: rgba(0,0,0,0.06) !important;
+}
+body.theme-light .drawer-panel button[onclick="closeDrawer()"]:hover { background: rgba(220,38,38,0.08) !important; }
+
+/* Contact preview + webhook URL */
+body.theme-light #contact-preview { background: rgba(0,0,0,0.03) !important; border-color: rgba(0,0,0,0.09) !important; }
+body.theme-light #webhook-url-display { background: rgba(0,0,0,0.04) !important; color: #4d7c0f !important; }
+
+/* Progress bar */
+body.theme-light .progress-bar  { background: rgba(0,0,0,0.08) !important; }
+body.theme-light .progress-fill { background: linear-gradient(90deg, #76ce00, #4ade80) !important; }
+
+/* Execute button pulse in light mode */
+body.theme-light .btn-execute { animation: executePulseLight 2.4s ease-in-out infinite; }
+@keyframes executePulseLight { 0%,100%{box-shadow:0 0 0 0 rgba(76,206,0,.35);}50%{box-shadow:0 0 0 8px rgba(76,206,0,0);} }
+
+/* Compose/modal boxes in sms-logs light mode */
+body.theme-light #compose-box,
+body.theme-light #modal-box {
+  background: rgba(255,255,255,0.97) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.15) !important;
+}
+
+/* Drop zone in contacts light mode */
+body.theme-light .drop-zone {
+  border-color: rgba(76,206,0,0.30) !important;
+  background: rgba(76,206,0,0.03) !important;
+}
+body.theme-light .drop-zone:hover,
+body.theme-light .drop-zone.drag-over {
+  border-color: rgba(76,206,0,0.60) !important;
+  background: rgba(76,206,0,0.07) !important;
+}
+
+/* Call-log transcript bubbles */
+body.theme-light .transcript-bubble-agent {
+  background: rgba(76,206,0,0.08) !important;
+  border-color: rgba(76,206,0,0.20) !important;
+  color: #0f172a !important;
+}
+body.theme-light .transcript-bubble-user {
+  background: rgba(8,145,178,0.08) !important;
+  border-color: rgba(8,145,178,0.20) !important;
+  color: #0f172a !important;
+}
+
+/* Drawer overlay scrim */
+body.theme-light .drawer-overlay {
+  background: rgba(15,23,42,0.35) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Stat icon arbitrary bg hex — restore originals in light */
+body.theme-light .bg-\[\#ede9fe\] { background: #ede9fe !important; }
+body.theme-light .bg-\[\#dcfce7\] { background: #dcfce7 !important; }
+body.theme-light .bg-\[\#cffafe\] { background: #cffafe !important; }
+body.theme-light .bg-\[\#fee2e2\] { background: #fee2e2 !important; }
+body.theme-light .bg-\[\#e0f2fe\] { background: #e0f2fe !important; }
+body.theme-light .bg-\[\#fef3c7\] { background: #fef3c7 !important; }
+body.theme-light .bg-\[\#fdf4ff\] { background: #fdf4ff !important; }
+
+/* Stat icon text — restore originals in light */
+body.theme-light .text-\[\#6C63FF\] { color: #6C63FF !important; }
+body.theme-light .text-cyan-700     { color: #0e7490 !important; }
+body.theme-light .text-sky-600      { color: #0284c7 !important; }
+body.theme-light .text-emerald-600  { color: #059669 !important; }
+body.theme-light .text-amber-600    { color: #d97706 !important; }
+body.theme-light .text-red-500      { color: #ef4444 !important; }
