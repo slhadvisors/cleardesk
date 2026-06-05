@@ -1,18 +1,24 @@
 /**
  * sidebar-shared.js — ClearDesk Neo-Glass Sidebar Injector
- * Wraps page body content in .dash-shell and injects the
- * shared sidebar navigation. Works on any authenticated page.
+ *
+ * Injects sidebar nav + workspace shell. Provides:
+ *   • Sliding .sb-glider indicator (mirrors topbar capsule-pill, vertical axis)
+ *   • Smooth page-exit animation on nav link click → page-enter on load
+ *   • Theme toggle (dark ↔ light) persisted to localStorage
  *
  * Usage: <body data-sidebar-active="campaigns">
- *   Supported values: dashboard, campaigns, contacts, calls, sms, settings, dev
+ *   Supported values: dashboard, campaigns, contacts, calls, sms,
+ *                     teams, agents, settings, dev
  */
 (function () {
   'use strict';
 
-  /* ── Theme ──────────────────────────────────────────────────── */
+  /* ── Theme (guard: script may run in <head> before body exists) ── */
   const savedTheme = localStorage.getItem('cd-theme') || 'dark';
-  document.body.classList.remove('theme-dark', 'theme-light', 'text-on-surface');
-  document.body.classList.add(savedTheme === 'light' ? 'theme-light' : 'theme-dark');
+  if (document.body) {
+    document.body.classList.remove('theme-dark', 'theme-light', 'text-on-surface');
+    document.body.classList.add(savedTheme === 'light' ? 'theme-light' : 'theme-dark');
+  }
 
   /* ── Nav items ──────────────────────────────────────────────── */
   const NAV = [
@@ -54,6 +60,7 @@
 
     return `
       <a href="index.html" class="sidebar-logo" title="ClearDesk">${LOGO_SVG}</a>
+      <div class="sb-glider" aria-hidden="true"></div>
       ${items}
       <div class="sidebar-spacer"></div>
       <button class="sidebar-item" id="sb-theme-btn" title="Toggle theme">
@@ -66,9 +73,37 @@
       </div>`;
   }
 
+  /* ── Glider positioning ─────────────────────────────────────── */
+  function positionGlider(targetItem, instant) {
+    const glider = document.querySelector('.sb-glider');
+    if (!glider || !targetItem) return;
+
+    if (instant) {
+      /* Snap with no animation on initial load */
+      glider.style.transition = 'none';
+      glider.style.top = targetItem.offsetTop + 'px';
+      /* Restore transition after paint */
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          glider.style.transition = '';
+        });
+      });
+    } else {
+      glider.style.top = targetItem.offsetTop + 'px';
+    }
+  }
+
+  /* ── Page-exit transition helper ────────────────────────────── */
+  function navigateTo(href) {
+    document.body.classList.add('page-exiting');
+    setTimeout(() => {
+      window.location.href = href;
+    }, 220);
+  }
+
   /* ── Inject ambient canvas ──────────────────────────────────── */
   function injectAmbient() {
-    if (document.querySelector('.ambient-canvas')) return; // already present (old pages have .ambient-bg)
+    if (document.querySelector('.ambient-canvas')) return;
     const el = document.createElement('div');
     el.className = 'ambient-canvas';
     el.setAttribute('aria-hidden', 'true');
@@ -78,6 +113,10 @@
 
   /* ── Main init ──────────────────────────────────────────────── */
   function init() {
+    /* Re-apply theme here so it's guaranteed correct when script was in <head> */
+    document.body.classList.remove('theme-dark', 'theme-light', 'text-on-surface');
+    document.body.classList.add(savedTheme === 'light' ? 'theme-light' : 'theme-dark');
+
     const activeId = document.body.dataset.sidebarActive || 'dashboard';
 
     /* Remove old ambient-bg div if present */
@@ -116,7 +155,52 @@
     shell.appendChild(canvas);
     document.body.appendChild(shell);
 
-    /* Theme toggle handler */
+    /* ── Position glider on the active item (instant snap, no animation) ── */
+    const activeItem = sidebar.querySelector('.sidebar-item--active');
+    positionGlider(activeItem, true);
+
+    /* ── Sidebar link click → smooth exit + navigate ── */
+    sidebar.querySelectorAll('a.sidebar-item').forEach(link => {
+      link.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (!href || href === '#') return;
+
+        /* Same page — don't re-navigate */
+        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+        if (href === currentFile) return;
+
+        e.preventDefault();
+
+        /* Slide glider to clicked item instantly as visual feedback */
+        positionGlider(this, false);
+
+        /* Swap active classes optimistically for immediate dot feedback */
+        sidebar.querySelectorAll('.sidebar-item--active').forEach(el => {
+          el.classList.remove('sidebar-item--active');
+          const dot = el.querySelector('.sidebar-dot');
+          if (dot) dot.remove();
+        });
+        this.classList.add('sidebar-item--active');
+        const newDot = document.createElement('span');
+        newDot.className = 'sidebar-dot';
+        this.insertBefore(newDot, this.firstChild);
+
+        /* Page exit → navigate */
+        navigateTo(href);
+      });
+    });
+
+    /* ── Re-position glider on resize ── */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const active = sidebar.querySelector('.sidebar-item--active');
+        positionGlider(active, true);
+      }, 80);
+    });
+
+    /* ── Theme toggle handler ── */
     document.getElementById('sb-theme-btn').addEventListener('click', () => {
       const curr = localStorage.getItem('cd-theme') || 'dark';
       const next = curr === 'dark' ? 'light' : 'dark';
@@ -127,7 +211,7 @@
       if (icon) icon.textContent = next === 'dark' ? 'light_mode' : 'dark_mode';
     });
 
-    /* Load user async → update avatar after Supabase ready */
+    /* ── Load user async → update avatar after Supabase ready ── */
     (async () => {
       try {
         const { data: { session } } = await window.supabase.auth.getSession();
@@ -147,6 +231,17 @@
             onerror="this.outerHTML='<span style=\\"font-size:13px;font-weight:800;color:#0b0f17\\">${initials}</span>'">`;
         }
       } catch (_) {}
+    })();
+  }
+
+  /* Run after DOM ready */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+ catch (_) {}
     })();
   }
 
