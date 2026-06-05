@@ -23,6 +23,7 @@
     { id: 'sms',        icon: 'sms',             label: 'SMS',       href: 'sms-logs.html' },
     { id: 'teams',      icon: 'group',           label: 'Teams',     href: 'team-management.html' },
     { id: 'agents',     icon: 'support_agent',   label: 'Agents',    href: 'agent-detail.html' },
+    { id: 'settings',  icon: 'settings',        label: 'Settings',  href: 'settings.html' },
   ];
 
   /* ── Logo SVG ───────────────────────────────────────────────── */
@@ -59,10 +60,6 @@
         <span class="md-icon" id="sb-theme-icon" style="font-size:20px">${themeIcon}</span>
         <span class="sidebar-label">Theme</span>
       </button>
-      <a href="settings.html" class="sidebar-item" title="Settings">
-        <span class="md-icon" style="font-size:20px">settings</span>
-        <span class="sidebar-label">Settings</span>
-      </a>
       <div class="sidebar-avatar-wrap" id="sb-avatar" title="${user ? user.name : 'Sign out'}"
            onclick="if(typeof signOut==='function')signOut()">
         ${avatarContent}

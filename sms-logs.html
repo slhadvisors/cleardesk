@@ -13,7 +13,7 @@
 <script src="sandbox-guard.js"></script>
 <link href="theme-hub.css" rel="stylesheet"/>
 <script src="sidebar-shared.js"></script>
-<script>initSandboxGuard();</script>
+<script>protectPage(); initSandboxGuard();</script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -45,20 +45,52 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 .md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;user-select:none;}
 .credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;}
-.badge-delivered{background:rgba(16,185,129,0.1);color:#065f46;border:1px solid rgba(16,185,129,0.2);}
-.badge-sent{background:rgba(79,68,226,0.1);color:#4d41df;border:1px solid rgba(79,68,226,0.2);}
-.badge-failed{background:rgba(239,68,68,0.1);color:#991b1b;border:1px solid rgba(239,68,68,0.2);}
-.badge-pending{background:rgba(245,158,11,0.1);color:#92400e;border:1px solid rgba(245,158,11,0.2);}
-.badge-replied{background:rgba(6,182,212,0.1);color:#0e7490;border:1px solid rgba(6,182,212,0.2);}
+.badge-delivered{background:rgba(74,222,128,.12); color:#4ade80;border:1px solid rgba(74,222,128,.22);}
+.badge-sent     {background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.22);}
+.badge-failed   {background:rgba(244,63,94,.12);  color:#f43f5e;border:1px solid rgba(244,63,94,.22);}
+.badge-pending  {background:rgba(251,191,36,.12); color:#fbbf24;border:1px solid rgba(251,191,36,.22);}
+.badge-replied  {background:rgba(34,211,238,.12); color:#22d3ee;border:1px solid rgba(34,211,238,.22);}
 .log-row{transition:background 0.15s ease;cursor:pointer;}
-.log-row:hover{background:rgba(108,99,255,0.03);}
+.log-row:hover{background:rgba(163,255,18,0.03);}
 .filter-btn{background:transparent;cursor:pointer;}
-.filter-btn.active{background:rgba(108,99,255,0.1);color:#6C63FF;border-color:rgba(108,99,255,0.2)!important;}
-@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,211,153,0.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(52,211,153,0)}}
-.live-dot{animation:livePulse 2.2s ease-in-out infinite;width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;}
-.sms-bubble{background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.14);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;color:#1b1b24;}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.2);border-radius:3px}
+.filter-btn.active{background:rgba(163,255,18,0.10);color:#a3ff12;border-color:rgba(163,255,18,0.25)!important;}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,222,128,0.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(74,222,128,0)}}
+.live-dot{animation:livePulse 2.2s ease-in-out infinite;width:8px;height:8px;border-radius:50%;background:#4ade80;display:inline-block;}
+.sms-bubble{background:rgba(163,255,18,0.06);border:1px solid rgba(163,255,18,0.12);border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--text-white,#f1f5f9);}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(163,255,18,0.14);border-radius:3px}
 @media(max-width:768px){.nav-scroll{overflow-x:auto}}
+
+/* Search + compose inputs */
+input#search-input,#cmp-phone,#cmp-name,#cmp-message {
+  background:rgba(22,28,38,.75) !important;
+  border-color:rgba(255,255,255,.10) !important;
+  color:#f1f5f9 !important;
+}
+input#search-input::placeholder,#cmp-phone::placeholder,
+#cmp-name::placeholder,#cmp-message::placeholder { color:#8a99ad !important; }
+input:focus,textarea:focus {
+  border-color:rgba(163,255,18,.45) !important;
+  box-shadow:0 0 0 3px rgba(163,255,18,.10) !important;
+  outline:none !important;
+}
+
+/* Compose modal & detail modal */
+#compose-box,#modal-box {
+  background:rgba(14,20,32,0.97) !important;
+  border:1px solid rgba(163,255,18,0.09) !important;
+  box-shadow:0 24px 64px rgba(0,0,0,.65) !important;
+}
+.bg-surface-container\/40 { background:rgba(255,255,255,.04) !important; }
+
+/* Reply bubble */
+.sms-bubble[style*="06b6d4"] {
+  background:rgba(34,211,238,0.07) !important;
+  border-color:rgba(34,211,238,0.14) !important;
+  color:#f1f5f9 !important;
+}
+
+/* Char counter */
+#char-count { color:#8a99ad !important; }
 </style>
 </head>
 
@@ -66,33 +98,6 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 <div class="ambient-bg"></div>
 <div class="relative z-10 min-h-screen flex flex-col">
 
-<nav class="glass-nav sticky top-0 z-50">
-  <div class="max-w-[1320px] mx-auto px-6 md:px-10">
-    <div class="flex items-center justify-between h-16 gap-6">
-      <a href="index.html" class="flex items-center gap-2.5 shrink-0 no-underline">
-        <div class="w-8 h-8 rounded-lg credit-stripe flex items-center justify-center shadow-sm"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:20px;height:20px"><defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs><path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/></svg></div>
-        <span class="font-bold text-[16px] tracking-tight text-on-surface">ClearDesk</span>
-      </a>
-      <div class="nav-scroll flex-1 flex items-stretch gap-1 overflow-x-auto">
-        <a href="index.html"           class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">grid_view</span>Dashboard</a>
-        <a href="team-management.html" class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">group</span>Teams</a>
-        <a href="agent-detail.html"    class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">support_agent</span>Agents</a>
-        <a href="campaigns.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">campaign</span>Campaigns</a>
-        <a href="contacts.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">contacts</span>Contacts</a>
-        <a href="call-logs.html"       class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">call</span>Calls</a>
-        <a href="sms-logs.html"        class="nav-item active px-3.5 py-1.5 text-[13.5px] font-semibold text-on-surface-variant rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">sms</span>SMS</a>
-        <a href="settings.html"        class="nav-item px-3.5 py-1.5 text-[13.5px] font-medium text-on-surface-variant hover:text-on-surface rounded-lg whitespace-nowrap flex items-center gap-1.5"><span class="md-icon text-[17px]">settings</span>Settings</a>
-      </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <button onclick="signOut()" class="flex items-center gap-2 pl-1 pr-3 py-1 glass-card rounded-full hover:shadow-md transition-snappy group">
-          <div class="w-7 h-7 rounded-full credit-stripe flex items-center justify-center text-white text-[13px] font-bold" id="avatar-initials">—</div>
-          <span class="text-[12.5px] font-medium text-on-surface-variant group-hover:text-error transition-snappy" id="user-email-short">—</span>
-          <span class="md-icon text-[15px] text-outline group-hover:text-error transition-snappy">logout</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</nav>
 
 <main class="flex-1 max-w-[1320px] w-full mx-auto px-6 md:px-10 py-8 space-y-7">
 

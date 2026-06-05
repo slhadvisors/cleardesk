@@ -3,483 +3,249 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Accept Invitation — ClearDesk</title>
-
+<title>ClearDesk — Accept Invitation</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
 <script src="translations.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-
+<link href="theme-hub.css" rel="stylesheet"/>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
-:root {
-  --primary: #4d41df;
-  --primary-light: #675df9;
-  --neon-emerald: #34d399;
-  --warning: #dc2626;
-  --amber: #f59e0b;
-  --font: 'Plus Jakarta Sans', sans-serif;
-  --t-snappy: 0.22s cubic-bezier(0.25,1,0.5,1);
-}
-
-html,body{min-height:100%;font-family:var(--font);}
-
-/* ── Ambient background (Pillar A) ── */
-.ambient-bg {
-  position:fixed;inset:0;z-index:-1;overflow:hidden;
-  background:linear-gradient(135deg,#f0ecf9 0%,#e8e4f8 40%,#ede9ff 100%);
-  animation:hue-drift 18s ease-in-out infinite alternate;
-}
-@keyframes hue-drift{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(15deg)}}
-.ambient-bg::before {
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 30%, rgba(108,99,255,0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(6,182,212,0.08) 0%, transparent 70%);
-}
-
-/* ── Main card ── */
-.card-wrap {
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:24px 16px;
-}
-
-.invite-card {
-  background:rgba(255,255,255,0.72);
-  backdrop-filter:blur(24px) saturate(140%);
-  border:1px solid rgba(255,255,255,0.5);
-  border-radius:24px;
-  box-shadow:0 8px 40px rgba(77,65,223,0.12),0 2px 12px rgba(0,0,0,0.06);
-  padding:44px 48px;
-  width:100%;max-width:460px;
-  transition:opacity 0.3s,transform 0.3s;
-}
-
-/* ── Logo ── */
-.logo-wrap {
-  display:flex;align-items:center;gap:10px;margin-bottom:28px;
-}
-.logo-mark {
-  width:40px;height:40px;border-radius:12px;
-  background:linear-gradient(135deg,#6C63FF,#06b6d4);
-  display:flex;align-items:center;justify-content:center;
-}
-.logo-mark svg { width:22px;height:22px;fill:#fff; }
-.logo-name { font-size:18px;font-weight:800;color:#1b1b24;letter-spacing:-0.01em; }
-.logo-sub  { font-size:11px;font-weight:500;color:#777587;letter-spacing:0.03em; }
-
-/* ── States ── */
-#state-loading, #state-error, #state-form, #state-success {
-  display:none;
-}
-#state-loading.show,#state-error.show,#state-form.show,#state-success.show {
-  display:block;
-}
-
-/* ── Loading spinner ── */
-.spinner-wrap { text-align:center;padding:20px 0; }
-.spinner {
-  width:44px;height:44px;border-radius:50%;
-  border:3px solid rgba(77,65,223,0.15);
-  border-top-color:var(--primary);
-  animation:spin 0.8s linear infinite;
-  margin:0 auto 16px;
-}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:var(--font-clean);background:var(--bg-canvas);color:var(--text-white);min-height:100vh;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased;}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);}
+.bg-orb-1{width:600px;height:600px;background:radial-gradient(circle,#a3ff12 0%,transparent 65%);top:-200px;left:-180px;opacity:0.10;animation:orbDrift 28s ease-in-out infinite alternate;}
+.bg-orb-2{width:500px;height:500px;background:radial-gradient(circle,#22d3ee 0%,transparent 65%);bottom:-180px;right:-160px;opacity:0.08;animation:orbDrift 36s ease-in-out infinite alternate-reverse;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(163,255,18,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(163,255,18,0.018) 1px,transparent 1px);background-size:64px 64px;}
+.card{position:relative;z-index:1;width:440px;max-width:calc(100vw - 32px);background:rgba(22,28,38,0.80);backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(163,255,18,0.10);border-radius:28px;padding:40px 36px;box-shadow:0 30px 80px rgba(0,0,0,0.5);}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.logo-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#a3ff12 0%,#4ade80 100%);display:flex;align-items:center;justify-content:center;color:#0b0f17;box-shadow:0 0 18px rgba(163,255,18,0.38);}
+.logo-name{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+.state{display:none;}
+.state.show{display:block;}
+/* Loading */
+.loading-wrap{text-align:center;padding:20px 0;}
+.loading-spin{width:36px;height:36px;border-radius:50%;border:3px solid rgba(163,255,18,0.15);border-top-color:var(--accent-electric);animation:spin 0.8s linear infinite;margin:0 auto 16px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner-text{font-size:14px;color:#777587;}
-
-/* ── Avatar preview ── */
-.invite-avatar {
-  width:64px;height:64px;border-radius:20px;
-  background:linear-gradient(135deg,var(--primary),#06b6d4);
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:700;color:#fff;
-  margin:0 auto 18px;
-}
-.invite-headline { font-size:22px;font-weight:700;color:#1b1b24;margin-bottom:6px;text-align:center; }
-.invite-sub { font-size:14px;color:#777587;text-align:center;margin-bottom:28px;line-height:1.5; }
-.invite-chip {
-  display:inline-flex;align-items:center;gap:5px;
-  background:rgba(77,65,223,0.08);border:1px solid rgba(77,65,223,0.18);
-  color:var(--primary);border-radius:6px;padding:3px 10px;
-  font-size:12px;font-weight:600;margin:0 auto 28px;display:flex;width:fit-content;
-}
-
-/* ── Form fields ── */
-.field { margin-bottom:18px; }
-.field-label {
-  display:block;font-size:12px;font-weight:600;color:#464555;
-  letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;
-}
-.field-input {
-  width:100%;padding:10px 14px;border-radius:10px;
-  border:1.5px solid #c7c4d8;background:rgba(255,255,255,0.8);
-  font-size:14px;font-family:var(--font);color:#1b1b24;
-  outline:none;transition:border-color var(--t-snappy),box-shadow var(--t-snappy);
-}
-.field-input:focus {
-  border-color:var(--primary);
-  box-shadow:0 0 0 4px rgba(77,65,223,0.1);
-}
-.field-input[readonly] { background:rgba(240,236,249,0.7);color:#464555;cursor:not-allowed; }
-.field-hint { font-size:12px;color:#777587;margin-top:5px; }
-
-/* ── Password strength ── */
-.strength-bar {
-  height:4px;border-radius:2px;margin-top:8px;
-  background:#e4e1ee;overflow:hidden;
-}
-.strength-fill {
-  height:100%;border-radius:2px;width:0%;
-  transition:width 0.3s,background 0.3s;
-}
-
-/* ── Submit button ── */
-.btn-submit {
-  width:100%;padding:13px 20px;border:none;border-radius:12px;cursor:pointer;
-  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);
-  box-shadow:0 4px 16px rgba(77,65,223,0.3);
-  transition:all var(--t-snappy);
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  margin-top:10px;
-}
-.btn-submit:hover:not(:disabled) { filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 6px 24px rgba(77,65,223,0.38); }
-.btn-submit:disabled { opacity:0.55;cursor:not-allowed;transform:none; }
-.md-icon { font-family:'Material Symbols Outlined';font-style:normal;
-  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;line-height:1; }
-
-/* ── Error alert ── */
-.alert {
-  border-radius:10px;padding:12px 16px;font-size:13.5px;margin-bottom:14px;
-  display:flex;align-items:flex-start;gap:10px;
-}
-.alert.err { background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);color:#dc2626; }
-.alert.ok  { background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:#047857; }
-.alert.warn{ background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:#92400e; }
-
-/* ── Success ── */
-.success-icon {
-  width:72px;height:72px;border-radius:50%;
-  background:rgba(52,211,153,0.12);border:2px solid rgba(52,211,153,0.3);
-  display:flex;align-items:center;justify-content:center;
-  font-size:36px;margin:0 auto 20px;
-  animation:pop-in 0.5s cubic-bezier(0.25,1,0.5,1);
-}
-@keyframes pop-in{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
-.success-title{font-size:22px;font-weight:700;color:#1b1b24;text-align:center;margin-bottom:8px;}
-.success-sub{font-size:14px;color:#777587;text-align:center;margin-bottom:28px;line-height:1.5;}
-.btn-go {
-  width:100%;padding:13px 20px;border:none;border-radius:12px;cursor:pointer;
-  font-family:var(--font);font-size:15px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,#6C63FF 0%,#06b6d4 100%);
-  transition:all var(--t-snappy);
-}
-.btn-go:hover{filter:brightness(1.08);transform:translateY(-2px);}
-
-/* ── Error state ── */
-.error-icon{font-size:48px;text-align:center;margin-bottom:16px;}
-.error-title{font-size:20px;font-weight:700;color:#1b1b24;text-align:center;margin-bottom:8px;}
-.error-sub{font-size:14px;color:#777587;text-align:center;margin-bottom:24px;line-height:1.5;}
-.btn-retry{
-  width:100%;padding:12px;border:1.5px solid #c7c4d8;border-radius:10px;
-  background:transparent;font-family:var(--font);font-size:14px;font-weight:600;
-  color:#1b1b24;cursor:pointer;transition:all var(--t-snappy);
-}
-.btn-retry:hover{border-color:var(--primary);color:var(--primary);}
+.loading-text{font-size:14px;color:var(--text-dim);}
+/* Error */
+.err-icon{width:52px;height:52px;border-radius:16px;background:rgba(244,63,94,0.10);border:1px solid rgba(244,63,94,0.22);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+.err-title{font-size:20px;font-weight:800;text-align:center;color:var(--text-white);margin-bottom:8px;}
+.err-sub{font-size:13.5px;color:var(--text-dim);text-align:center;line-height:1.6;}
+/* Form */
+.invite-hero{display:flex;align-items:center;gap:16px;margin-bottom:24px;}
+.invite-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#a3ff12 0%,#4ade80 100%);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#0b0f17;flex-shrink:0;}
+.invite-headline{font-size:20px;font-weight:800;letter-spacing:-0.3px;color:var(--text-white);}
+.invite-sub{font-size:13px;color:var(--text-dim);margin-top:3px;line-height:1.4;}
+.role-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(163,255,18,0.10);border:1px solid rgba(163,255,18,0.20);color:var(--accent-electric);margin-top:6px;}
+.field{margin-bottom:14px;}
+.field-label{font-size:11.5px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;display:block;}
+.field-wrap{position:relative;}
+.fi{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20;font-size:18px;line-height:1;position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;}
+.field-input{width:100%;padding:12px 13px 12px 40px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);border-radius:13px;font-family:var(--font-clean);font-size:13.5px;color:var(--text-white);outline:none;transition:border-color 0.18s,box-shadow 0.18s;}
+.field-input::placeholder{color:var(--text-dim);}
+.field-input:focus{border-color:rgba(163,255,18,0.45);box-shadow:0 0 0 4px rgba(163,255,18,0.09);}
+.field-input:disabled{opacity:0.55;cursor:not-allowed;}
+.strength-wrap{margin-top:6px;}
+.strength-track{height:3px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;}
+.strength-fill{height:100%;width:0;border-radius:3px;transition:width 0.3s ease,background 0.3s ease;}
+.strength-lbl{font-size:11px;color:var(--text-dim);margin-top:4px;}
+.btn-primary{width:100%;padding:13px;border-radius:13px;border:none;background:var(--accent-electric);color:#0b0f17;font-family:var(--font-clean);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.18s,box-shadow 0.18s;box-shadow:0 0 20px rgba(163,255,18,0.28);}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 0 30px rgba(163,255,18,0.40);}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;user-select:none;display:inline-block;vertical-align:middle;}
+.alert{display:flex;align-items:flex-start;gap:8px;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.5;margin-top:12px;}
+.alert.err{background:rgba(244,63,94,0.10);border:1px solid rgba(244,63,94,0.22);color:#f87171;}
+.alert.ok {background:rgba(74,222,128,0.10);border:1px solid rgba(74,222,128,0.22);color:#4ade80;}
+/* Success */
+.success-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 48;font-size:48px;color:var(--accent-mint);text-align:center;display:block;margin-bottom:16px;}
+.success-title{font-size:22px;font-weight:800;text-align:center;margin-bottom:8px;}
+.success-sub{font-size:13.5px;color:var(--text-dim);text-align:center;line-height:1.6;}
+.btn-go{display:block;width:100%;margin-top:24px;padding:13px;border-radius:13px;border:none;background:var(--accent-electric);color:#0b0f17;font-family:var(--font-clean);font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 0 18px rgba(163,255,18,0.25);transition:transform 0.18s;}
+.btn-go:hover{transform:translateY(-2px);}
 </style>
 </head>
-
 <body>
-<div class="ambient-bg"></div>
-
-<div class="card-wrap">
-  <div class="invite-card" id="invite-card">
-
-    <div class="logo-wrap">
-      <div class="logo-mark">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
-          <defs><mask id="gm"><rect width="100" height="100" fill="white"/><circle cx="50" cy="50" r="20.5" fill="black"/><polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
-          <path fill="white" mask="url(#gm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 L43.88,6.43 Z"/>
-          <path d="M58.5,41.5 A12,12 0 1,0 58.5,58.5" stroke="white" stroke-width="4" stroke-linecap="round"/>
-          <line x1="50" y1="40" x2="50" y2="60" stroke="white" stroke-width="4" stroke-linecap="round"/>
-          <path d="M50,40 A10,10 0 0,1 50,60" stroke="white" stroke-width="4" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-name">ClearDesk</div>
-        <div class="logo-sub">AI Tax Operations Hub</div>
-      </div>
+<div class="bg">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-grid"></div>
+</div>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px">
+        <defs><mask id="im"><rect width="100" height="100" fill="white"/>
+        <circle cx="50" cy="50" r="20.5" fill="black"/>
+        <polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
+        <path fill="currentColor" mask="url(#im)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 Z"/>
+      </svg>
     </div>
+    <span class="logo-name">ClearDesk</span>
+  </div>
 
-    <!-- Loading state -->
-    <div id="state-loading" class="show">
-      <div class="spinner-wrap">
-        <div class="spinner"></div>
-        <div class="spinner-text">Verifying your invitation…</div>
-      </div>
+  <div class="state show" id="state-loading">
+    <div class="loading-wrap">
+      <div class="loading-spin"></div>
+      <div class="loading-text">Verifying invitation…</div>
     </div>
+  </div>
 
-    <!-- Error state -->
-    <div id="state-error">
-      <div class="error-icon">🔗</div>
-      <div class="error-title" id="err-title">Invalid Invitation</div>
-      <div class="error-sub" id="err-sub">This invite link is invalid or has expired. Please ask your administrator to resend the invitation.</div>
-      <a href="login.html"><button class="btn-retry">Go to Login</button></a>
-    </div>
+  <div class="state" id="state-error">
+    <div class="err-icon"><span class="md-icon" style="font-size:24px;color:#f43f5e">link_off</span></div>
+    <div class="err-title" id="err-title">Link Expired</div>
+    <div class="err-sub" id="err-sub">This invitation link has expired. Contact your administrator for a new one.</div>
+  </div>
 
-    <!-- Form state -->
-    <div id="state-form">
+  <div class="state" id="state-form">
+    <div class="invite-hero">
       <div class="invite-avatar" id="form-avatar">?</div>
-      <div class="invite-headline" id="form-headline">Welcome to ClearDesk</div>
-      <div class="invite-sub" id="form-sub">Set your password to activate your account.</div>
-      <div class="invite-chip" id="form-role-chip">
-        <span class="md-icon" style="font-size:14px;">shield</span>
-        <span id="form-role-label">Staff Member</span>
+      <div>
+        <div class="invite-headline" id="form-headline">Welcome!</div>
+        <div class="invite-sub" id="form-sub">Set your password to activate your account.</div>
+        <div class="role-chip"><span class="md-icon" style="font-size:12px">badge</span><span id="form-role-label">Staff</span></div>
       </div>
-
-      <div id="form-alert" style="display:none;"></div>
-
-      <div class="field">
-        <label class="field-label">Full Name</label>
-        <input class="field-input" id="field-name" type="text" placeholder="Your full name" />
-      </div>
-      <div class="field">
-        <label class="field-label">Email</label>
-        <input class="field-input" id="field-email" type="email" readonly />
-      </div>
-      <div class="field">
-        <label class="field-label">Password</label>
-        <input class="field-input" id="field-password" type="password"
-          placeholder="At least 8 characters" oninput="checkStrength(this.value)" />
-        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
-        <div class="field-hint" id="strength-label">Enter a password</div>
-      </div>
-      <div class="field">
-        <label class="field-label">Confirm Password</label>
-        <input class="field-input" id="field-confirm" type="password" placeholder="Repeat password" />
-      </div>
-
-      <button class="btn-submit" id="submit-btn" onclick="submitInvite()">
-        <span class="md-icon">check_circle</span> Activate Account
-      </button>
     </div>
-
-    <!-- Success state -->
-    <div id="state-success">
-      <div class="success-icon">✓</div>
-      <div class="success-title">Account Activated!</div>
-      <div class="success-sub" id="success-sub">
-        Your ClearDesk account is ready. Redirecting to your dashboard…
+    <div class="field">
+      <label class="field-label">Email</label>
+      <div class="field-wrap">
+        <span class="fi">mail</span>
+        <input class="field-input" type="email" id="field-email" disabled/>
       </div>
-      <button class="btn-go" onclick="goToDashboard()">Open Dashboard →</button>
     </div>
+    <div class="field">
+      <label class="field-label">Full name</label>
+      <div class="field-wrap">
+        <span class="fi">person</span>
+        <input class="field-input" type="text" id="field-name" placeholder="Your full name"/>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <div class="field-wrap">
+        <span class="fi">lock</span>
+        <input class="field-input" type="password" id="field-password" placeholder="8+ characters" oninput="checkStrength(this.value)"/>
+      </div>
+      <div class="strength-wrap">
+        <div class="strength-track"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="strength-lbl" id="strength-label"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Confirm password</label>
+      <div class="field-wrap">
+        <span class="fi">lock_reset</span>
+        <input class="field-input" type="password" id="field-confirm" placeholder="Repeat password"/>
+      </div>
+    </div>
+    <div id="form-alert"></div>
+    <button class="btn-primary" id="submit-btn" onclick="submitInvite()" style="margin-top:8px">
+      <span class="md-icon" style="font-size:18px">check_circle</span>
+      Activate Account
+    </button>
+  </div>
 
+  <div class="state" id="state-success">
+    <span class="success-icon">check_circle</span>
+    <div class="success-title">Account activated! 🎉</div>
+    <div class="success-sub" id="success-sub">Welcome to ClearDesk! Redirecting to your dashboard…</div>
+    <button class="btn-go" onclick="goToDashboard()">Go to Dashboard →</button>
   </div>
 </div>
-
 <script>
-// ── Parse invite token from URL hash ──────────────────────────────────────
-const hash     = window.location.hash.substring(1);
+const hash       = window.location.hash.substring(1);
 const hashParams = Object.fromEntries(new URLSearchParams(hash));
 const accessToken  = hashParams.access_token;
 const refreshToken = hashParams.refresh_token || '';
-const tokenType    = hashParams.type; // should be 'invite' or 'signup'
+const tokenType    = hashParams.type;
 
 let invitedUserEmail = '';
 let invitedUserMeta  = {};
 
 async function init() {
   if (!accessToken || (tokenType !== 'invite' && tokenType !== 'signup')) {
-    showState('error');
-    return;
+    showState('error'); return;
   }
-
   try {
-    // Exchange the invite token for a session so we can read user metadata
-    const { data: sessionData, error: sessionErr } = await window.supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-
+    const { data: sessionData, error: sessionErr } = await window.supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
     if (sessionErr || !sessionData?.user) {
       setError('Invitation Expired', 'This invite link may have already been used or has expired (links expire after 24 hours). Contact your administrator for a new invitation.');
-      showState('error');
-      return;
+      showState('error'); return;
     }
-
     const user = sessionData.user;
     invitedUserEmail = user.email;
     invitedUserMeta  = user.user_metadata || {};
-
-    // If user already has a password set, they accepted before — redirect
-    if (user.last_sign_in_at && user.user_metadata?.invite_accepted) {
-      window.location.href = 'index.html';
-      return;
-    }
-
-    // Populate form
+    if (user.last_sign_in_at && user.user_metadata?.invite_accepted) { window.location.href = 'index.html'; return; }
     const displayName = invitedUserMeta.display_name || '';
     const role        = invitedUserMeta.user_role || 'ORG_STAFF';
-
     document.getElementById('field-email').value = invitedUserEmail;
     document.getElementById('field-name').value  = displayName;
-
-    // Avatar initial
     const initial = displayName ? displayName.charAt(0).toUpperCase() : invitedUserEmail.charAt(0).toUpperCase();
     document.getElementById('form-avatar').textContent = initial;
-
-    // Headline
-    document.getElementById('form-headline').textContent = displayName
-      ? `Welcome, ${displayName.split(' ')[0]}!`
-      : 'Welcome to ClearDesk';
-    document.getElementById('form-sub').textContent =
-      `You've been invited to join as ${formatRole(role)}. Set your password to get started.`;
-
-    // Role chip
-    const roleMap = {
-      DEVELOPER: { label: 'Developer', icon: 'terminal' },
-      ORG_ADMIN:  { label: 'Admin',     icon: 'admin_panel_settings' },
-      ORG_STAFF:  { label: 'Staff',     icon: 'person' },
-    };
-    const rInfo = roleMap[role] || roleMap.ORG_STAFF;
-    document.getElementById('form-role-label').textContent = rInfo.label;
-
+    document.getElementById('form-headline').textContent = displayName ? `Welcome, ${displayName.split(' ')[0]}!` : 'Welcome to ClearDesk';
+    document.getElementById('form-sub').textContent = `You've been invited to join as ${formatRole(role)}. Set your password to get started.`;
+    const roleMap = { DEVELOPER:{label:'Developer'}, ORG_ADMIN:{label:'Admin'}, ORG_STAFF:{label:'Staff'} };
+    document.getElementById('form-role-label').textContent = (roleMap[role]||roleMap.ORG_STAFF).label;
     showState('form');
   } catch(e) {
-    console.error(e);
     setError('Something went wrong', 'Unable to verify your invitation. Please try again or contact support.');
     showState('error');
   }
 }
-
-// ── Password strength ─────────────────────────────────────────────────────
 function checkStrength(pw) {
-  const fill  = document.getElementById('strength-fill');
+  const fill = document.getElementById('strength-fill');
   const label = document.getElementById('strength-label');
   let score = 0;
-  if (pw.length >= 8)  score++;
-  if (/[A-Z]/.test(pw))  score++;
-  if (/[0-9]/.test(pw))  score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-
-  const map = [
-    { w:'0%',  c:'#dc2626', l:'Too short' },
-    { w:'25%', c:'#dc2626', l:'Weak' },
-    { w:'50%', c:'#f59e0b', l:'Fair' },
-    { w:'75%', c:'#06b6d4', l:'Good' },
-    { w:'100%',c:'#34d399', l:'Strong' },
-  ];
-  const s = map[Math.min(score, map.length-1)];
-  fill.style.width      = s.w;
-  fill.style.background = s.c;
-  label.textContent     = s.l;
-  label.style.color     = s.c;
+  if (pw.length >= 8) score++; if (/[A-Z]/.test(pw)) score++; if (/[0-9]/.test(pw)) score++; if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const map = [{w:'0%',c:'#dc2626',l:'Too short'},{w:'25%',c:'#f43f5e',l:'Weak'},{w:'50%',c:'#fbbf24',l:'Fair'},{w:'75%',c:'#a3ff12',l:'Good'},{w:'100%',c:'#4ade80',l:'Strong'}];
+  const s = map[Math.min(score, 4)];
+  fill.style.width = s.w; fill.style.background = s.c; label.textContent = s.l; label.style.color = s.c;
 }
-
-// ── Submit ────────────────────────────────────────────────────────────────
 async function submitInvite() {
   const name     = document.getElementById('field-name').value.trim();
   const password = document.getElementById('field-password').value;
   const confirm  = document.getElementById('field-confirm').value;
-
-  if (!name)             return showFormAlert('Please enter your full name.', 'err');
-  if (password.length < 8) return showFormAlert('Password must be at least 8 characters.', 'err');
-  if (password !== confirm)  return showFormAlert('Passwords do not match.', 'err');
-
+  if (!name)              return showFormAlert('Please enter your full name.','err');
+  if (password.length < 8) return showFormAlert('Password must be at least 8 characters.','err');
+  if (password !== confirm) return showFormAlert('Passwords do not match.','err');
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.textContent = 'Activating…';
-  clearFormAlert();
-
+  btn.disabled = true; btn.textContent = 'Activating…'; clearFormAlert();
   try {
-    // Update password + display name in one call
-    const { error: updateErr } = await window.supabase.auth.updateUser({
-      password,
-      data: {
-        display_name: name,
-        full_name:    name,
-        invite_accepted: true,
-        invite_accepted_at: new Date().toISOString(),
-      },
-    });
-
-    if (updateErr) {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="md-icon">check_circle</span> Activate Account';
-      return showFormAlert(updateErr.message, 'err');
-    }
-
-    // Call accept-invite Edge Function — stamps app_metadata so RLS works immediately
+    const { error: updateErr } = await window.supabase.auth.updateUser({ password, data:{ display_name:name, full_name:name, invite_accepted:true, invite_accepted_at:new Date().toISOString() } });
+    if (updateErr) { btn.disabled=false; btn.innerHTML='<span class="md-icon">check_circle</span> Activate Account'; return showFormAlert(updateErr.message,'err'); }
     try {
-      const { data: { session: freshSession } } = await window.supabase.auth.getSession();
-      if (freshSession) {
+      const { data:{ session:fs } } = await window.supabase.auth.getSession();
+      if (fs) {
         const supabaseUrl = window.SUPABASE_URL || 'https://grudvsgmbyobilqnvoof.supabase.co';
         const match = supabaseUrl.match(/https:\/\/([a-z0-9]+)\.supabase\.co/);
-        const fnUrl = match
-          ? `https://${match[1]}.supabase.co/functions/v1/accept-invite`
-          : null;
-
-        if (fnUrl) {
-          await fetch(fnUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${freshSession.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-        }
+        const fnUrl = match ? `https://${match[1]}.supabase.co/functions/v1/accept-invite` : null;
+        if (fnUrl) await fetch(fnUrl, { method:'POST', headers:{ 'Authorization':`Bearer ${fs.access_token}`, 'Content-Type':'application/json' } });
       }
-    } catch(e) {
-      console.warn('[invite] accept-invite fn error (non-fatal):', e);
-    }
-
-    document.getElementById('success-sub').textContent =
-      `Welcome to ClearDesk, ${name.split(' ')[0]}! Your account is active. Redirecting…`;
+    } catch(e) { console.warn('[invite] accept-invite fn error (non-fatal):', e); }
+    document.getElementById('success-sub').textContent = `Welcome to ClearDesk, ${name.split(' ')[0]}! Your account is active. Redirecting…`;
     showState('success');
     setTimeout(goToDashboard, 2800);
-
   } catch(e) {
-    btn.disabled = false;
-    btn.innerHTML = '<span class="md-icon">check_circle</span> Activate Account';
-    showFormAlert('Unexpected error — please try again.', 'err');
-    console.error(e);
+    btn.disabled=false; btn.innerHTML='<span class="md-icon">check_circle</span> Activate Account';
+    showFormAlert('Unexpected error — please try again.','err');
   }
 }
-
-function goToDashboard() {
-  window.location.href = 'index.html';
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────
-function formatRole(role) {
-  return { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff Member' }[role] || role;
-}
+function goToDashboard() { window.location.href = 'index.html'; }
+function formatRole(role) { return { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff Member' }[role] || role; }
 function showState(name) {
   ['loading','error','form','success'].forEach(s => {
     document.getElementById('state-'+s).classList.toggle('show', s === name);
   });
 }
-function setError(title, sub) {
-  document.getElementById('err-title').textContent = title;
-  document.getElementById('err-sub').textContent   = sub;
-}
+function setError(title, sub) { document.getElementById('err-title').textContent = title; document.getElementById('err-sub').textContent = sub; }
 function showFormAlert(msg, type) {
   const el = document.getElementById('form-alert');
-  el.style.display = 'block';
-  el.innerHTML = `<div class="alert ${type}"><span class="md-icon" style="font-size:18px;">${type==='err'?'error':'info'}</span>${msg}</div>`;
+  el.innerHTML = `<div class="alert ${type}"><span class="md-icon" style="font-size:17px">${type==='err'?'error':'info'}</span>${msg}</div>`;
 }
-function clearFormAlert() {
-  const el = document.getElementById('form-alert');
-  el.style.display = 'none';
-  el.innerHTML = '';
-}
-
-// ── Boot ──────────────────────────────────────────────────────────────────
+function clearFormAlert() { document.getElementById('form-alert').innerHTML = ''; }
 init();
 </script>
 </body>

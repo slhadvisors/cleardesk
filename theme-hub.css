@@ -551,3 +551,153 @@ body.theme-light .sidebar-item:hover { background: rgba(0,0,0,0.05); color: var(
   .sidebar { width: 60px; }
   .sidebar-label { display: none; }
 }
+
+/* ═══════════════════════════════════════════════
+   23. NEO-GLASS OVERRIDE LAYER
+       Forces dark theme over old Tailwind pages.
+       Injected via sidebar-shared.js / theme-hub.css.
+   ═══════════════════════════════════════════════ */
+
+/* Body canvas — !important wins over old inline styles */
+body.theme-dark {
+  background: var(--bg-canvas) !important;
+  color: var(--text-white) !important;
+}
+body.theme-light {
+  background: var(--bg-canvas) !important;
+  color: var(--text-white) !important;
+}
+
+/* Kill old light ambient background */
+body.theme-dark .ambient-bg,
+body.theme-light .ambient-bg { display: none !important; }
+
+/* Old glass-card → Neo-Glass panel */
+body.theme-dark .glass-card,
+body.theme-dark .glass-solid,
+body.theme-dark .glass-card-solid {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(135%) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  color: var(--text-white) !important;
+  border-radius: var(--radius-standard) !important;
+}
+
+/* Old nav */
+body.theme-dark .glass-nav {
+  background: rgba(11,15,23,0.84) !important;
+  backdrop-filter: blur(28px) !important;
+  border-bottom-color: rgba(163,255,18,0.07) !important;
+}
+
+/* Old Tailwind text color tokens → new vars */
+body.theme-dark .text-on-surface,
+body.theme-dark .text-on-surface-variant { color: var(--text-white) !important; }
+body.theme-dark .text-outline-variant    { color: var(--text-dim) !important; }
+body.theme-dark .text-primary            { color: var(--accent-electric) !important; }
+body.theme-dark .text-emerald-600,
+body.theme-dark .text-emerald-700        { color: var(--accent-mint) !important; }
+body.theme-dark .text-red-500,
+body.theme-dark .text-error              { color: var(--accent-coral) !important; }
+body.theme-dark .text-amber-600          { color: var(--accent-amber) !important; }
+body.theme-dark .text-violet-600         { color: var(--accent-violet) !important; }
+body.theme-dark .text-cyan-600           { color: var(--accent-cyan) !important; }
+
+/* Old Tailwind bg tokens */
+body.theme-dark .bg-surface-container,
+body.theme-dark .bg-background,
+body.theme-dark .bg-surface            { background: var(--bg-canvas) !important; }
+body.theme-dark .bg-\\[\\#e3dfff\\],
+body.theme-dark .bg-emerald-50,
+body.theme-dark .bg-violet-50,
+body.theme-dark .bg-amber-50,
+body.theme-dark .bg-cyan-50,
+body.theme-dark .bg-red-50             { background: rgba(255,255,255,0.05) !important; }
+
+/* Old Tailwind border tokens */
+body.theme-dark .border-outline-variant,
+body.theme-dark .divide-outline-variant { border-color: var(--glass-border) !important; }
+
+/* Input fields → Neo-Glass */
+body.theme-dark input[type="text"],
+body.theme-dark input[type="email"],
+body.theme-dark input[type="password"],
+body.theme-dark input[type="number"],
+body.theme-dark input[type="tel"],
+body.theme-dark select,
+body.theme-dark textarea {
+  background: rgba(22,28,38,0.7) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--text-white) !important;
+  border-radius: 12px !important;
+}
+body.theme-dark input:focus,
+body.theme-dark select:focus,
+body.theme-dark textarea:focus {
+  border-color: rgba(163,255,18,0.45) !important;
+  box-shadow: 0 0 0 3px rgba(163,255,18,0.10) !important;
+  outline: none !important;
+}
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder { color: var(--text-dim) !important; }
+
+/* Tables */
+body.theme-dark table  { border-color: var(--glass-border) !important; }
+body.theme-dark thead  { background: rgba(163,255,18,0.04) !important; }
+body.theme-dark tbody tr:hover { background: rgba(163,255,18,0.025) !important; }
+body.theme-dark th, body.theme-dark td {
+  color: var(--text-white) !important;
+  border-color: var(--glass-border) !important;
+}
+
+/* Status badges — generic pill recoloring */
+body.theme-dark .rounded-full[class*="bg-emerald"] { background: rgba(74,222,128,0.12) !important; color: #4ade80 !important; }
+body.theme-dark .rounded-full[class*="bg-red"]     { background: rgba(244,63,94,0.12) !important;  color: #f43f5e !important; }
+body.theme-dark .rounded-full[class*="bg-amber"]   { background: rgba(251,191,36,0.12) !important; color: #fbbf24 !important; }
+body.theme-dark .rounded-full[class*="bg-violet"]  { background: rgba(167,139,250,0.12) !important;color: #a78bfa !important; }
+body.theme-dark .rounded-full[class*="bg-cyan"]    { background: rgba(34,211,238,0.12) !important; color: #22d3ee !important; }
+body.theme-dark .rounded-full[class*="bg-\\[#e3"]  { background: rgba(163,255,18,0.10) !important; color: #a3ff12 !important; }
+
+/* Credit/gradient CTA buttons stay electric */
+body.theme-dark .credit-stripe {
+  background: linear-gradient(135deg, #a3ff12 0%, #4ade80 100%) !important;
+  color: #0b0f17 !important;
+  box-shadow: 0 0 20px rgba(163,255,18,0.28) !important;
+}
+
+/* ── Stat icon wrapper arbitrary-color overrides ─────────────────
+   Covers bg-[#ede9fe], bg-[#dcfce7], bg-[#cffafe], bg-[#fee2e2],
+   bg-[#e0f2fe], bg-[#fef3c7], bg-[#fdf4ff] etc. used on inner pages.
+   These are Tailwind JIT arbitrary values the generic overrides miss.
+   ─────────────────────────────────────────────────────────────── */
+body.theme-dark .bg-\[\#ede9fe\] { background: rgba(167,139,250,.14) !important; }
+body.theme-dark .bg-\[\#dcfce7\] { background: rgba(74,222,128,.12) !important; }
+body.theme-dark .bg-\[\#cffafe\] { background: rgba(34,211,238,.12) !important; }
+body.theme-dark .bg-\[\#fee2e2\] { background: rgba(244,63,94,.12) !important; }
+body.theme-dark .bg-\[\#e0f2fe\] { background: rgba(56,189,248,.12) !important; }
+body.theme-dark .bg-\[\#fef3c7\] { background: rgba(251,191,36,.12) !important; }
+body.theme-dark .bg-\[\#fdf4ff\] { background: rgba(192,132,252,.12) !important; }
+body.theme-dark .bg-\[\#fdf2f8\] { background: rgba(244,114,182,.12) !important; }
+body.theme-dark .bg-\[\#f0efff\] { background: rgba(163,255,18,.08) !important; }
+body.theme-dark .bg-\[\#e3dfff\] { background: rgba(163,255,18,.08) !important; }
+
+/* Stat icon text color overrides — keep icons readable */
+body.theme-dark .text-\[\#6C63FF\] { color: var(--accent-violet) !important; }
+body.theme-dark .text-cyan-700     { color: var(--accent-cyan) !important; }
+body.theme-dark .text-sky-600      { color: #7dd3fc !important; }
+
+/* Search input / bg-white\/70 across inner pages */
+body.theme-dark .bg-white\/70,
+body.theme-dark .bg-white\/60,
+body.theme-dark .bg-white\/80 {
+  background: rgba(22,28,38,.75) !important;
+  color: var(--text-white) !important;
+}
+
+/* Workspace page background */
+.workspace-canvas > div {
+  background: var(--bg-canvas);
+  min-height: 100%;
+}
