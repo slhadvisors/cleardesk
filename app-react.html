@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClearDesk — Command Center</title>
+
+  <!-- Fonts: Chakra Petch (UI chrome) + IBM Plex Sans (body) + IBM Plex Mono (data) -->
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Supabase UMD (correct path per CLAUDE.md) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- React 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ======================================================
+       DESIGN TOKENS — ClearDesk Fintech System
+    ====================================================== */
+    :root {
+      --bg-canvas:      #0b0f17;
+      --bg-card-solid:  #161c26;
+      --bg-card-hover:  #1c2434;
+      --bg-sidebar:     #0e1420;
+      --bg-topbar:      #0b0f17;
+      --border-subtle:  rgba(255,255,255,0.06);
+      --border-mid:     rgba(255,255,255,0.10);
+
+      --accent-electric:#a3ff12;
+      --accent-electric-dim: rgba(163,255,18,0.12);
+      --accent-mint:    #4ade80;
+      --accent-coral:   #f43f5e;
+      --accent-blue:    #38bdf8;
+
+      --text-white:     #ffffff;
+      --text-dim:       #8a99ad;
+      --text-faint:     #4a5568;
+
+      --radius-standard:24px;
+      --radius-card:    18px;
+      --radius-pill:    30px;
+      --radius-sm:      10px;
+
+      --sidebar-width:  220px;
+      --topbar-height:  60px;
+
+      --spring-physics: cubic-bezier(0.25, 1, 0.5, 1);
+      --spring-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+
+      --font-ui:        'Chakra Petch', system-ui, sans-serif;
+      --font-body:      'IBM Plex Sans', system-ui, sans-serif;
+      --font-mono:      'IBM Plex Mono', 'Fira Code', monospace;
+    }
+
+    /* ======================================================
+       RESET + BASE
+    ====================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body, #root {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-canvas);
+      color: var(--text-white);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--accent-electric); color: #000; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px; }
+
+    /* ======================================================
+       APP SHELL
+    ====================================================== */
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ======================================================
+       SIDEBAR
+    ====================================================== */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      height: 100%;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: relative;
+      z-index: 50;
+    }
+
+    .sidebar-logo {
+      height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-electric);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 13px;
+      color: #000;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      color: var(--text-white);
+    }
+
+    .logo-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--accent-electric);
+      background: var(--accent-electric-dim);
+      border: 1px solid rgba(163,255,18,0.2);
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-left: auto;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 10px;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      padding: 8px 10px 4px;
+    }
+
+    /* Sliding indicator */
+    .nav-indicator {
+      position: absolute;
+      left: 10px;
+      width: calc(100% - 20px);
+      height: 44px;
+      background: var(--accent-electric-dim);
+      border: 1px solid rgba(163,255,18,0.18);
+      border-radius: 12px;
+      transition: top 0.32s var(--spring-physics);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 0 12px;
+      height: 44px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: color 0.18s ease;
+      position: relative;
+      z-index: 1;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-item:hover { color: var(--text-white); }
+
+    .nav-item.active {
+      color: var(--accent-electric);
+      font-weight: 500;
+    }
+
+    .nav-item svg {
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.18s ease;
+    }
+    .nav-item:hover svg,
+    .nav-item.active svg { opacity: 1; }
+
+    .nav-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 8px 10px;
+    }
+
+    .sidebar-bottom {
+      padding: 10px;
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .nav-item.legacy {
+      color: var(--text-faint);
+      font-size: 12.5px;
+    }
+    .nav-item.legacy:hover { color: var(--text-dim); }
+
+    .legacy-badge {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--text-faint);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 3px;
+      padding: 1px 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .org-card {
+      margin: 8px 0 0;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+    }
+
+    .org-name {
+      font-family: var(--font-ui);
+      font-size: 11px;
+      color: var(--text-white);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .org-plan {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent-mint);
+    }
+
+    /* ======================================================
+       MAIN CONTENT COLUMN
+    ====================================================== */
+    .main-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ======================================================
+       TOP BAR
+    ====================================================== */
+    .topbar {
+      height: var(--topbar-height);
+      min-height: var(--topbar-height);
+      background: var(--bg-topbar);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 40;
+    }
+
+    .topbar-breadcrumb {
+      font-family: var(--font-ui);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-white);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-sep {
+      color: var(--text-faint);
+      font-size: 14px;
+      margin: 0 2px;
+    }
+
+    .topbar-sub {
+      color: var(--text-dim);
+      font-weight: 400;
+      font-size: 13px;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-greeting {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .topbar-greeting strong {
+      color: var(--text-white);
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-electric);
+      box-shadow: 0 0 8px var(--accent-electric);
+      animation: pulse-dot 2.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e3a5f, #0d2137);
+      border: 2px solid var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      cursor: pointer;
+      transition: border-color 0.18s;
+    }
+    .topbar-avatar:hover { border-color: var(--accent-electric); }
+
+    /* ======================================================
+       VIEW CONTAINER + TRANSITIONS
+    ====================================================== */
+    .view-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .view-pane {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* Enter animations */
+    @keyframes viewSlideInRight {
+      from { transform: translateX(32px); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
+    }
+
+    @keyframes viewSlideInLeft {
+      from { transform: translateX(-32px); opacity: 0; }
+      to   { transform: translateX(0);     opacity: 1; }
+    }
+
+    .view-enter-right { animation: viewSlideInRight 0.3s var(--spring-physics) forwards; }
+    .view-enter-left  { animation: viewSlideInLeft  0.3s var(--spring-physics) forwards; }
+
+    /* ======================================================
+       SHARED CARD
+    ====================================================== */
+    .card {
+      background: var(--bg-card-solid);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-card);
+      padding: 22px 24px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .card:hover { border-color: var(--border-mid); background: var(--bg-card-hover); }
+
+    .card-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-family: var(--font-ui);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .card-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 8px;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .card-delta.up   { color: var(--accent-mint); background: rgba(74,222,128,0.10); }
+    .card-delta.down { color: var(--accent-coral); background: rgba(244,63,94,0.10); }
+
+    /* Grid layouts */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .content-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Section headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-white);
+    }
+
+    .section-action {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-electric);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .section-action:hover { background: var(--accent-electric-dim); }
+
+    /* ======================================================
+       STATUS BADGES
+    ====================================================== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+    .badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+    .badge.active    { color: var(--accent-mint);     background: rgba(74,222,128,0.10);  }
+    .badge.active::before { background: var(--accent-mint); }
+    .badge.draft     { color: var(--text-dim);        background: rgba(138,153,173,0.10); }
+    .badge.draft::before  { background: var(--text-dim); }
+    .badge.live      { color: var(--accent-electric); background: var(--accent-electric-dim); }
+    .badge.live::before   { background: var(--accent-electric); box-shadow: 0 0 6px var(--accent-electric); }
+    .badge.paused    { color: #facc15;               background: rgba(250,204,21,0.10); }
+    .badge.paused::before { background: #facc15; }
+    .badge.error     { color: var(--accent-coral);   background: rgba(244,63,94,0.10); }
+    .badge.error::before  { background: var(--accent-coral); }
+
+    /* ======================================================
+       TABLE
+    ====================================================== */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      text-align: left;
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s;
+    }
+
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .data-table .cell-primary {
+      color: var(--text-white);
+      font-weight: 500;
+    }
+
+    .data-table .cell-mono {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* ======================================================
+       SEARCH BAR
+    ====================================================== */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-card-solid);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0 14px;
+      height: 40px;
+      transition: border-color 0.18s;
+    }
+    .search-bar:focus-within { border-color: rgba(163,255,18,0.3); }
+
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-white);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      flex: 1;
+    }
+    .search-bar input::placeholder { color: var(--text-faint); }
+    .search-bar svg { color: var(--text-faint); flex-shrink: 0; }
+
+    /* ======================================================
+       BUTTON
+    ====================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 18px;
+      height: 38px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s var(--spring-physics);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary {
+      background: var(--accent-electric);
+      color: #000;
+    }
+    .btn-primary:hover {
+      background: #b8ff2e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(163,255,18,0.3);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-mid);
+      color: var(--text-white);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.09); }
+
+    /* ======================================================
+       CALL LOG ITEM
+    ====================================================== */
+    .call-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .call-item:last-child { border-bottom: none; }
+
+    .call-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .call-info { flex: 1; min-width: 0; }
+
+    .call-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-white);
+    }
+    .call-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 2px;
+    }
+    .call-duration {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ======================================================
+       SMS THREAD
+    ====================================================== */
+    .sms-thread {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s;
+    }
+    .sms-thread:hover { background: rgba(255,255,255,0.02); }
+    .sms-thread:last-child { border-bottom: none; }
+
+    .sms-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .sms-info { flex: 1; min-width: 0; }
+
+    .sms-name {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-white);
+      margin-bottom: 2px;
+    }
+    .sms-preview {
+      font-size: 12.5px;
+      color: var(--text-faint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sms-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      text-align: right;
+    }
+    .sms-unread {
+      display: inline-block;
+      background: var(--accent-electric);
+      color: #000;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* ======================================================
+       ACTIVITY FEED
+    ====================================================== */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    .activity-text {
+      flex: 1;
+    }
+    .activity-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+    .activity-desc strong { color: var(--text-white); font-weight: 500; }
+
+    .activity-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 3px;
+    }
+
+    /* ======================================================
+       CAMPAIGN CARD
+    ====================================================== */
+    .campaign-card {
+      background: var(--bg-card-solid);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-card);
+      padding: 20px 22px;
+      transition: border-color 0.2s, transform 0.2s var(--spring-physics);
+      cursor: pointer;
+    }
+    .campaign-card:hover {
+      border-color: var(--border-mid);
+      transform: translateY(-2px);
+    }
+
+    .campaign-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .campaign-name {
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-white);
+      margin-bottom: 3px;
+    }
+    .campaign-type {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+    }
+
+    .campaign-progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 14px 0 10px;
+    }
+    .campaign-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s var(--spring-physics);
+    }
+
+    .campaign-stats {
+      display: flex;
+      gap: 20px;
+    }
+    .campaign-stat-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .campaign-stat-value span {
+      font-family: var(--font-ui);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-white);
+      display: block;
+    }
+
+    /* ======================================================
+       CHART BARS (mini)
+    ====================================================== */
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 40px;
+    }
+
+    .mini-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: var(--accent-electric-dim);
+      transition: height 0.6s var(--spring-physics);
+      min-width: 6px;
+    }
+    .mini-bar.active { background: var(--accent-electric); }
+
+    /* ======================================================
+       EMPTY STATE
+    ====================================================== */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-faint);
+      text-align: center;
+      gap: 12px;
+    }
+    .empty-state svg { opacity: 0.3; }
+    .empty-state p { font-size: 13.5px; line-height: 1.6; }
+    .empty-state strong { color: var(--text-dim); }
+
+    /* ======================================================
+       PAGE HEADER
+    ====================================================== */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title {
+      font-family: var(--font-ui);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: -0.02em;
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 3px;
+    }
+    .page-actions { display: flex; gap: 10px; }
+
+    /* ======================================================
+       COUNTER ANIMATION
+    ====================================================== */
+    .count-up { display: inline; }
+
+    /* ======================================================
+       LIVE INDICATOR BAND
+    ====================================================== */
+    .live-band {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      background: rgba(163,255,18,0.04);
+      border: 1px solid rgba(163,255,18,0.10);
+      border-radius: 12px;
+      padding: 10px 18px;
+      margin-bottom: 20px;
+    }
+    .live-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--accent-electric);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .live-stat {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .live-stat strong {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      color: var(--text-white);
+    }
+
+    /* Tooltip-style note */
+    .tip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ============================================================
+    // SVG ICON PACK
+    // ============================================================
+    const Icons = {
+      Dashboard: () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      ),
+      Campaigns: () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 3L2 10l7 3 3 7 10-17z"/>
+        </svg>
+      ),
+      Contacts: () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      ),
+      Calls: () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.45 2 2 0 0 1 3.59 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.09 6.09l1.92-1.93a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      ),
+      SMS: () => (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      ),
+      Settings: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      ),
+      DevPortal: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        </svg>
+      ),
+      Search: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      ),
+      Plus: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      ),
+      TrendUp: () => (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+        </svg>
+      ),
+      TrendDown: () => (
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+        </svg>
+      ),
+      ArrowExternalLink: () => (
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+      ),
+      Phone: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.45 2 2 0 0 1 3.59 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.09 6.09l1.92-1.93a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      ),
+    };
+
+    // ============================================================
+    // SIDEBAR NAV CONFIG
+    // ============================================================
+    const NAV_ITEMS = [
+      { id: 'dashboard',  label: 'Dashboard',  Icon: Icons.Dashboard  },
+      { id: 'campaigns',  label: 'Campaigns',  Icon: Icons.Campaigns  },
+      { id: 'contacts',   label: 'Contacts',   Icon: Icons.Contacts   },
+      { id: 'calls',      label: 'Calls',      Icon: Icons.Calls      },
+      { id: 'sms',        label: 'SMS',        Icon: Icons.SMS        },
+    ];
+
+    const NAV_ORDER = NAV_ITEMS.map(i => i.id);
+
+    // ============================================================
+    // SIDEBAR
+    // ============================================================
+    const Sidebar = ({ activeView, onNavigate }) => {
+      const activeIdx = NAV_ITEMS.findIndex(i => i.id === activeView);
+      const indicatorTop = 12 + activeIdx * 48; // 12px top padding + 48px per item
+
+      return (
+        <aside className="sidebar">
+          <div className="sidebar-logo">
+            <div className="logo-mark">CD</div>
+            <span className="logo-text">ClearDesk</span>
+            <span className="logo-badge">LIVE</span>
+          </div>
+
+          <nav className="sidebar-nav">
+            <div className="nav-section-label">Workspaces</div>
+
+            {/* Sliding indicator */}
+            <div
+              className="nav-indicator"
+              style={{ top: indicatorTop }}
+            />
+
+            {NAV_ITEMS.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                className={`nav-item${activeView === id ? ' active' : ''}`}
+                onClick={() => onNavigate(id)}
+              >
+                <Icon />
+                {label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="sidebar-bottom">
+            <div className="nav-divider" />
+            {/* Legacy pages — intentionally not in React router */}
+            <a href="/settings.html" className="nav-item legacy">
+              <Icons.Settings />
+              Settings
+              <span className="legacy-badge">LEGACY</span>
+            </a>
+            <a href="/ops.html" className="nav-item legacy">
+              <Icons.DevPortal />
+              Dev Portal
+              <span className="legacy-badge">VAULT</span>
+            </a>
+
+            <div className="org-card">
+              <div className="org-name">Acme Consulting</div>
+              <div className="org-plan">⬡ Active · Pro Plan</div>
+            </div>
+          </div>
+        </aside>
+      );
+    };
+
+    // ============================================================
+    // TOP BAR
+    // ============================================================
+    const getGreeting = () => {
+      const h = new Date().getHours();
+      if (h < 12) return 'Good morning';
+      if (h < 18) return 'Good afternoon';
+      return 'Good evening';
+    };
+
+    const VIEW_LABELS = {
+      dashboard: 'Dashboard',
+      campaigns: 'Campaigns',
+      contacts:  'Contacts',
+      calls:     'Call Log',
+      sms:       'SMS Inbox',
+    };
+
+    const TopBar = ({ activeView }) => (
+      <header className="topbar">
+        <span className="topbar-breadcrumb">
+          ClearDesk
+          <span className="topbar-sep"> / </span>
+          <span className="topbar-sub">{VIEW_LABELS[activeView]}</span>
+        </span>
+
+        <div className="topbar-right">
+          <div className="status-dot" title="System live" />
+          <span className="topbar-greeting">
+            {getGreeting()}, <strong>Justin</strong> ✦
+          </span>
+          <div className="topbar-avatar" title="Profile">JA</div>
+        </div>
+      </header>
+    );
+
+    // ============================================================
+    // COUNTER HOOK
+    // ============================================================
+    const useCountUp = (target, duration = 1200) => {
+      const [val, setVal] = useState(0);
+      useEffect(() => {
+        let start = null;
+        const step = (ts) => {
+          if (!start) start = ts;
+          const progress = Math.min((ts - start) / duration, 1);
+          // Ease-out quart
+          const eased = 1 - Math.pow(1 - progress, 4);
+          setVal(Math.floor(eased * target));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }, [target]);
+      return val;
+    };
+
+    // ============================================================
+    // KPI CARD
+    // ============================================================
+    const KpiCard = ({ label, value, delta, deltaDir, suffix = '' }) => {
+      const count = useCountUp(value);
+      return (
+        <div className="card">
+          <div className="card-label">{label}</div>
+          <div className="card-value">{count.toLocaleString()}{suffix}</div>
+          <div className={`card-delta ${deltaDir}`}>
+            {deltaDir === 'up' ? <Icons.TrendUp /> : <Icons.TrendDown />}
+            {delta}
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================================
+    // MINI BAR CHART
+    // ============================================================
+    const MiniChart = ({ data, activeIdx }) => (
+      <div className="mini-chart">
+        {data.map((pct, i) => (
+          <div
+            key={i}
+            className={`mini-bar${i === activeIdx ? ' active' : ''}`}
+            style={{ height: `${pct}%` }}
+          />
+        ))}
+      </div>
+    );
+
+    // ============================================================
+    // DASHBOARD VIEW
+    // ============================================================
+    const avatarColors = [
+      ['#1e3a5f','#38bdf8'], ['#2d1a4a','#a78bfa'],
+      ['#1a3a2a','#4ade80'], ['#3a1a1a','#f87171'],
+      ['#2a2a1a','#facc15'], ['#1a2a3a','#60a5fa'],
+    ];
+
+    const ACTIVITY = [
+      { icon: '📞', desc: <><strong>Priya Nair</strong> completed a Document Chase call — <strong>3m 22s</strong></>, time: '2 min ago', bg: 'rgba(74,222,128,0.08)' },
+      { icon: '💬', desc: <><strong>Q2 Collections</strong> campaign dispatched <strong>142 SMS</strong> messages</>, time: '11 min ago', bg: 'rgba(163,255,18,0.06)' },
+      { icon: '⚠️', desc: <>Credit balance below threshold — <strong>$124.50</strong> remaining</>, time: '34 min ago', bg: 'rgba(244,63,94,0.08)' },
+      { icon: '✅', desc: <><strong>Raj Kumar</strong> verified — document submitted to portal</>, time: '1 hr ago', bg: 'rgba(74,222,128,0.06)' },
+      { icon: '📊', desc: <>Campaign <strong>Sales Blitz – IN</strong> reached 80% completion threshold</>, time: '2 hr ago', bg: 'rgba(56,189,248,0.06)' },
+    ];
+
+    const DashboardView = () => (
+      <div>
+        <div className="live-band">
+          <div className="live-label">
+            <div className="status-dot" />
+            System Live
+          </div>
+          <div className="live-stat"><strong>3</strong> calls active now</div>
+          <div className="live-stat"><strong>$1,204.80</strong> credit balance</div>
+          <div className="live-stat"><strong>IN · US · AE</strong> jurisdictions</div>
+          <div className="tip" style={{marginLeft:'auto'}}>7-day data retention</div>
+        </div>
+
+        <div className="kpi-grid">
+          <KpiCard label="Calls This Week"   value={312}  delta="+18% vs last week"  deltaDir="up" />
+          <KpiCard label="SMS Delivered"     value={1847} delta="+7% vs last week"   deltaDir="up" />
+          <KpiCard label="Active Campaigns"  value={6}    delta="-2 from last week"  deltaDir="down" />
+          <KpiCard label="Contacts Reached"  value={894}  delta="+31% vs last week"  deltaDir="up" />
+        </div>
+
+        <div className="content-grid">
+          {/* Activity Feed */}
+          <div className="card" style={{padding:'22px 24px'}}>
+            <div className="section-header">
+              <span className="section-title">Live Activity</span>
+              <button className="section-action">View all</button>
+            </div>
+            {ACTIVITY.map((a, i) => (
+              <div key={i} className="activity-item">
+                <div className="activity-icon" style={{background: a.bg}}>{a.icon}</div>
+                <div className="activity-text">
+                  <div className="activity-desc">{a.desc}</div>
+                  <div className="activity-time">{a.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Call volume chart + campaign summary */}
+          <div style={{display:'flex', flexDirection:'column', gap:16}}>
+            <div className="card">
+              <div className="section-header" style={{marginBottom:8}}>
+                <span className="section-title">Call Volume · 7-Day</span>
+                <span className="tip">Outbound only</span>
+              </div>
+              <MiniChart data={[30,55,45,70,60,88,72]} activeIdx={6} />
+              <div style={{display:'flex', justifyContent:'space-between', marginTop:6}}>
+                {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+                  <span key={d} style={{fontFamily:'var(--font-mono)',fontSize:'9px',color:'var(--text-faint)'}}>{d}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="section-header" style={{marginBottom:12}}>
+                <span className="section-title">Campaign Status</span>
+                <button className="section-action">Manage</button>
+              </div>
+              {[
+                { name:'Q2 Doc Chase – IN',   pct:74, status:'live',   color:'#a3ff12' },
+                { name:'Sales Blitz – US',    pct:40, status:'active',  color:'#4ade80' },
+                { name:'GSTR Deadline – IN',  pct:92, status:'active',  color:'#38bdf8' },
+                { name:'Cold Outreach – AE',  pct:15, status:'draft',   color:'#8a99ad' },
+              ].map((c, i) => (
+                <div key={i} style={{marginBottom: i < 3 ? 12 : 0}}>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+                    <span style={{fontSize:12, color:'var(--text-dim)'}}>{c.name}</span>
+                    <span style={{display:'flex', gap:8, alignItems:'center'}}>
+                      <span className={`badge ${c.status}`}>{c.status}</span>
+                      <span style={{fontFamily:'var(--font-mono)',fontSize:11,color:'var(--text-faint)'}}>{c.pct}%</span>
+                    </span>
+                  </div>
+                  <div className="campaign-progress-bar">
+                    <div className="campaign-progress-fill" style={{width:`${c.pct}%`, background: c.color}} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+    // ============================================================
+    // CAMPAIGNS VIEW
+    // ============================================================
+    const CAMPAIGNS = [
+      { name:'Q2 Document Chaser – India',   type:'DOCUMENT_CHASER',   status:'live',   mode:'AUTOMATED', contacts:214, completed:158, budget:2000, spent:1124 },
+      { name:'Sales Blitz – United States',  type:'SALES_OUTREACH',    status:'active', mode:'MANUAL',    contacts:87,  completed:35,  budget:800,  spent:312 },
+      { name:'GSTR Deadline Reminders',      type:'DEADLINE_REMINDER', status:'active', mode:'AUTOMATED', contacts:341, completed:314, budget:500,  spent:461 },
+      { name:'Cold Outreach – UAE SMBs',     type:'SALES_OUTREACH',    status:'draft',  mode:'MANUAL',    contacts:0,   completed:0,   budget:1500, spent:0 },
+      { name:'1099-NEC Deadline – US',       type:'DEADLINE_REMINDER', status:'paused', mode:'AUTOMATED', contacts:128, completed:60,  budget:600,  spent:280 },
+      { name:'Q3 Pipeline – India',          type:'SALES_OUTREACH',    status:'draft',  mode:'MANUAL',    contacts:0,   completed:0,   budget:1200, spent:0 },
+    ];
+
+    const CampaignsView = () => (
+      <div>
+        <div className="page-header">
+          <div>
+            <div className="page-title">Campaigns</div>
+            <div className="page-subtitle">Manage outbound automation across all jurisdictions</div>
+          </div>
+          <div className="page-actions">
+            <button className="btn btn-ghost">Filter</button>
+            <button className="btn btn-primary"><Icons.Plus /> New Campaign</button>
+          </div>
+        </div>
+
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+          {CAMPAIGNS.map((c, i) => {
+            const pct = c.contacts > 0 ? Math.round((c.completed / c.contacts) * 100) : 0;
+            const colors = { live:'#a3ff12', active:'#4ade80', draft:'#8a99ad', paused:'#facc15', error:'#f43f5e' };
+            return (
+              <div key={i} className="campaign-card">
+                <div className="campaign-header">
+                  <div>
+                    <div className="campaign-name">{c.name}</div>
+                    <div className="campaign-type">{c.type.replace(/_/g,' ')}</div>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
+                    <span className={`badge ${c.status}`}>{c.status}</span>
+                    <span className="tip">{c.mode}</span>
+                  </div>
+                </div>
+
+                <div className="campaign-progress-bar">
+                  <div className="campaign-progress-fill" style={{width:`${pct}%`, background: colors[c.status]}} />
+                </div>
+
+                <div className="campaign-stats">
+                  <div className="campaign-stat-value">
+                    <span>{c.completed}/{c.contacts}</span>
+                    Contacts
+                  </div>
+                  <div className="campaign-stat-value">
+                    <span>{pct}%</span>
+                    Complete
+                  </div>
+                  <div className="campaign-stat-value" style={{marginLeft:'auto'}}>
+                    <span style={{color: c.spent > c.budget ? 'var(--accent-coral)' : 'inherit'}}>
+                      ${c.spent} <span style={{fontFamily:'var(--font-body)', fontSize:11, color:'var(--text-faint)', fontWeight:400}}>/ ${c.budget}</span>
+                    </span>
+                    Budget
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    // ============================================================
+    // CONTACTS VIEW
+    // ============================================================
+    const CONTACTS = [
+      { name:'Priya Nair',       phone:'+91 98765 43210', org:'Nair & Co CPA',       country:'IN', status:'active', calls:12, last:'2 hrs ago'  },
+      { name:'Marcus Webb',      phone:'+1 415 555 0192', org:'Webb Financial',      country:'US', status:'active', calls:7,  last:'Yesterday'   },
+      { name:'Fatima Al-Hassan', phone:'+971 50 234 5678',org:'Gulf Tax Services',   country:'AE', status:'active', calls:4,  last:'3 days ago'  },
+      { name:'Rajan Mehta',      phone:'+91 99887 76543', org:'Mehta Associates',    country:'IN', status:'draft',  calls:0,  last:'Never'       },
+      { name:'Sarah Goldstein',  phone:'+1 212 555 0147', org:'GSW Advisory',        country:'US', status:'active', calls:9,  last:'4 hrs ago'   },
+      { name:'Omar Khalid',      phone:'+971 55 876 5432',org:'Khalid Accounting',   country:'AE', status:'paused', calls:2,  last:'1 week ago'  },
+      { name:'Deepa Sharma',     phone:'+91 87654 32109', org:'Sharma & Iyer',       country:'IN', status:'active', calls:18, last:'30 min ago'  },
+      { name:'Tyler Brooks',     phone:'+1 650 555 0284', org:'Brooks Tax LLC',      country:'US', status:'active', calls:5,  last:'6 hrs ago'   },
+    ];
+
+    const FLAG = { IN:'🇮🇳', US:'🇺🇸', AE:'🇦🇪' };
+
+    const ContactsView = () => {
+      const [search, setSearch] = useState('');
+      const filtered = useMemo(() => {
+        const q = search.toLowerCase();
+        return CONTACTS.filter(c =>
+          c.name.toLowerCase().includes(q) ||
+          c.org.toLowerCase().includes(q) ||
+          c.phone.includes(q)
+        );
+      }, [search]);
+
+      return (
+        <div>
+          <div className="page-header">
+            <div>
+              <div className="page-title">Contacts</div>
+              <div className="page-subtitle">{CONTACTS.length} contacts across IN · US · AE</div>
+            </div>
+            <div className="page-actions">
+              <div className="search-bar" style={{width:240}}>
+                <Icons.Search />
+                <input
+                  placeholder="Search contacts..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </div>
+              <button className="btn btn-primary"><Icons.Plus /> Import</button>
+            </div>
+          </div>
+
+          <div className="card" style={{padding:'0 4px'}}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Organisation</th>
+                  <th>Region</th>
+                  <th>Status</th>
+                  <th>Calls</th>
+                  <th>Last Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((c, i) => {
+                  const [bg, fg] = avatarColors[i % avatarColors.length];
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <div style={{width:30,height:30,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontFamily:'var(--font-ui)',fontWeight:600,color:fg,flexShrink:0}}>
+                            {c.name.split(' ').map(w=>w[0]).join('')}
+                          </div>
+                          <span className="cell-primary">{c.name}</span>
+                        </div>
+                      </td>
+                      <td className="cell-mono">{c.phone}</td>
+                      <td>{c.org}</td>
+                      <td>{FLAG[c.country]} {c.country}</td>
+                      <td><span className={`badge ${c.status}`}>{c.status}</span></td>
+                      <td className="cell-mono">{c.calls}</td>
+                      <td style={{color:'var(--text-faint)',fontSize:12}}>{c.last}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================================
+    // CALLS VIEW
+    // ============================================================
+    const CALLS = [
+      { name:'Priya Nair',       phone:'+91 98765 43210', type:'outbound', duration:'3:22', status:'completed',  outcome:'Document received',       time:'2:14 PM',  campaign:'Q2 Doc Chase – IN' },
+      { name:'Sarah Goldstein',  phone:'+1 212 555 0147', type:'outbound', duration:'1:45', status:'completed',  outcome:'Callback scheduled',      time:'1:58 PM',  campaign:'Sales Blitz – US'  },
+      { name:'Deepa Sharma',     phone:'+91 87654 32109', type:'outbound', duration:'0:00', status:'no-answer',  outcome:'Voicemail left',          time:'1:30 PM',  campaign:'Q2 Doc Chase – IN' },
+      { name:'Marcus Webb',      phone:'+1 415 555 0192', type:'outbound', duration:'4:10', status:'completed',  outcome:'Invoice confirmed',       time:'12:02 PM', campaign:'Sales Blitz – US'  },
+      { name:'Omar Khalid',      phone:'+971 55 876 5432',type:'outbound', duration:'2:55', status:'completed',  outcome:'Document pending',        time:'11:44 AM', campaign:'GSTR Reminders'    },
+      { name:'Tyler Brooks',     phone:'+1 650 555 0284', type:'inbound',  duration:'6:03', status:'completed',  outcome:'Issue resolved',          time:'10:22 AM', campaign:'—'                 },
+      { name:'Rajan Mehta',      phone:'+91 99887 76543', type:'outbound', duration:'0:00', status:'error',      outcome:'Line disconnected',       time:'9:51 AM',  campaign:'Q2 Doc Chase – IN' },
+      { name:'Fatima Al-Hassan', phone:'+971 50 234 5678',type:'outbound', duration:'5:18', status:'completed',  outcome:'Filing submitted',        time:'9:10 AM',  campaign:'GSTR Reminders'    },
+    ];
+
+    const statusColor = { completed:'var(--accent-mint)', 'no-answer':'var(--accent-coral)', error:'var(--accent-coral)' };
+
+    const CallsView = () => (
+      <div>
+        <div className="page-header">
+          <div>
+            <div className="page-title">Call Log</div>
+            <div className="page-subtitle">Today · 8 calls · 24m 13s total talk time</div>
+          </div>
+          <div className="page-actions">
+            <button className="btn btn-ghost">Export CSV</button>
+            <button className="btn btn-primary"><Icons.Phone /> New Call</button>
+          </div>
+        </div>
+
+        <div className="content-grid">
+          <div className="card" style={{gridColumn:'1/-1'}}>
+            {CALLS.map((c, i) => {
+              const [bg, fg] = avatarColors[i % avatarColors.length];
+              return (
+                <div key={i} className="call-item">
+                  <div className="call-avatar" style={{background:bg,color:fg}}>
+                    {c.name.split(' ').map(w=>w[0]).join('')}
+                  </div>
+                  <div className="call-info">
+                    <div className="call-name">{c.name}</div>
+                    <div className="call-meta">{c.phone} · {c.type === 'inbound' ? '↙ inbound' : '↗ outbound'} · {c.campaign}</div>
+                  </div>
+                  <div style={{textAlign:'right',marginLeft:'auto'}}>
+                    <div style={{fontSize:12, color: statusColor[c.status] || 'var(--text-dim)', fontFamily:'var(--font-mono)'}}>{c.outcome}</div>
+                    <div style={{fontSize:11, color:'var(--text-faint)', fontFamily:'var(--font-mono)', marginTop:2}}>{c.time} · {c.duration}</div>
+                  </div>
+                  <span className={`badge ${c.status === 'completed' ? 'active' : 'error'}`} style={{marginLeft:16}}>
+                    {c.status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+
+    // ============================================================
+    // SMS VIEW
+    // ============================================================
+    const SMS_THREADS = [
+      { name:'Priya Nair',       preview:'Thanks, I\'ll upload the documents shortly.',  time:'2:12 PM',  unread:0, bg:'#1e3a5f', fg:'#38bdf8' },
+      { name:'Marcus Webb',      preview:'Can we reschedule the call to Friday?',         time:'1:54 PM',  unread:2, bg:'#2d1a4a', fg:'#a78bfa' },
+      { name:'Deepa Sharma',     preview:'The GSTR filing is complete. Confirmation #…', time:'1:30 PM',  unread:0, bg:'#1a3a2a', fg:'#4ade80' },
+      { name:'Sarah Goldstein',  preview:'Please send the 1099-NEC summary when ready.',  time:'12:00 PM', unread:1, bg:'#3a1a1a', fg:'#f87171' },
+      { name:'Omar Khalid',      preview:'I need to check with my partner first.',        time:'11:40 AM', unread:0, bg:'#2a2a1a', fg:'#facc15' },
+      { name:'Fatima Al-Hassan', preview:'Done! Invoice submitted to the portal.',        time:'9:05 AM',  unread:0, bg:'#1a2a3a', fg:'#60a5fa' },
+      { name:'Tyler Brooks',     preview:'Can you confirm the deadline extension?',       time:'Yesterday',unread:3, bg:'#1e3a5f', fg:'#38bdf8' },
+      { name:'Rajan Mehta',      preview:'Hello, we haven\'t heard back from you.',       time:'2 days',   unread:0, bg:'#3a1a1a', fg:'#f87171' },
+    ];
+
+    const SMSView = () => (
+      <div>
+        <div className="page-header">
+          <div>
+            <div className="page-title">SMS Inbox</div>
+            <div className="page-subtitle">{SMS_THREADS.filter(t=>t.unread>0).length} unread threads</div>
+          </div>
+          <div className="page-actions">
+            <div className="search-bar" style={{width:220}}>
+              <Icons.Search />
+              <input placeholder="Search messages..." />
+            </div>
+            <button className="btn btn-primary"><Icons.Plus /> New SMS</button>
+          </div>
+        </div>
+
+        <div className="content-grid">
+          <div className="card" style={{padding:'8px 16px'}}>
+            <div className="section-header" style={{paddingTop:8}}>
+              <span className="section-title">Conversations</span>
+              <span className="tip">Campaigns · Direct</span>
+            </div>
+            {SMS_THREADS.map((t, i) => (
+              <div key={i} className="sms-thread">
+                <div className="sms-avatar" style={{background:t.bg, color:t.fg}}>
+                  {t.name.split(' ').map(w=>w[0]).join('')}
+                </div>
+                <div className="sms-info">
+                  <div className="sms-name">{t.name}</div>
+                  <div className="sms-preview">{t.preview}</div>
+                </div>
+                <div className="sms-meta">
+                  {t.time}
+                  {t.unread > 0 && <div><span className="sms-unread">{t.unread}</span></div>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            <div className="card">
+              <div className="section-header">
+                <span className="section-title">Delivery Stats · Today</span>
+              </div>
+              {[
+                { label:'Delivered',    value:1847, color:'var(--accent-mint)',     pct:94 },
+                { label:'Opened',       value:1203, color:'var(--accent-electric)', pct:65 },
+                { label:'Replied',      value:312,  color:'var(--accent-blue)',      pct:17 },
+                { label:'Undelivered',  value:113,  color:'var(--accent-coral)',     pct:6  },
+              ].map((row, i) => (
+                <div key={i} style={{marginBottom: i<3 ? 14 : 0}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
+                    <span style={{fontSize:12,color:'var(--text-dim)'}}>{row.label}</span>
+                    <span style={{fontFamily:'var(--font-mono)',fontSize:12,color:'var(--text-white)'}}>{row.value.toLocaleString()} <span style={{color:'var(--text-faint)'}}>{row.pct}%</span></span>
+                  </div>
+                  <div className="campaign-progress-bar">
+                    <div className="campaign-progress-fill" style={{width:`${row.pct}%`, background:row.color}} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="card">
+              <div className="section-header" style={{marginBottom:10}}>
+                <span className="section-title">Quick Compose</span>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                <div className="search-bar" style={{height:36}}>
+                  <input placeholder="To: name or phone..." />
+                </div>
+                <textarea style={{
+                  background:'var(--bg-card-solid)', border:'1px solid var(--border-subtle)',
+                  borderRadius:10, padding:'10px 14px', color:'var(--text-white)',
+                  fontFamily:'var(--font-body)', fontSize:13, resize:'none',
+                  outline:'none', height:80, lineHeight:1.5
+                }} placeholder="Type a message..." />
+                <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                  <button className="btn btn-ghost" style={{height:34,fontSize:12}}>Template</button>
+                  <button className="btn btn-primary" style={{height:34,fontSize:12}}>Send SMS</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+    // ============================================================
+    // VIEW REGISTRY
+    // ============================================================
+    const VIEWS = {
+      dashboard: DashboardView,
+      campaigns: CampaignsView,
+      contacts:  ContactsView,
+      calls:     CallsView,
+      sms:       SMSView,
+    };
+
+    // ============================================================
+    // VIEW TRANSITION WRAPPER
+    // ============================================================
+    const ViewPane = ({ viewId, direction }) => {
+      const View = VIEWS[viewId];
+      const animClass = direction === 'forward' ? 'view-enter-right' : 'view-enter-left';
+      return (
+        <div key={viewId} className={`view-pane ${animClass}`}>
+          <View />
+        </div>
+      );
+    };
+
+    // ============================================================
+    // ROOT APP
+    // ============================================================
+    const App = () => {
+      const [activeView, setActiveView] = useState('dashboard');
+      const [direction, setDirection] = useState('forward');
+      const prevIdx = useRef(0);
+
+      const navigate = useCallback((viewId) => {
+        const currentIdx = NAV_ORDER.indexOf(activeView);
+        const nextIdx    = NAV_ORDER.indexOf(viewId);
+        setDirection(nextIdx >= currentIdx ? 'forward' : 'backward');
+        prevIdx.current = nextIdx;
+        setActiveView(viewId);
+      }, [activeView]);
+
+      return (
+        <div className="app-shell">
+          <Sidebar activeView={activeView} onNavigate={navigate} />
+
+          <div className="main-column">
+            <TopBar activeView={activeView} />
+
+            <div className="view-container">
+              <ViewPane key={activeView} viewId={activeView} direction={direction} />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ============================================================
+    // MOUNT
+    // ============================================================
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
