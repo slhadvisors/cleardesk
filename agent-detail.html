@@ -26,7 +26,7 @@ tailwind.config = {
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:100vh;overflow-x:hidden;}
+body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-height:100vh;overflow-x:hidden;}
 .ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,0.13) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,0.10) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 50%,rgba(198,194,255,0.08) 0%,transparent 60%),linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);animation:ambientShift 20s ease-in-out infinite alternate;}
 @keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
 .glass-nav{background:rgba(255,255,255,0.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 0 rgba(77,65,223,0.06);}
@@ -131,10 +131,10 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:10
 
   <!-- Agent grid -->
   <div class="agents-grid grid grid-cols-3 gap-5 enter enter-3" id="agents-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center gap-3 text-on-surface-variant col-span-3">
-      <span class="md-icon text-[28px] animate-spin">progress_activity</span>
-      <span class="text-[13.5px]">Loading agents…</span>
-    </div>
+    <!-- Skeleton agent cards -->
+    <div class="glass-card rounded-2xl p-5"><div class="skeleton" style="width:48px;height:48px;border-radius:14px;margin-bottom:12px"></div><div class="skeleton" style="height:13px;width:70%;border-radius:4px;margin-bottom:7px"></div><div class="skeleton" style="height:11px;width:50%;border-radius:4px;margin-bottom:16px"></div><div class="skeleton" style="height:20px;width:60px;border-radius:999px"></div></div>
+    <div class="glass-card rounded-2xl p-5"><div class="skeleton" style="width:48px;height:48px;border-radius:14px;margin-bottom:12px"></div><div class="skeleton" style="height:13px;width:70%;border-radius:4px;margin-bottom:7px"></div><div class="skeleton" style="height:11px;width:50%;border-radius:4px;margin-bottom:16px"></div><div class="skeleton" style="height:20px;width:60px;border-radius:999px"></div></div>
+    <div class="glass-card rounded-2xl p-5"><div class="skeleton" style="width:48px;height:48px;border-radius:14px;margin-bottom:12px"></div><div class="skeleton" style="height:13px;width:70%;border-radius:4px;margin-bottom:7px"></div><div class="skeleton" style="height:11px;width:50%;border-radius:4px;margin-bottom:16px"></div><div class="skeleton" style="height:20px;width:60px;border-radius:999px"></div></div>
   </div>
 
 </main>

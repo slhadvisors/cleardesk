@@ -304,3 +304,50 @@ async function protectPage(redirectUrl = '/login.html') {
   }
   return getCurrentUser();
 }
+
+// ── Global Toast System ─────────────────────────────────────────────────────
+// showToast(message, type, duration)
+// type: 'success' | 'error' | 'warning' | 'info'
+// Usage: showToast('Profile saved', 'success')
+function showToast(message, type = 'success', duration = 4000) {
+  // Inject toast container once
+  let container = document.getElementById('cd-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'cd-toast-container';
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'false');
+    document.body.appendChild(container);
+  }
+
+  const icons = {
+    success: 'check_circle',
+    error:   'error',
+    warning: 'warning',
+    info:    'info'
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `cd-toast cd-toast--${type}`;
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `
+    <span class="md-icon cd-toast__icon" aria-hidden="true">${icons[type] || 'info'}</span>
+    <span class="cd-toast__msg">${message}</span>
+    <button class="cd-toast__close" onclick="this.closest('.cd-toast').remove()" aria-label="Dismiss">
+      <span class="md-icon" aria-hidden="true">close</span>
+    </button>`;
+
+  container.appendChild(toast);
+
+  // Animate in
+  requestAnimationFrame(() => toast.classList.add('cd-toast--visible'));
+
+  // Auto-dismiss
+  const timer = setTimeout(() => {
+    toast.classList.remove('cd-toast--visible');
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+  }, duration);
+
+  // Manual close also clears timer
+  toast.querySelector('.cd-toast__close').addEventListener('click', () => clearTimeout(timer));
+}

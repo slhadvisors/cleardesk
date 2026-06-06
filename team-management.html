@@ -66,7 +66,7 @@ tailwind.config = {
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Plus Jakarta Sans", sans-serif; background: #f0ecf9; min-height: 100vh; overflow-x: hidden; }
+  body { font-family: "Plus Jakarta Sans", sans-serif; background: var(--bg-canvas); min-height: 100vh; overflow-x: hidden; }
 
   .ambient-bg {
     position: fixed; inset: 0; z-index: 0;
@@ -237,11 +237,11 @@ tailwind.config = {
       </div>
       <!-- Members list -->
       <div id="members-list">
-        <!-- Loading skeleton -->
-        <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
-          <span class="md-icon text-[20px] animate-spin">progress_activity</span>
-          <span class="text-[13.5px]">Loading team members…</span>
-        </div>
+        <!-- Skeleton loading rows -->
+        <div class="skeleton-row"><div class="sk-avatar skeleton" style="border-radius:10px"></div><div class="sk-line-1 skeleton" style="flex:2"></div><div class="sk-badge skeleton hidden md:block" style="width:80px"></div><div class="sk-line-2 skeleton hidden md:block" style="width:60px"></div><div class="sk-badge skeleton hidden md:block" style="width:70px"></div></div>
+        <div class="skeleton-row"><div class="sk-avatar skeleton" style="border-radius:10px"></div><div class="sk-line-1 skeleton" style="flex:2"></div><div class="sk-badge skeleton hidden md:block" style="width:80px"></div><div class="sk-line-2 skeleton hidden md:block" style="width:60px"></div><div class="sk-badge skeleton hidden md:block" style="width:70px"></div></div>
+        <div class="skeleton-row"><div class="sk-avatar skeleton" style="border-radius:10px"></div><div class="sk-line-1 skeleton" style="flex:2"></div><div class="sk-badge skeleton hidden md:block" style="width:80px"></div><div class="sk-line-2 skeleton hidden md:block" style="width:60px"></div><div class="sk-badge skeleton hidden md:block" style="width:70px"></div></div>
+        <div class="skeleton-row"><div class="sk-avatar skeleton" style="border-radius:10px"></div><div class="sk-line-1 skeleton" style="flex:2"></div><div class="sk-badge skeleton hidden md:block" style="width:80px"></div><div class="sk-line-2 skeleton hidden md:block" style="width:60px"></div><div class="sk-badge skeleton hidden md:block" style="width:70px"></div></div>
       </div>
     </div>
 
@@ -257,7 +257,7 @@ tailwind.config = {
         <h2 class="text-[18px] font-bold text-on-surface">Invite Team Member</h2>
         <p class="text-[13px] text-on-surface-variant mt-0.5">Send an invitation to join your workspace</p>
       </div>
-      <button onclick="closeInviteDrawer()" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy">
+      <button onclick="closeInviteDrawer()" aria-label="Close" class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy">
         <span class="md-icon text-[20px] text-on-surface-variant">close</span>
       </button>
     </div>
@@ -372,7 +372,7 @@ tailwind.config = {
         <div><span class="badge ${cls}">${label}</span></div>
         <div class="hidden md:block text-[12.5px] text-on-surface-variant">${joined}</div>
         <div class="flex items-center justify-end gap-1">
-          <button onclick="editMember('${m.id}')" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy" title="Edit">
+          <button onclick="editMember('${m.id}')" aria-label="Edit member" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy">
             <span class="md-icon text-[17px] text-on-surface-variant">edit</span>
           </button>
           <button onclick="removeMember('${m.id}')" class="w-8 h-8 rounded-lg hover:bg-error-container flex items-center justify-center transition-snappy" title="Remove">

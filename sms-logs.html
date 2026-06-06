@@ -28,7 +28,7 @@ tailwind.config = {
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0ecf9;min-height:100vh;overflow-x:hidden;}
+body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-height:100vh;overflow-x:hidden;}
 .ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,0.13) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,0.10) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 50%,rgba(198,194,255,0.08) 0%,transparent 60%),linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);animation:ambientShift 20s ease-in-out infinite alternate;}
 @keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
 .glass-nav{background:rgba(255,255,255,0.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 0 rgba(77,65,223,0.06);}
@@ -147,8 +147,8 @@ input:focus,textarea:focus {
     </div>
   </div>
 
-  <div class="glass-card rounded-2xl overflow-hidden enter enter-4">
-    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_60px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40">
+  <div class="glass-card rounded-2xl overflow-hidden enter enter-4 sms-logs-table">
+    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_60px] px-6 py-3 border-b border-outline-variant/40 bg-surface-container/40" style="min-width:540px">
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Recipient</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider hidden md:block">Message Preview</span>
       <span class="text-[12px] font-semibold text-on-surface-variant uppercase tracking-wider">Status</span>
@@ -156,10 +156,12 @@ input:focus,textarea:focus {
       <span></span>
     </div>
     <div id="logs-list">
-      <div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant">
-        <span class="md-icon text-[20px] animate-spin">progress_activity</span>
-        <span class="text-[13.5px]">Loading SMS logs…</span>
-      </div>
+      <!-- Skeleton loading rows -->
+      <div class="skeleton-row" style="min-width:540px"><div class="sk-avatar skeleton"></div><div style="flex:2" class="sk-line-1 skeleton"></div><div style="flex:2;max-width:180px" class="sk-line-1 skeleton hidden md:block"></div><div style="width:70px" class="sk-badge skeleton"></div></div>
+      <div class="skeleton-row" style="min-width:540px"><div class="sk-avatar skeleton"></div><div style="flex:2" class="sk-line-1 skeleton"></div><div style="flex:2;max-width:180px" class="sk-line-1 skeleton hidden md:block"></div><div style="width:70px" class="sk-badge skeleton"></div></div>
+      <div class="skeleton-row" style="min-width:540px"><div class="sk-avatar skeleton"></div><div style="flex:2" class="sk-line-1 skeleton"></div><div style="flex:2;max-width:180px" class="sk-line-1 skeleton hidden md:block"></div><div style="width:70px" class="sk-badge skeleton"></div></div>
+      <div class="skeleton-row" style="min-width:540px"><div class="sk-avatar skeleton"></div><div style="flex:2" class="sk-line-1 skeleton"></div><div style="flex:2;max-width:180px" class="sk-line-1 skeleton hidden md:block"></div><div style="width:70px" class="sk-badge skeleton"></div></div>
+      <div class="skeleton-row" style="min-width:540px"><div class="sk-avatar skeleton"></div><div style="flex:2" class="sk-line-1 skeleton"></div><div style="flex:2;max-width:180px" class="sk-line-1 skeleton hidden md:block"></div><div style="width:70px" class="sk-badge skeleton"></div></div>
     </div>
     <div class="flex items-center justify-between px-6 py-3 border-t border-outline-variant/30">
       <span class="text-[12.5px] text-on-surface-variant" id="log-count">—</span>
@@ -182,7 +184,7 @@ input:focus,textarea:focus {
         <div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center"><span class="md-icon text-[20px] text-[#6C63FF]">add_comment</span></div>
         <h3 class="text-[16px] font-bold text-on-surface">New SMS</h3>
       </div>
-      <button onclick="closeCompose()" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
+      <button onclick="closeCompose()" aria-label="Close" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
     </div>
     <div class="space-y-4 text-[13.5px]">
       <div>
@@ -214,7 +216,7 @@ input:focus,textarea:focus {
   <div id="modal-box" class="glass-card-solid rounded-3xl p-6 w-[480px] max-w-[95vw] shadow-2xl scale-95 transition-transform duration-200">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-[16px] font-bold text-on-surface">SMS Detail</h3>
-      <button onclick="closeModal()" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
+      <button onclick="closeModal()" aria-label="Close" class="w-8 h-8 rounded-xl hover:bg-surface-container flex items-center justify-center transition-snappy"><span class="md-icon text-[18px] text-on-surface-variant">close</span></button>
     </div>
     <div id="modal-content" class="space-y-4 text-[13.5px]"></div>
   </div>
@@ -247,7 +249,14 @@ function renderPage(){
   const start=(currentPage-1)*PAGE_SIZE,page=filtered.slice(start,start+PAGE_SIZE),list=document.getElementById('logs-list');
   document.getElementById('log-count').textContent=`${filtered.length} messages`;
   document.getElementById('page-label').textContent=`${currentPage} / ${Math.max(1,Math.ceil(filtered.length/PAGE_SIZE))}`;
-  if(!page.length){list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">sms_failed</span><p class="text-[14px] font-medium">No messages found</p></div>`;return;}
+  if(!page.length){
+    const noData = !allLogs.length;
+    list.innerHTML=`<div class="empty-state">
+      <span class="md-icon empty-state__icon">${noData?'sms':'search_off'}</span>
+      <p class="empty-state__title">${noData?'No messages yet':'No messages found'}</p>
+      <p class="empty-state__body">${noData?'Send your first SMS via a campaign to see logs here.':'Try a different search or filter.'}</p>
+      ${noData?`<button class="empty-state__cta" onclick="document.getElementById('compose-overlay').style.opacity=1;document.getElementById('compose-overlay').style.pointerEvents='auto';document.getElementById('compose-box').style.transform='scale(1)'"><span class="md-icon" style="font-size:16px">send</span>Send SMS</button>`:''}
+    </div>`;return;}
   list.innerHTML=page.map((l,i)=>`
     <div class="log-row grid grid-cols-[2fr_2fr_1fr_1fr_60px] items-center px-6 py-4 border-b border-outline-variant/20 last:border-0" onclick="openDetail('${l.id}')" style="animation:slideUp 0.35s cubic-bezier(0.25,1,0.5,1) ${i*0.035}s both;">
       <div><div class="text-[13.5px] font-semibold text-on-surface">${l.name}</div><div class="text-[12px] text-on-surface-variant font-mono">${l.phone}</div></div>
@@ -299,7 +308,16 @@ async function loadLogs(){
     list.innerHTML=`<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant"><span class="md-icon text-[40px] opacity-40">account_circle</span><p class="text-[14px] font-medium">Session not ready — please refresh.</p></div>`;
     return;
   }
-  list.innerHTML=`<div class="px-6 py-8 flex items-center justify-center gap-3 text-on-surface-variant"><span class="md-icon text-[20px] animate-spin">progress_activity</span><span class="text-[13.5px]">Loading SMS logs…</span></div>`;
+  list.innerHTML=[1,2,3,4,5].map((_,i)=>`
+    <div class="px-6 py-4 border-b border-outline-variant/20 last:border-0" style="opacity:${1-i*0.15}">
+      <div class="grid grid-cols-[2fr_2fr_1fr_1fr_60px] items-center gap-3">
+        <div class="space-y-1.5"><div class="skeleton h-3.5 rounded w-28"></div><div class="skeleton h-3 rounded w-20"></div></div>
+        <div class="space-y-1.5 hidden md:block"><div class="skeleton h-3 rounded w-40"></div><div class="skeleton h-3 rounded w-24"></div></div>
+        <div class="skeleton h-5 rounded-full w-20"></div>
+        <div class="skeleton h-3 rounded w-16 hidden md:block"></div>
+        <div class="skeleton h-7 w-7 rounded-lg ml-auto"></div>
+      </div>
+    </div>`).join('');
 
   const{data,error}=await window.supabase
     .from('sms_logs')
@@ -429,37 +447,4 @@ async function sendSMSFallback(phone, name, message) {
     phone_number:    phone,
     recipient_phone: phone,
     message_body:    message,
-    message:         message,
-    delivery_status: 'queued',
-    status:          'sent',
-  }).select().single();
-
-  const btn     = document.getElementById('cmp-send-btn');
-  const alertEl = document.getElementById('compose-alert');
-  btn.disabled = false;
-  btn.textContent = 'Send ➔';
-
-  if (error) { alertEl.textContent = 'Failed: ' + error.message; alertEl.hidden = false; return; }
-  closeCompose();
-  allLogs.unshift(dbToLog(data));
-  filtered = [...allLogs];
-  renderPage();
-  updateStats();
-}
-
-async function init(){
-  await checkMaintenanceMode();
-  const user=await protectPage();if(!user)return;
-  window._cdUser=user;
-  const{data:{session}}=await window.supabase.auth.getSession();
-  window._cdSession=session;
-  const name=user.display_name||user.email;
-  document.getElementById('avatar-initials').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
-  await loadLogs();
-  setInterval(loadLogs,30000);
-}
-init();
-</script>
-</body>
-</
+    messag

@@ -34,6 +34,7 @@
     { id: 'teams',      icon: 'group',           label: 'Teams',     href: 'team-management.html' },
     { id: 'agents',     icon: 'support_agent',   label: 'Agents',    href: 'agent-detail.html' },
     { id: 'settings',   icon: 'settings',        label: 'Settings',  href: 'settings.html' },
+    { id: 'profile',    icon: 'manage_accounts', label: 'Profile',   href: 'profile.html' },
   ];
 
   /* Pages that must do a full hard-navigation (legacy / security isolation) */
@@ -94,9 +95,9 @@
         <span class="md-icon" id="sb-theme-icon" style="font-size:20px">${themeIcon}</span>
         <span class="sidebar-label">Theme</span>
       </button>
-      <div class="sidebar-footer">
-        <div class="sidebar-avatar-wrap" id="sb-avatar" title="${user ? user.name : 'Sign out'}"
-             onclick="if(typeof signOut==='function')signOut()">
+      <div class="sidebar-footer" title="My Profile" style="cursor:pointer"
+           onclick="window.location.href='profile.html'">
+        <div class="sidebar-avatar-wrap" id="sb-avatar">
           ${avatarContent}
         </div>
         <span class="sidebar-avatar-name" id="sb-avatar-name">${user ? user.name : ''}</span>
@@ -318,6 +319,103 @@
     shell.appendChild(canvas);
     document.body.appendChild(shell);
 
+    /* ── Mobile topbar ── */
+    const topbar = document.createElement('div');
+    topbar.className = 'mobile-topbar';
+    topbar.setAttribute('role', 'banner');
+    topbar.innerHTML = `
+      <a href="index.html" class="mobile-topbar-brand" title="ClearDesk Dashboard">
+        <div class="mobile-topbar-brand-icon">${LOGO_SVG}</div>
+        <span class="mobile-topbar-brand-name">ClearDesk</span>
+      </a>
+      <div class="mobile-topbar-actions">
+        <button class="mobile-topbar-btn" id="sb-theme-btn-mob" title="Toggle theme" aria-label="Toggle theme">
+          <span class="md-icon" id="sb-theme-icon-mob" style="font-size:20px">${(localStorage.getItem('cd-theme') || 'dark') === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+        </button>
+        <button class="mobile-topbar-btn" id="sb-hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sb-drawer">
+          <span class="md-icon" style="font-size:22px">menu</span>
+        </button>
+      </div>`;
+    document.body.appendChild(topbar);
+
+    /* ── Mobile drawer overlay (tap to close) ── */
+    const overlay = document.createElement('div');
+    overlay.className = 'sb-mobile-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.addEventListener('click', closeMobileDrawer);
+    document.body.appendChild(overlay);
+
+    /* ── Bottom nav (5 key items) ── */
+    const BOTTOM_NAV = ['dashboard', 'campaigns', 'contacts', 'calls', 'sms'];
+    const bottomNav = document.createElement('nav');
+    bottomNav.className = 'mobile-bottom-nav';
+    bottomNav.setAttribute('aria-label', 'Mobile navigation');
+    bottomNav.innerHTML = BOTTOM_NAV.map(id => {
+      const n = NAV.find(x => x.id === id);
+      if (!n) return '';
+      const isActive = id === activeId;
+      return `<a href="${n.href}" class="mob-nav-item${isActive ? ' mob-nav-item--active' : ''}" aria-label="${n.label}" data-nav-id="${id}">
+        ${isActive ? '<span class="mob-nav-dot" aria-hidden="true"></span>' : ''}
+        <span class="md-icon" style="font-size:22px" aria-hidden="true">${n.icon}</span>
+        <span class="mob-nav-label">${n.label}</span>
+      </a>`;
+    }).join('');
+    document.body.appendChild(bottomNav);
+
+    /* ── Mobile drawer open/close ── */
+    function openMobileDrawer() {
+      document.body.classList.add('sb-open');
+      const btn = document.getElementById('sb-hamburger');
+      if (btn) { btn.setAttribute('aria-expanded', 'true'); btn.querySelector('.md-icon').textContent = 'close'; }
+      sidebar.setAttribute('aria-hidden', 'false');
+    }
+    function closeMobileDrawer() {
+      document.body.classList.remove('sb-open');
+      const btn = document.getElementById('sb-hamburger');
+      if (btn) { btn.setAttribute('aria-expanded', 'false'); btn.querySelector('.md-icon').textContent = 'menu'; }
+      sidebar.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('sb-hamburger').addEventListener('click', () => {
+      document.body.classList.contains('sb-open') ? closeMobileDrawer() : openMobileDrawer();
+    });
+
+    /* ── Bottom nav PJAX ── */
+    bottomNav.querySelectorAll('.mob-nav-item').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+        if (href === currentFile) return;
+        e.preventDefault();
+        /* Update active state */
+        bottomNav.querySelectorAll('.mob-nav-item').forEach(el => {
+          el.classList.remove('mob-nav-item--active');
+          const dot = el.querySelector('.mob-nav-dot');
+          if (dot) dot.remove();
+        });
+        this.classList.add('mob-nav-item--active');
+        const dot = document.createElement('span');
+        dot.className = 'mob-nav-dot';
+        dot.setAttribute('aria-hidden', 'true');
+        this.insertBefore(dot, this.firstChild);
+        pjaxNavigate(href);
+      });
+    });
+
+    /* ── Mobile theme toggle ── */
+    const mobThemeBtn = document.getElementById('sb-theme-btn-mob');
+    if (mobThemeBtn) {
+      mobThemeBtn.addEventListener('click', () => {
+        const curr = localStorage.getItem('cd-theme') || 'dark';
+        const next = curr === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('cd-theme', next);
+        document.body.classList.remove('theme-dark', 'theme-light');
+        document.body.classList.add(next === 'light' ? 'theme-light' : 'theme-dark');
+        const icons = [document.getElementById('sb-theme-icon'), document.getElementById('sb-theme-icon-mob')];
+        icons.forEach(ic => { if (ic) ic.textContent = next === 'dark' ? 'light_mode' : 'dark_mode'; });
+      });
+    }
+
     /* Snap glider to active item */
     const activeItem = sidebar.querySelector('.sidebar-item--active');
     positionGlider(activeItem, true);
@@ -382,16 +480,20 @@
       }, 80);
     });
 
-    /* ── Theme toggle ── */
-    document.getElementById('sb-theme-btn').addEventListener('click', () => {
-      const curr = localStorage.getItem('cd-theme') || 'dark';
-      const next = curr === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('cd-theme', next);
-      document.body.classList.remove('theme-dark', 'theme-light');
-      document.body.classList.add(next === 'light' ? 'theme-light' : 'theme-dark');
-      const icon = document.getElementById('sb-theme-icon');
-      if (icon) icon.textContent = next === 'dark' ? 'light_mode' : 'dark_mode';
-    });
+    /* ── Desktop theme toggle ── */
+    const desktopThemeBtn = document.getElementById('sb-theme-btn');
+    if (desktopThemeBtn) {
+      desktopThemeBtn.addEventListener('click', () => {
+        const curr = localStorage.getItem('cd-theme') || 'dark';
+        const next = curr === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('cd-theme', next);
+        document.body.classList.remove('theme-dark', 'theme-light');
+        document.body.classList.add(next === 'light' ? 'theme-light' : 'theme-dark');
+        /* Sync both desktop + mobile icons */
+        [document.getElementById('sb-theme-icon'), document.getElementById('sb-theme-icon-mob')]
+          .forEach(ic => { if (ic) ic.textContent = next === 'dark' ? 'light_mode' : 'dark_mode'; });
+      });
+    }
 
     /* ── Load avatar async ── */
     (async () => {
