@@ -537,10 +537,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const{data:{session}}=await window.supabase.auth.getSession();
   window._cdSession = session;
 
-  // Avatar
+  // Avatar (guard against missing elements — sidebar handles its own avatar)
   const name = user.display_name || user.email || '';
-  document.getElementById('avatar-initials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
-  document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
+  const initEl = document.getElementById('avatar-initials');
+  const emailEl = document.getElementById('user-email-short');
+  if (initEl) initEl.textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+  if (emailEl) emailEl.textContent = (user.email || '').split('@')[0];
 
   await loadLogs();
 

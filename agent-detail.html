@@ -8,10 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
-<link href="theme-hub.css" rel="stylesheet"/>
-<script src="sidebar-shared.js"></script>
 <script src="maintenance.js"></script>
 <script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
+<script src="sidebar-shared.js"></script>
+<link href="theme-hub.css" rel="stylesheet"/>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -363,8 +364,10 @@ async function init(){
   await checkMaintenanceMode();
   const user=await protectPage();if(!user)return;
   const name=user.display_name||user.email;
-  document.getElementById('avatar-initials').textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('user-email-short').textContent=user.email.split('@')[0];
+  const _initEl=document.getElementById('avatar-initials');
+  const _emailEl=document.getElementById('user-email-short');
+  if(_initEl)_initEl.textContent=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  if(_emailEl)_emailEl.textContent=user.email.split('@')[0];
 
   window._cdUser=user;
   try{

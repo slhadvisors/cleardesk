@@ -545,7 +545,8 @@ async function boot() {
   if (!currentUser) { location.href = 'login.html'; return; }
   const name = currentUser.display_name || currentUser.email.split('@')[0];
   const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() || name[0].toUpperCase();
-  document.getElementById('avatar-initials').textContent = initials;
+  const _initEl = document.getElementById('avatar-initials');
+  if (_initEl) _initEl.textContent = initials;
   buildWebhookUrl();
   await loadCampaigns();
 }
@@ -890,17 +891,6 @@ async function deleteCampaign(id, status) {
   } else {
     await loadCampaigns();
   }
-}
-
-function updateChips() {
-  const cards = document.querySelectorAll('[id^="campaign-"]');
-  const statuses = [...cards].map(c => c.dataset.status);
-  const total = cards.length;
-  const live  = statuses.filter(s => s === 'processing').length;
-  const draft = statuses.filter(s => s === 'draft').length;
-  document.getElementById('chip-total')?.textContent && (document.getElementById('chip-total').textContent = `${total} total`);
-  document.getElementById('chip-live')?.textContent  && (document.getElementById('chip-live').textContent  = `${live} live`);
-  document.getElementById('chip-draft')?.textContent && (document.getElementById('chip-draft').textContent = `${draft} draft`);
 }
 
 // ── Drawer logic ─────────────────────────────────────────────────

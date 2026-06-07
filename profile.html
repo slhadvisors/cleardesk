@@ -38,7 +38,7 @@
         radial-gradient(ellipse 70% 50% at 15% 0%, rgba(163,255,18,.06) 0%, transparent 60%),
         radial-gradient(ellipse 50% 40% at 85% 100%, rgba(6,182,212,.05) 0%, transparent 55%),
         var(--bg-canvas);
-    } 100%{filter:hue-rotate(8deg)} }
+    }
 
     /* Avatar upload hover overlay */
     .avatar-upload-wrap:hover .avatar-overlay { opacity: 1; }
@@ -173,7 +173,7 @@
               <!-- Avatar upload row -->
               <div class="flex items-center gap-4 p-4 rounded-xl" style="background:rgba(163,255,18,0.04);border:1px solid rgba(163,255,18,0.10)">
                 <div class="profile-avatar-ring" style="width:56px;height:56px;cursor:pointer" onclick="document.getElementById('avatar-file').click()">
-                  <div class="profile-avatar-inner" id="avatar-inner-sm" style="font-size:18px;font-weight:700" id="avatar-initials-sm">?</div>
+                  <div class="profile-avatar-inner" id="avatar-initials-sm" style="font-size:18px;font-weight:700">?</div>
                 </div>
                 <div>
                   <p class="text-[13px] font-semibold" style="color:var(--text-white)">Profile Photo</p>
@@ -427,7 +427,7 @@
 </div>
 
 <!-- Delete confirmation modal -->
-<div id="delete-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,5,0.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center">
+<div id="delete-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,5,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center">
   <div class="profile-section-card" style="width:420px;max-width:94vw;border:1px solid rgba(244,63,94,0.30)">
     <div class="flex items-center gap-3 mb-4">
       <span class="md-icon" style="font-size:24px;color:#f87171">warning</span>
@@ -445,10 +445,12 @@
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/window.supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
+<script src="maintenance.js"></script>
 <script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
 <script src="sidebar-shared.js"></script>
 <script>
 'use strict';
@@ -762,6 +764,7 @@ async function executeDeleteAccount() {
 
 /* ── Init ───────────────────────────────────────────────────── */
 async function init() {
+  await checkMaintenanceMode();
   const user = await protectPage();
   if (!user) return;
   await loadProfile();

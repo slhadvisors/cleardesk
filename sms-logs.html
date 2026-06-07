@@ -463,13 +463,9 @@ async function sendSMSFallback(phone, name, message) {
   const btn = document.getElementById('cmp-send-btn');
   if (btn) { btn.disabled = false; btn.textContent = 'Send ➔'; }
 }
-</script>
-</body>
-</html>
 
-<script>
-// ── Page init (must be after all function definitions) ────────────
-document.addEventListener('DOMContentLoaded', async () => {
+// ── Page init ────────────────────────────────────────────────────
+(async () => {
   await checkMaintenanceMode();
   const user = await protectPage();
   if (!user) return;
@@ -490,5 +486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   await loadLogs();
-});
+})();
 </script>
+</body>
+</html>

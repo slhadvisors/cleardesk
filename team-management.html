@@ -8,11 +8,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
-<link href="theme-hub.css" rel="stylesheet"/>
-<script src="sidebar-shared.js"></script>
 <script src="maintenance.js"></script>
 <script src="translations.js"></script>
-<script>protectPage();</script>
+<script src="sandbox-guard.js"></script>
+<script src="sidebar-shared.js"></script>
+<link href="theme-hub.css" rel="stylesheet"/>
+<script>protectPage(); initSandboxGuard();</script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -531,8 +532,8 @@ tailwind.config = {
     const initEl = document.getElementById('avatar-initials');
     const emailEl = document.getElementById('user-email-short');
     const name = user.display_name || user.email;
-    initEl.textContent = getInitials(name);
-    emailEl.textContent = user.email.split('@')[0];
+    if (initEl) initEl.textContent = getInitials(name);
+    if (emailEl) emailEl.textContent = user.email.split('@')[0];
 
     // Show developer link if applicable
     if (user.role === 'DEVELOPER') {

@@ -545,8 +545,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const name = user.display_name || user.email || '';
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-  document.getElementById('avatar-initials').textContent = initials;
-  document.getElementById('user-email-short').textContent = (user.email || '').split('@')[0];
+  const _initEl = document.getElementById('avatar-initials');
+  const _emailEl = document.getElementById('user-email-short');
+  if (_initEl) _initEl.textContent = initials;
+  if (_emailEl) _emailEl.textContent = (user.email || '').split('@')[0];
 
   if (user.role === 'DEVELOPER') {
     const dl = document.getElementById('developer-link');
