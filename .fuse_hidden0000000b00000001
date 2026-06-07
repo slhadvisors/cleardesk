@@ -17,7 +17,7 @@
           colors: {
             "on-surface":"#1b1b24","surface":"#fcf8ff","on-surface-variant":"#464555",
             "outline-variant":"#c7c4d8","surface-container":"#f0ecf9",
-            "surface-container-high":"#eae6f3","primary":"#a3ff12","error":"#ba1a1a"
+            "surface-container-high":"#eae6f3","primary":"#4d41df","error":"#ba1a1a"
           },
           fontFamily: { sans: ['Plus Jakarta Sans','sans-serif'] }
         }
@@ -32,13 +32,16 @@
       line-height: 1;
       user-select: none;
     }
-    /* Ambient background matching other pages */    .ambient-bg {
-      position:fixed; inset:0; z-index:0;
+    /* Ambient background matching other pages */
+    .ambient-bg {
+      position: fixed; inset: 0; z-index: 0;
       background:
-        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(163,255,18,.06) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 85% 100%, rgba(6,182,212,.05) 0%, transparent 55%),
-        var(--bg-canvas);
-    } 100%{filter:hue-rotate(8deg)} }
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(108,99,255,0.13) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 85% 100%, rgba(79,68,226,0.10) 0%, transparent 55%),
+        linear-gradient(160deg, #ece9ff 0%, #f0ecf9 40%, #e8f0ff 100%);
+      animation: ambientShift 20s ease-in-out infinite alternate;
+    }
+    @keyframes ambientShift { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(8deg)} }
 
     /* Avatar upload hover overlay */
     .avatar-upload-wrap:hover .avatar-overlay { opacity: 1; }
@@ -445,7 +448,7 @@
 </div>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/window.supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="auth.js"></script>
 <script src="translations.js"></script>
@@ -498,7 +501,7 @@ function toggleNotif(id, el) {
 
 function saveNotifications() {
   // Persist to user_metadata
-  window.supabase.auth.updateUser({ data: { notification_prefs: notifState } })
+  supabase.auth.updateUser({ data: { notification_prefs: notifState } })
     .then(() => showToast('Notification preferences saved', 'success'))
     .catch(e => showToast('Save failed: ' + e.message, 'error'));
 }
@@ -526,13 +529,13 @@ function setAvatarPreview(url) {
 }
 
 async function uploadAvatar(file) {
-  const { data: { session } } = await window.supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session) return;
   const path = `avatars/${session.user.id}/${Date.now()}.webp`;
-  const { error: upErr } = await window.supabase.storage.from('user-avatars').upload(path, file, { upsert: true });
+  const { error: upErr } = await supabase.storage.from('user-avatars').upload(path, file, { upsert: true });
   if (upErr) { showToast('Upload failed: ' + upErr.message, 'error'); return; }
-  const { data: { publicUrl } } = window.supabase.storage.from('user-avatars').getPublicUrl(path);
-  await window.supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+  const { data: { publicUrl } } = supabase.storage.from('user-avatars').getPublicUrl(path);
+  await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
   showToast('Profile photo updated', 'success');
 }
 
@@ -541,7 +544,7 @@ function removeAvatar() {
   img.src = ''; img.style.display = 'none';
   document.getElementById('avatar-initials').style.display = '';
   document.getElementById('btn-remove-avatar').style.display = 'none';
-  window.supabase.auth.updateUser({ data: { avatar_url: null } })
+  supabase.auth.updateUser({ data: { avatar_url: null } })
     .then(() => showToast('Profile photo removed', 'info'))
     .catch(e => showToast('Remove failed: ' + e.message, 'error'));
 }
@@ -597,7 +600,7 @@ async function loadProfile() {
   badge.textContent = roleLabels[user.role] || user.role || 'Staff';
 
   // Avatar
-  const avatarUrl = (await window.supabase.auth.getSession()).data.session?.user.user_metadata?.avatar_url;
+  const avatarUrl = (await supabase.auth.getSession()).data.session?.user.user_metadata?.avatar_url;
   if (avatarUrl) { setAvatarPreview(avatarUrl); }
   else {
     const initials = (firstName[0] || '') + (lastName[0] || firstName[1] || '');
@@ -611,7 +614,7 @@ async function loadProfile() {
   document.getElementById('inp-email').value   = user.email;
 
   // Email verified badge
-  const session = (await window.supabase.auth.getSession()).data.session;
+  const session = (await supabase.auth.getSession()).data.session;
   if (session?.user?.email_confirmed_at) {
     document.getElementById('email-verified-badge').style.display = 'inline-flex';
   }
@@ -651,7 +654,7 @@ async function saveAccount() {
     if (email !== document.getElementById('hdr-email').textContent) {
       updatePayload.email = email;
     }
-    const { error } = await window.supabase.auth.updateUser(updatePayload);
+    const { error } = await supabase.auth.updateUser(updatePayload);
     if (error) throw error;
     document.getElementById('hdr-name').textContent = display || `${fname} ${lname}`.trim();
     showToast('Profile saved successfully', 'success');
@@ -677,7 +680,7 @@ async function changePassword() {
   errEl.classList.add('hidden');
   if (next.length < 8) { showToast('Password must be at least 8 characters', 'warning'); return; }
 
-  const { error } = await window.supabase.auth.updateUser({ password: next });
+  const { error } = await supabase.auth.updateUser({ password: next });
   if (error) { showToast('Password update failed: ' + error.message, 'error'); return; }
   showToast('Password updated successfully', 'success');
   ['inp-pw-current','inp-pw-new','inp-pw-confirm'].forEach(id => {
@@ -700,13 +703,13 @@ function renderSessions() {
 
 async function signOutAllDevices() {
   if (!confirm('Sign out of all devices? You will be redirected to login.')) return;
-  await window.supabase.auth.signOut({ scope: 'global' });
+  await supabase.auth.signOut({ scope: 'global' });
   window.location.href = '/login.html';
 }
 
 /* ── Organisation tab ───────────────────────────────────────── */
 async function renderOrg() {
-  const session = (await window.supabase.auth.getSession()).data.session;
+  const session = (await supabase.auth.getSession()).data.session;
   if (!session) return;
   const meta = session.user.user_metadata || {};
   const appMeta = session.user.app_metadata || {};
@@ -734,7 +737,7 @@ function downloadData() {
 
 function deactivateAccount() {
   if (!confirm('Deactivate your account? An admin can reactivate it later.')) return;
-  window.supabase.auth.updateUser({ data: { account_status: 'deactivated' } })
+  supabase.auth.updateUser({ data: { account_status: 'deactivated' } })
     .then(() => { showToast('Account deactivated', 'warning'); setTimeout(() => signOut(), 1500); })
     .catch(e => showToast('Failed: ' + e.message, 'error'));
 }
@@ -755,8 +758,8 @@ async function executeDeleteAccount() {
   const btn = document.getElementById('btn-confirm-delete');
   btn.disabled = true; btn.textContent = 'Deleting…';
   // Mark for deletion (actual purge handled server-side)
-  await window.supabase.auth.updateUser({ data: { deletion_requested_at: new Date().toISOString() } });
-  await window.supabase.auth.signOut();
+  await supabase.auth.updateUser({ data: { deletion_requested_at: new Date().toISOString() } });
+  await supabase.auth.signOut();
   window.location.href = '/login.html';
 }
 

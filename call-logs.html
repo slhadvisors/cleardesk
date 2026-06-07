@@ -30,13 +30,13 @@ tailwind.config = {
         "primary-fixed-dim":"#c4c0ff","surface-container-high":"#eae6f3",
         "surface-container-low":"#f6f2ff","secondary":"#005bbf","tertiary":"#914800",
         "on-primary":"#ffffff","tertiary-container":"#b65c00","on-secondary":"#ffffff",
-        "primary":"#4d41df","outline":"#777587","surface-bright":"#fcf8ff",
+        "primary":"#a3ff12","outline":"#777587","surface-bright":"#fcf8ff",
         "surface-container-highest":"#e4e1ee","background":"#fcf8ff",
         "primary-fixed":"#e3dfff","inverse-surface":"#302f39","error":"#ba1a1a",
         "secondary-fixed":"#d7e2ff","surface-container":"#f0ecf9",
         "on-surface-variant":"#464555","surface-container-lowest":"#ffffff",
         "on-surface":"#1b1b24","error-container":"#ffdad6","surface":"#fcf8ff",
-        "inverse-primary":"#c4c0ff","primary-container":"#675df9","outline-variant":"#c7c4d8"
+        "inverse-primary":"#c4c0ff","primary-container":"rgba(163,255,18,0.15)","outline-variant":"#c7c4d8"
       },
       fontFamily:{sans:["Plus Jakarta Sans","sans-serif"]},
       borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem","2xl":"1rem","3xl":"1.5rem",full:"9999px"}
@@ -49,26 +49,26 @@ tailwind.config = {
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-height:100vh;overflow-x:hidden;}
 
-.ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,0.13) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,0.10) 0%,transparent 55%),radial-gradient(ellipse 40% 35% at 50% 50%,rgba(198,194,255,0.08) 0%,transparent 60%),linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);animation:ambientShift 20s ease-in-out infinite alternate;}
-@keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
+.ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(163,255,18,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(6,182,212,.05) 0%,transparent 55%),var(--bg-canvas);}
+100%{filter:hue-rotate(15deg)}}
 
-.glass-nav{background:rgba(255,255,255,0.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 0 rgba(77,65,223,0.06);}
-.glass-card{background:rgba(255,255,255,0.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,0.5);box-shadow:0 4px 24px rgba(77,65,223,0.07),0 1px 0 rgba(255,255,255,0.8) inset;}
-.glass-card-solid{background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);box-shadow:0 4px 24px rgba(77,65,223,0.08);}
+.glass-nav{background:rgba(255,255,255,0.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 0 rgba(163,255,18,0.04);}
+.glass-card{background:rgba(255,255,255,0.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,0.5);box-shadow:0 4px 24px rgba(163,255,18,0.05),0 1px 0 rgba(255,255,255,0.8) inset;}
+.glass-card-solid{background:rgba(255,255,255,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);box-shadow:0 4px 24px rgba(163,255,18,0.06);}
 
 .transition-snappy{transition:all 0.22s cubic-bezier(0.25,1,0.5,1);}
 .card-hover{transition:transform 0.22s cubic-bezier(0.25,1,0.5,1),box-shadow 0.22s cubic-bezier(0.25,1,0.5,1);}
-.card-hover:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(77,65,223,0.14),0 1px 0 rgba(255,255,255,0.8) inset;}
+.card-hover:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(163,255,18,0.08),0 1px 0 rgba(255,255,255,0.8) inset;}
 
 .nav-item{position:relative;transition:color 0.18s ease;}
-.nav-item.active{color:#6C63FF;}
+.nav-item.active{color:var(--accent-electric);}
 
 @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .enter{opacity:0;animation:slideUp 0.4s cubic-bezier(0.25,1,0.5,1) forwards;}
 .enter-1{animation-delay:.05s}.enter-2{animation-delay:.10s}.enter-3{animation-delay:.15s}.enter-4{animation-delay:.20s}.enter-5{animation-delay:.25s}
 
 .md-icon{font-family:'Material Symbols Outlined';font-style:normal;font-weight:300;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;line-height:1;user-select:none;}
-.credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
+.credit-stripe{background:linear-gradient(135deg,var(--neon-emerald) 0%,var(--neon-cyan) 100%);}
 
 /* Status badges — dark-mode safe */
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;}
@@ -96,7 +96,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-
 .log-row{transition:background 0.15s ease;}
 .log-row:hover{background:rgba(163,255,18,0.03);}
 .filter-btn{background:transparent;cursor:pointer;}
-.filter-btn.active{background:rgba(163,255,18,0.10);color:#a3ff12;border-color:rgba(163,255,18,0.25)!important;}
+.filter-btn.active{background:rgba(163,255,18,0.10);color:var(--accent-electric);border-color:rgba(163,255,18,0.25)!important;}
 
 /* Live indicator */
 @keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,222,128,0.4)}50%{opacity:.7;box-shadow:0 0 0 4px rgba(74,222,128,0)}}
@@ -154,7 +154,7 @@ input#search-input::placeholder { color:#8a99ad !important; }
         <span id="last-refresh">Live</span>
       </div>
       <button onclick="loadLogs()" class="flex items-center gap-2 px-4 py-2.5 glass-card text-on-surface rounded-xl text-[13.5px] font-semibold hover:shadow-md transition-snappy border border-outline-variant/40">
-        <span class="md-icon text-[18px] text-[#6C63FF]">refresh</span>Refresh
+        <span class="md-icon text-[18px] text-[var(--accent-electric)]">refresh</span>Refresh
       </button>
       <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2.5 credit-stripe text-white rounded-xl text-[13.5px] font-semibold shadow-sm hover:shadow-md transition-snappy">
         <span class="md-icon text-[18px]">download</span>Export
@@ -165,7 +165,7 @@ input#search-input::placeholder { color:#8a99ad !important; }
   <!-- Stats -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 enter enter-2">
     <div class="glass-card rounded-2xl p-5 card-hover">
-      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center"><span class="md-icon text-[20px] text-[#6C63FF]">call</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Total Calls</span></div>
+      <div class="flex items-center gap-3 mb-3"><div class="w-9 h-9 rounded-xl bg-[rgba(163,255,18,0.08)] flex items-center justify-center"><span class="md-icon text-[20px] text-[var(--accent-electric)]">call</span></div><span class="text-[12.5px] font-medium text-on-surface-variant">Total Calls</span></div>
       <div class="text-[28px] font-bold text-on-surface" id="stat-total">0</div>
     </div>
     <div class="glass-card rounded-2xl p-5 card-hover">
@@ -275,7 +275,7 @@ function statusBadge(rawStatus) {
     'completed':   `<span class="badge badge-completed"><span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block"></span>Completed</span>`,
     'failed':      `<span class="badge badge-failed"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span>Failed</span>`,
     'no-answer':   `<span class="badge badge-no-answer"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block"></span>No Answer</span>`,
-    'in-progress': `<span class="badge badge-in-progress"><span style="width:6px;height:6px;border-radius:50%;background:#4d41df;display:inline-block"></span>In Progress</span>`,
+    'in-progress': `<span class="badge badge-in-progress"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent-electric);display:inline-block"></span>In Progress</span>`,
   };
   return map[s] || map['failed'];
 }
@@ -347,7 +347,7 @@ function renderPage() {
       <div class="hidden md:block text-[12.5px] font-semibold text-on-surface-variant">${cost}</div>
       <div class="hidden md:block text-[12.5px] text-on-surface-variant">${fmtTime(l.created_at)}</div>
       <div class="flex justify-end">
-        <button class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy">
+        <button onclick="openDrawer('${l.id}')" class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center transition-snappy">
           <span class="md-icon text-[17px] text-on-surface-variant">chevron_right</span>
         </button>
       </div>
@@ -560,4 +560,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           allLogs[idx] = { ...allLogs[idx], ...dbToLog(updated) };
           filtered = allLogs.filter(l => activeFilter === 'all' || l.status === activeFilter);
           renderPage();
-          // Flash the up
+          // Flash the up          // Flash the updated row briefly to signal change
+          const rowEl = document.querySelector(`[data-log-id="${updated.id}"]`);
+          if (rowEl) {
+            rowEl.style.transition = 'background 0.3s';
+            rowEl.style.background = 'rgba(52,211,153,0.12)';
+            setTimeout(() => { rowEl.style.background = ''; }, 1200);
+          }
+        }
+      })
+      .subscribe();
+  } catch(e) {
+    console.warn('[Realtime] Could not subscribe to call_logs_live:', e);
+  }
+});
+</script>
+</body>
+</html>

@@ -11,9 +11,9 @@
 <script src="maintenance.js"></script>
 <script src="translations.js"></script>
 <script src="sandbox-guard.js"></script>
-<script>protectPage(); initSandboxGuard();</script>
 <link href="theme-hub.css" rel="stylesheet"/>
 <script src="sidebar-shared.js"></script>
+<script>protectPage(); initSandboxGuard();</script>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -25,8 +25,8 @@ tailwind.config = {
   theme:{extend:{
     colors:{
       "on-background":"#1b1b24","surface-tint":"#4f44e2","surface-dim":"#dcd8e5",
-      "surface-variant":"#e4e1ee","primary":"#4d41df","on-primary":"#ffffff",
-      "primary-fixed":"#e3dfff","primary-fixed-dim":"#c4c0ff","primary-container":"#675df9",
+      "surface-variant":"#e4e1ee","primary":"#a3ff12","on-primary":"#ffffff",
+      "primary-fixed":"#e3dfff","primary-fixed-dim":"#c4c0ff","primary-container":"rgba(163,255,18,0.15)",
       "secondary":"#005bbf","on-secondary":"#ffffff","secondary-fixed":"#d7e2ff",
       "tertiary":"#914800","outline":"#777587","outline-variant":"#c7c4d8",
       "surface-bright":"#fcf8ff","surface-container-highest":"#e4e1ee",
@@ -46,32 +46,28 @@ tailwind.config = {
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-height:100vh;overflow-x:hidden;}
 
-.ambient-bg{position:fixed;inset:0;z-index:0;background:
-  radial-gradient(ellipse 70% 50% at 15% 0%,rgba(108,99,255,.13) 0%,transparent 60%),
-  radial-gradient(ellipse 50% 40% at 85% 100%,rgba(79,68,226,.10) 0%,transparent 55%),
-  linear-gradient(160deg,#ece9ff 0%,#f0ecf9 40%,#e8f0ff 100%);
-  animation:ambientShift 20s ease-in-out infinite alternate;}
-@keyframes ambientShift{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(15deg)}}
+.ambient-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 0%,rgba(163,255,18,.06) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 85% 100%,rgba(6,182,212,.05) 0%,transparent 55%),var(--bg-canvas);}
+100%{filter:hue-rotate(15deg)}}
 
-.glass-nav{background:rgba(255,255,255,.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.5);box-shadow:0 1px 0 rgba(77,65,223,.06);}
-.glass-card{background:rgba(255,255,255,.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,.5);box-shadow:0 4px 24px rgba(77,65,223,.07),0 1px 0 rgba(255,255,255,.8) inset;}
-.glass-solid{background:rgba(255,255,255,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 24px rgba(77,65,223,.08);}
+.glass-nav{background:rgba(255,255,255,.82);backdrop-filter:blur(28px) saturate(140%);-webkit-backdrop-filter:blur(28px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.5);box-shadow:0 1px 0 rgba(163,255,18,0.04);}
+.glass-card{background:rgba(255,255,255,.62);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border:1px solid rgba(255,255,255,.5);box-shadow:0 4px 24px rgba(163,255,18,0.05),0 1px 0 rgba(255,255,255,.8) inset;}
+.glass-solid{background:rgba(255,255,255,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 24px rgba(163,255,18,0.06);}
 
 .t-snappy{transition:all .22s cubic-bezier(.25,1,.5,1);}
 
 /* Nav item */
 .nav-item{position:relative;transition:color .18s ease,background .18s ease;}
-.nav-item.active{color:#6C63FF;}
+.nav-item.active{color:var(--accent-electric);}
 
-.credit-stripe{background:linear-gradient(135deg,#6C63FF 0%,#8b5cf6 50%,#06b6d4 100%);}
+.credit-stripe{background:linear-gradient(135deg,var(--neon-emerald) 0%,var(--neon-cyan) 100%);}
 
 /* Filter tabs */
 .filter-tab{transition:all .18s ease;border-bottom:2px solid transparent;}
-.filter-tab.active{color:#4d41df;border-bottom-color:#4d41df;}
+
 
 /* Campaign card */
 .campaign-card{transition:transform .22s cubic-bezier(.25,1,.5,1),box-shadow .22s cubic-bezier(.25,1,.5,1);}
-.campaign-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(77,65,223,.14);}
+.campaign-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(163,255,18,0.08);}
 
 /* Status badges — rgba-based, dark-mode safe */
 .badge-draft     {background:rgba(148,163,184,.12);color:#94a3b8;border:1px solid rgba(148,163,184,.20);}
@@ -195,7 +191,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg-canvas);min-
 /* Filter tabs on main page */
 .filter-tab { color:#8a99ad; }
 .filter-tab:hover { color:#f1f5f9; }
-.filter-tab.active { color:#a3ff12; border-bottom-color:#a3ff12; }
+.filter-tab.active { color:var(--accent-electric); border-bottom-color:var(--accent-electric); }
 </style>
 </head>
 
@@ -752,7 +748,7 @@ function renderCampaigns() {
             </div>
             ${c.execution_mode === 'automated' ? `
             <div class="flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-1 rounded-full"
-              style="background:rgba(108,99,255,0.08);color:#4d41df;border:1px solid rgba(108,99,255,0.2);">
+              style="background:rgba(163,255,18,0.08);color:var(--accent-electric);border:1px solid rgba(163,255,18,0.22);">
               <span class="w-1.5 h-1.5 rounded-full bg-primary inline-block" style="animation:livePulse 2s ease-in-out infinite;"></span>
               ${c.automation_trigger_condition
                 ? `Listening: <span class="font-mono ml-1 truncate max-w-[140px]">${c.automation_trigger_condition}</span>`
@@ -1008,4 +1004,62 @@ function renderContactPreview() {
       <div class="w-6 h-6 rounded-full bg-primary-fixed flex items-center justify-center text-[10px] font-bold text-primary shrink-0">${c.name[0].toUpperCase()}</div>
       <span class="text-[12.5px] font-medium text-on-surface flex-1 truncate">${c.name}</span>
       <span class="text-[12px] text-on-surface-variant">${c.phone}</span>
-      
+            <button onclick="removeContact(${i})" aria-label="Remove contact" class="w-5 h-5 rounded flex items-center justify-center text-on-surface-variant hover:text-warning-crimson hover:bg-error-container/30 transition-snappy text-[14px] font-bold shrink-0">×</button>
+    </div>`).join('');
+}
+function removeContact(i) {
+  contacts.splice(i, 1);
+  renderContactPreview();
+}
+
+// ── Save Campaign ─────────────────────────────────────────────────
+async function saveCampaign() {
+  const name   = document.getElementById('inp-name').value.trim();
+  const script = document.getElementById('inp-script').value.trim();
+  const budget = parseFloat(document.getElementById('inp-budget')?.value || '50');
+  const trigger = document.getElementById('inp-trigger')?.value.trim() || null;
+  const cron    = document.getElementById('inp-cron')?.value.trim() || null;
+
+  if (!form.purpose) { alert('Select a campaign purpose.'); return; }
+  if (!form.mode)    { alert('Select an execution mode.'); return; }
+  if (!name)         { alert('Enter a campaign name.'); return; }
+  if (!script)       { alert('Enter a script / prompt for the AI.'); return; }
+
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  const { data: { session } } = await window.supabase.auth.getSession();
+  const orgId = session?.user?.user_metadata?.organization_id || session?.user?.app_metadata?.organization_id;
+
+  const { error } = await window.supabase.from('outbound_campaigns').insert({
+    organization_id: orgId,
+    campaign_name:   name,
+    campaign_purpose: form.purpose,
+    execution_mode:  form.mode,
+    custom_script_prompt: script,
+    contact_list_json: contacts,
+    allocated_budget_cap: isNaN(budget) ? 50 : budget,
+    automation_trigger_condition: trigger,
+    cron_schedule_expression: cron,
+    status: 'draft',
+  });
+
+  btn.disabled = false;
+  btn.textContent = '🚀 Create Campaign';
+
+  if (error) {
+    alert('Failed to create campaign: ' + error.message);
+    return;
+  }
+
+  closeDrawer();
+  await loadCampaigns();
+  // Toast
+  if (window.showToast) showToast('Campaign created!', 'rocket_launch', 'var(--neon-emerald)');
+}
+
+boot();
+</script>
+</body>
+</html>

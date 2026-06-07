@@ -38,7 +38,7 @@ tailwind.config = {
         "on-primary": "#ffffff",
         "tertiary-container": "#b65c00",
         "on-secondary": "#ffffff",
-        "primary": "#4d41df",
+        "primary": "#a3ff12",
         "outline": "#777587",
         "surface-bright": "#fcf8ff",
         "surface-container-highest": "#e4e1ee",
@@ -54,7 +54,7 @@ tailwind.config = {
         "error-container": "#ffdad6",
         "surface": "#fcf8ff",
         "inverse-primary": "#c4c0ff",
-        "primary-container": "#675df9",
+        "primary-container": "rgba(163,255,18,0.15)",
         "outline-variant": "#c7c4d8"
       },
       fontFamily: { sans: ["Plus Jakarta Sans", "sans-serif"] },
@@ -66,34 +66,29 @@ tailwind.config = {
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "Plus Jakarta Sans", sans-serif; background: var(--bg-canvas); min-height: 100vh; overflow-x: hidden; }
-
-  .ambient-bg {
-    position: fixed; inset: 0; z-index: 0;
+  body { font-family: "Plus Jakarta Sans", sans-serif; background: var(--bg-canvas); min-height: 100vh; overflow-x: hidden; }  .ambient-bg {
+    position:fixed; inset:0; z-index:0;
     background:
-      radial-gradient(ellipse 70% 50% at 15% 0%,   rgba(108,99,255,0.13) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 85% 100%,  rgba(79,68,226,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 35% at 50% 50%,   rgba(198,194,255,0.08) 0%, transparent 60%),
-      linear-gradient(160deg, #ece9ff 0%, #f0ecf9 40%, #e8f0ff 100%);
-    animation: ambientShift 20s ease-in-out infinite alternate;
-  }
-  @keyframes ambientShift { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(15deg); } }
+      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(163,255,18,.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 100%, rgba(6,182,212,.05) 0%, transparent 55%),
+      var(--bg-canvas);
+  } 100% { filter: hue-rotate(15deg); } }
 
   .glass-nav {
     background: rgba(255,255,255,0.82); backdrop-filter: blur(28px) saturate(140%);
     -webkit-backdrop-filter: blur(28px) saturate(140%);
-    border-bottom: 1px solid rgba(255,255,255,0.5); box-shadow: 0 1px 0 rgba(77,65,223,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.5); box-shadow: 0 1px 0 rgba(163,255,18,0.04);
   }
   .glass-card {
     background: rgba(255,255,255,0.62); backdrop-filter: blur(20px) saturate(130%);
     -webkit-backdrop-filter: blur(20px) saturate(130%);
     border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 4px 24px rgba(77,65,223,0.07), 0 1px 0 rgba(255,255,255,0.8) inset;
+    box-shadow: 0 4px 24px rgba(163,255,18,0.05), 0 1px 0 rgba(255,255,255,0.8) inset;
   }
   .glass-card-solid {
     background: rgba(255,255,255,0.88); backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 24px rgba(77,65,223,0.08);
+    border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 4px 24px rgba(163,255,18,0.06);
   }
 
   .transition-snappy { transition: all 0.22s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -101,10 +96,10 @@ tailwind.config = {
   .card-hover {
     transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.22s cubic-bezier(0.25, 1, 0.5, 1);
   }
-  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(77,65,223,0.14), 0 1px 0 rgba(255,255,255,0.8) inset; }
+  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(163,255,18,0.08), 0 1px 0 rgba(255,255,255,0.8) inset; }
 
   .nav-item { position: relative; transition: color 0.18s ease, background 0.18s ease; }
-  .nav-item.active { color: #6C63FF; }
+  .nav-item.active { color: var(--accent-electric); }
 
   @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   .enter { opacity: 0; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -115,11 +110,11 @@ tailwind.config = {
   .md-icon { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 300;
     font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; line-height: 1; user-select: none; }
 
-  .credit-stripe { background: linear-gradient(135deg, #6C63FF 0%, #8b5cf6 50%, #06b6d4 100%); }
+  .credit-stripe { background: linear-gradient(135deg, var(--neon-emerald) 0%, var(--neon-cyan) 100%); }
 
   /* Role badge */
   .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
-  .badge-admin { background: rgba(79,68,226,0.1); color: #4d41df; border: 1px solid rgba(79,68,226,0.2); }
+  .badge-admin { background: rgba(163,255,18,0.08); color: var(--accent-electric,#a3ff12); border: 1px solid rgba(163,255,18,0.20); }
   .badge-manager { background: rgba(5,150,105,0.1); color: #065f46; border: 1px solid rgba(5,150,105,0.2); }
   .badge-agent { background: rgba(37,99,235,0.09); color: #1e40af; border: 1px solid rgba(37,99,235,0.18); }
   .badge-ops { background: rgba(217,119,6,0.1); color: #92400e; border: 1px solid rgba(217,119,6,0.2); }
@@ -142,8 +137,8 @@ tailwind.config = {
   .member-row:hover { background: rgba(163,255,18,0.03); }
 
   ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.2); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(108,99,255,0.35); }
+  ::-webkit-scrollbar-thumb { background: rgba(163,255,18,0.15); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(163,255,18,0.30); }
 
   @media (max-width: 768px) { .nav-scroll { overflow-x: auto; } }
 </style>
@@ -175,7 +170,7 @@ tailwind.config = {
       <div class="glass-card rounded-2xl p-5 card-hover">
         <div class="flex items-center gap-3 mb-3">
           <div class="w-9 h-9 rounded-xl bg-[#ede9fe] flex items-center justify-center">
-            <span class="md-icon text-[20px] text-[#6C63FF]">group</span>
+            <span class="md-icon text-[20px] text-[var(--accent-electric)]">group</span>
           </div>
           <span class="text-[12.5px] font-medium text-on-surface-variant">Total Members</span>
         </div>
@@ -288,7 +283,7 @@ tailwind.config = {
       </div>
 
       <div class="glass-card rounded-xl p-4 flex items-start gap-3">
-        <span class="md-icon text-[20px] text-[#6C63FF] mt-0.5">info</span>
+        <span class="md-icon text-[20px] text-[var(--accent-electric)] mt-0.5">info</span>
         <p class="text-[12.5px] text-on-surface-variant leading-relaxed">An invitation email will be sent. The member must set a password before they can log in.</p>
       </div>
     </div>
@@ -312,12 +307,12 @@ tailwind.config = {
 
 <style>
   .filter-btn { background: transparent; cursor: pointer; }
-  .filter-btn.active-filter { background: rgba(108,99,255,0.1); color: #6C63FF; border-color: rgba(108,99,255,0.2); }
+  .filter-btn.active-filter { background: rgba(163,255,18,0.10); color: var(--accent-electric,#a3ff12); border-color: rgba(163,255,18,0.25); }
 </style>
 
 <script>
   // ── Colour palette for avatars ──
-  const AVATAR_COLORS = ['#6C63FF','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'];
+  const AVATAR_COLORS = ['#a3ff12','#06b6d4','#10b981','#f59e0b','#ef4444','#34d399','#0ea5e9'];
   let currentFilter = 'all';
   let allMembers = [];
 
@@ -353,8 +348,12 @@ tailwind.config = {
     const list = document.getElementById('members-list');
     if (!members.length) {
       list.innerHTML = `<div class="px-6 py-12 flex flex-col items-center gap-3 text-on-surface-variant">
-        <span class="md-icon text-[40px] opacity-40">group_off</span>
-        <p class="text-[14px] font-medium">No members found</p>
+        <span class="md-icon text-[40px] opacity-40">group_add</span>
+        <p class="text-[14px] font-medium text-on-surface">No team members yet</p>
+        <p class="text-[12.5px] opacity-70">Invite your first agent or admin to get started.</p>
+        <button onclick="document.getElementById('invite-overlay').classList.add('open');document.getElementById('invite-panel').classList.add('open')" class="mt-1 px-4 py-2 text-[13px] font-semibold rounded-xl flex items-center gap-2" style="background:rgba(163,255,18,0.10);color:#a3ff12;border:1px solid rgba(163,255,18,0.25)">
+          <span class="md-icon text-[16px]">person_add</span>Invite Member
+        </button>
       </div>`;
       return;
     }
@@ -493,7 +492,7 @@ tailwind.config = {
       filterMembers();
       updateStats(allMembers);
 
-      showToast(`Invite sent to ${email}`, 'mark_email_read', '#6C63FF');
+      showToast(`Invite sent to ${email}`, 'mark_email_read', 'var(--accent-electric)');
       closeInviteDrawer();
       // Reset form
       document.getElementById('invite-name').value = '';
@@ -510,7 +509,7 @@ tailwind.config = {
     }
   }
 
-  function editMember(id) { showToast('Edit role coming soon', 'edit', '#6C63FF'); }
+  function editMember(id) { showToast('Edit role coming soon', 'edit', 'var(--accent-electric)'); }
   async function removeMember(id) {
     if (!confirm('Remove this team member? They will lose access.')) return;
     const { error } = await window.supabase.from('user_profiles').delete().eq('id', id);
@@ -541,23 +540,37 @@ tailwind.config = {
       if (dl) dl.style.display = 'flex';
     }
 
-    // Load members from user_profiles
-    const { data, error } = await window.supabase
+    // Load members from user_pr    // Load members from user_profiles table
+    const { data: members, error } = await window.supabase
       .from('user_profiles')
-      .select('id, display_name, email, role, created_at')
-      .eq('organization_id', user.organization_id)
-      .order('created_at', { ascending: true });
+      .select('id, display_name, email, role, status, calls_today, created_at')
+      .order('created_at', { ascending: false });
 
     if (error) {
-      showToast('Failed to load team: ' + error.message, 'error', '#ef4444');
-      allMembers = [];
-    } else {
-      allMembers = data || [];
+      console.error('[Team] load error:', error);
+      if (window.showToast) showToast('Failed to load team members', 'error', '#ef4444');
+      document.getElementById('members-list').innerHTML = `
+        <div class="px-6 py-16 flex flex-col items-center gap-4 text-on-surface-variant">
+          <span class="md-icon text-[48px] opacity-30">group_off</span>
+          <p class="text-[14px] font-semibold text-on-surface">Failed to load team</p>
+          <p class="text-[13px] opacity-70">${error.message}</p>
+          <button onclick="init()" class="px-4 py-2 text-[13px] font-semibold rounded-xl" style="background:var(--accent-electric);color:#000">Retry</button>
+        </div>`;
+      return;
     }
 
-    renderMembers(allMembers);
+    allMembers = (members || []).map(m => ({
+      id: m.id,
+      display_name: m.display_name || m.email || 'Unknown',
+      email: m.email || '',
+      role: m.role || 'agent',
+      status: m.status || 'offline',
+      calls_today: m.calls_today || 0,
+      joined: m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB') : '—',
+    }));
+
+    filterMembers();
     updateStats(allMembers);
-    loadPendingCount();
   }
 
   init();

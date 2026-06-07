@@ -323,7 +323,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <div class="overdraft-row">
         <span class="od-label">Auto-pause campaigns at $0</span>
         <div class="toggle-wrap">
-          <button class="toggle" id="pause-toggle"></button>
+          <button class="toggle" id="pause-toggle" onclick="toggleAutoPause()"></button>
           <span style="font-family:var(--font-mono);font-size:11px;color:var(--neon-emerald);">ON</span>
         </div>
       </div>
@@ -563,6 +563,22 @@ async function toggleOverdraft() {
   if (_orgId && window.supabase) {
     await window.supabase.from('organizations').update({ overdraft_allowed: on }).eq('id', _orgId);
   }
+}
+
+/* ── Auto-pause toggle ── writes to developer vault ── */
+async function toggleAutoPause() {
+  const btn = document.getElementById('pause-toggle');
+  const lbl = btn.nextElementSibling;
+  btn.classList.toggle('off');
+  const on = !btn.classList.contains('off');
+  lbl.textContent = on ? 'ON' : 'OFF';
+  lbl.style.color = on ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+  if (_orgId && window.supabase) {
+    await window.supabase.from('organization_developer_vault')
+      .update({ budget_breached_lockout: !on })
+      .eq('organization_id', _orgId);
+  }
+  toast(on ? 'Auto-pause enabled' : 'Auto-pause disabled');
 }
 
 /* ── Toast ── */
