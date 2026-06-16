@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.integ{display:flex;align-items:center;gap:14px;padding:16px 18px;border-top:1px solid var(--border)}
+.integ:first-child{border-top:none}
+.integ-logo{width:42px;height:42px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;font-weight:700;font-size:15px;flex:0 0 42px;color:var(--text)}
+.integ .t{font-size:14.5px;font-weight:600}.integ .s{font-size:12.5px;color:var(--text-subtle)}
+</style>
+</head>
+<body data-page="settings">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head"><div><h1>Settings</h1><p>Manage your organization, billing, integrations and compliance.</p></div></div>
+
+      <div class="tabs" style="margin-bottom:18px">
+        <a class="on" href="#">Organization</a>
+        <a href="#">Billing &amp; credits</a>
+        <a href="#">Integrations</a>
+        <a href="#">Compliance</a>
+        <a href="#">Notifications</a>
+      </div>
+
+      <section class="grid2">
+        <div class="stack">
+          <div class="panel">
+            <div class="panel-head"><h2>Organization profile</h2></div>
+            <div class="panel-body">
+              <div class="field"><label>Firm name</label><input class="input" value="Rao &amp; Associates"/></div>
+              <div class="field"><label>Country / jurisdiction</label><select class="select"><option>India (IN)</option><option>United States (US)</option><option>United Arab Emirates (AE)</option></select></div>
+              <div class="field" style="margin-bottom:0"><label>Default language</label><select class="select"><option>English</option><option>Hindi</option><option>Arabic</option></select></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Integrations</h2><a class="link" href="#">Browse all</a></div>
+            <div class="integ">
+              <span class="integ-logo">Z</span>
+              <div style="flex:1"><div class="t">Zoho CRM</div><div class="s">Sync leads &amp; trigger automated outreach</div></div>
+              <span class="pill green">Connected</span>
+            </div>
+            <div class="integ">
+              <span class="integ-logo" style="color:#fff;background:#F22F46">T</span>
+              <div style="flex:1"><div class="t">Twilio</div><div class="s">Voice &amp; SMS carrier · required for calls</div></div>
+              <button class="btn btn-primary btn-sm">Connect</button>
+            </div>
+            <div class="integ">
+              <span class="integ-logo" style="color:#fff;background:#25D366">W</span>
+              <div style="flex:1"><div class="t">WhatsApp Business</div><div class="s">Send template messages &amp; reminders</div></div>
+              <span class="pill amber">Pending review</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="panel">
+            <div class="panel-head"><h2>Billing &amp; credits</h2></div>
+            <div class="panel-body">
+              <div style="display:flex;align-items:baseline;gap:8px"><span class="mono" style="font-size:34px;font-weight:700">$1,284.50</span><span class="subtle">credit balance</span></div>
+              <div class="prog" style="margin:14px 0"><div class="bar" style="height:8px"><i style="width:68%"></i></div></div>
+              <div class="subtle" style="font-size:13px">Monthly budget cap: <span class="mono">$2,000</span> · 68% used</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 4px;border-top:1px solid var(--border);margin-top:14px"><div><div style="font-size:13.5px;font-weight:600">Overdraft protection</div><div class="subtle" style="font-size:12.5px">Pause campaigns automatically when wallet is depleted</div></div><span class="switch on" role="switch" aria-checked="true"></span></div>
+              <button class="btn btn-primary btn-block" style="margin-top:14px">Add credits</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Data retention</h2></div>
+            <div class="panel-body">
+              <div class="kpi" style="box-shadow:none;border-radius:var(--r-md);background:var(--surface-2);backdrop-filter:none">
+                <div style="display:flex;gap:10px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="margin-top:1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg><div><div style="font-size:13.5px;font-weight:600">Standard retention</div><div class="subtle" style="font-size:12.5px;margin-top:2px">Client records are kept for 7 days, then overwritten with compliance placeholders. Sandbox records purge after 2 hours.</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

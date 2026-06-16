@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.av-sm{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:13px;font-weight:600;flex:0 0 34px}
+.cell-name{display:flex;align-items:center;gap:10px}
+.role{font-size:12px;font-weight:600;padding:3px 9px;border-radius:var(--pill);background:var(--surface-2);color:var(--text-muted)}
+.role.admin{background:var(--accent-soft);color:var(--accent-on-soft)}
+</style>
+</head>
+<body data-page="teams">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head">
+        <div><h1>Team</h1><p>Manage who can access your firm's workspace.</p></div>
+        <div class="head-actions"><a class="btn btn-primary" href="invite.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>Invite member</a></div>
+      </div>
+
+      <section class="grid3" style="margin-bottom:16px">
+        <div class="kpi"><div class="kpi-lbl">Members</div><div class="kpi-val mono" style="margin-top:6px">8</div></div>
+        <div class="kpi"><div class="kpi-lbl">Admins</div><div class="kpi-val mono" style="margin-top:6px">2</div></div>
+        <div class="kpi"><div class="kpi-lbl">Pending invites</div><div class="kpi-val mono" style="margin-top:6px">1</div></div>
+      </section>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Members</h2><span class="subtle" style="font-size:13px">8 members</span></div>
+        <table class="tbl">
+          <thead><tr><th>Member</th><th>Role</th><th>Last active</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="cell-name"><span class="av-sm">JR</span><div><div class="strong">Justin Rao</div><div class="sub">justin@raoassociates.in</div></div></div></td><td><span class="role admin">Org Admin</span></td><td class="subtle">Now</td><td><span class="pill green">Active</span></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+            <tr><td><div class="cell-name"><span class="av-sm">SD</span><div><div class="strong">Sneha Desai</div><div class="sub">sneha@raoassociates.in</div></div></div></td><td><span class="role admin">Org Admin</span></td><td class="subtle">2 hours ago</td><td><span class="pill green">Active</span></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+            <tr><td><div class="cell-name"><span class="av-sm">AK</span><div><div class="strong">Arjun Kapoor</div><div class="sub">arjun@raoassociates.in</div></div></div></td><td><span class="role">Staff</span></td><td class="subtle">Yesterday</td><td><span class="pill green">Active</span></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+            <tr><td><div class="cell-name"><span class="av-sm">MF</span><div><div class="strong">Maria Fernandes</div><div class="sub">maria@raoassociates.in</div></div></div></td><td><span class="role">Staff</span></td><td class="subtle">3 days ago</td><td><span class="pill green">Active</span></td><td><button class="btn btn-ghost btn-sm">Manage</button></td></tr>
+            <tr><td><div class="cell-name"><span class="av-sm" style="background:var(--surface-2);color:var(--text-subtle)">?</span><div><div class="strong">tanvi@raoassociates.in</div><div class="sub">Invitation sent 2 days ago</div></div></div></td><td><span class="role">Staff</span></td><td class="subtle">—</td><td><span class="pill amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">Resend</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

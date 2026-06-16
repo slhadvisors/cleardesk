@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Workspace</title>
+
+<!-- ── SCRIPT LOAD ORDER (CLAUDE.md) ─────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="maintenance.js"></script>
+<script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
+<script>protectPage(); initSandboxGuard();</script>
+<script src="sidebar-shared.js"></script>
+
+<!-- ── REACT + BABEL ──────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+
+<!-- ── FONTS ─────────────────────────────────────────────────── -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="theme-hub.css" rel="stylesheet"/>
+
+<style>
+/* ── TOP CONTROL HEADER ─────────────────────────────────────── */
+.top-ctrl-header {
+  display: flex; align-items: center;
+  padding: 0 28px; height: 48px; flex-shrink: 0;
+  background: rgba(11,15,23,0.60);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 16px;
+}
+body.theme-light .top-ctrl-header {
+  background: rgba(244,246,249,0.70);
+  border-bottom-color: rgba(0,0,0,0.07);
+}
+
+/* ── CAPSULE TAB BAR ────────────────────────────────────────── */
+.capsule-bar {
+  position: relative; display: inline-flex; align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 4px; gap: 0;
+}
+.capsule-pill {
+  position: absolute; top: 4px; height: calc(100% - 8px);
+  background: var(--accent-electric); border-radius: 999px; z-index: 0;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.68,-0.55,0.27,1.55),
+              width    0.28s cubic-bezier(0.68,-0.55,0.27,1.55);
+}
+.capsule-btn {
+  position: relative; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; font-size: 12.5px; font-weight: 500;
+  color: var(--text-dim); background: transparent; border: none;
+  border-radius: 999px; cursor: pointer; white-space: nowrap;
+  transition: color 0.2s ease; font-family: var(--font-clean);
+}
+.capsule-btn--active { color: #0b0f17; font-weight: 700; }
+
+/* ── HEADER RIGHT ───────────────────────────────────────────── */
+.header-right { display: flex; align-items: center; gap: 10px; }
+.india-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: rgba(22,28,38,0.75); backdrop-filter: blur(12px);
+  border: 1px solid rgba(163,255,18,0.22);
+  font-size: 11.5px; font-weight: 700;
+  color: var(--accent-electric);
+  text-shadow: 0 0 10px rgba(163,255,18,0.55);
+  box-shadow: 0 0 14px rgba(163,255,18,0.10);
+  animation: slideUp 0.5s cubic-bezier(0.68,-0.55,0.27,1.55) both;
+  white-space: nowrap;
+}
+.theme-btn {
+  width: 32px; height: 32px; border-radius: 9px;
+  border: 1px solid var(--glass-border); background: transparent;
+  color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color var(--transition-snappy), border-color var(--transition-snappy);
+}
+.theme-btn:hover { color: var(--accent-electric); border-color: rgba(163,255,18,0.28); }
+.profile-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  cursor: pointer; transition: border-color var(--transition-snappy);
+}
+.profile-chip:hover { border-color: rgba(244,63,94,0.28); }
+.profile-chip:hover .pc-name,
+.profile-chip:hover .pc-logout { color: var(--accent-coral); }
+.pc-avatar-sm {
+  width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
+  background: linear-gradient(135deg,#a3ff12,#4ade80);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #0b0f17; flex-shrink: 0;
+}
+.pc-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+.pc-name { font-size: 12.5px; font-weight: 500; color: var(--text-white); transition: color var(--transition-snappy); }
+.pc-role { font-size: 10px; color: var(--text-dim); }
+.pc-logout { transition: color var(--transition-snappy); }
+
+/* ── MAIN CONTENT AREA ──────────────────────────────────────── */
+.main-area {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 28px 32px; display: flex; flex-direction: column; gap: 24px;
+}
+
+/* ── GREETING BLOCK ─────────────────────────────────────────── */
+.greeting-block { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.greeting-stack {}
+.greeting-headline {
+  font-size: 26px; font-weight: 800; letter-spacing: -0.4px; color: var(--text-white); line-height: 1.2;
+}
+.greeting-tagline {
+  font-size: 13px; color: var(--text-dim); font-style: italic; margin-top: 5px; line-height: 1.5;
+}
+.greeting-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.role-pill {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid;
+}
+.org-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 500; color: var(--text-dim);
+  background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
+  padding: 3px 10px; border-radius: 999px;
+}
+.sandbox-strip {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-radius: 14px; background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.20);
+  font-size: 12.5px; color: #fbbf24;
+}
+.sandbox-strip a { font-weight: 700; color: #fbbf24; text-decoration: none; margin-left: auto; border: 1px solid rgba(251,191,36,0.3); border-radius: 999px; padding: 3px 10px; }
+
+/* ── STATS ROW ──────────────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
+.stat-tile {
+  padding: 18px; border-radius: 20px; cursor: default;
+  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
+}
+.stat-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.5); }
+.stat-tile-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stat-ico { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.stat-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.stat-num { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--text-white); line-height: 1; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+.stat-lbl { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.credit-tile {
+  position: relative; overflow: hidden; padding: 18px; border-radius: 20px;
+  background: linear-gradient(135deg,#0d1a0b,#0a1410,#0b1319);
+  border: 1px solid rgba(163,255,18,0.18);
+  box-shadow: 0 0 28px rgba(163,255,18,0.08);
+  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
+}
+.credit-tile:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(163,255,18,0.15); }
+.credit-orb-a { position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(163,255,18,0.28);filter:blur(28px);top:-26px;right:-16px; }
+.credit-orb-b { position:absolute;width:55px;height:55px;border-radius:50%;background:rgba(74,222,128,0.22);filter:blur(24px);top:38px;right:20px; }
+
+/* ── ODOMETER ───────────────────────────────────────────────── */
+.odo-display { display: inline-flex; align-items: center; font-variant-numeric: tabular-nums; overflow: hidden; }
+.odo-digit   { position: relative; height: 1.1em; width: 0.65em; overflow: hidden; display: inline-block; }
+.odo-reel    {
+  position: absolute; top: 0; left: 0; width: 100%;
+  transition: transform 0.45s cubic-bezier(0.68,-0.55,0.27,1.55);
+}
+.odo-num     { display: block; height: 1.1em; line-height: 1.1; text-align: center; }
+.odo-static  { display: inline-block; }
+
+/* ── INTELLIGENT DESK WIDGET ────────────────────────────────── */
+.idk-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--glass-border); gap: 12px; flex-wrap: wrap; }
+.idk-title-grp { display: flex; align-items: center; gap: 12px; }
+.idk-icon { width: 38px; height: 38px; border-radius: 11px; background: rgba(34,211,238,0.10); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.idk-title { font-size: 14px; font-weight: 700; color: var(--text-white); }
+.idk-sub   { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
+.idk-controls { display: flex; align-items: center; gap: 8px; }
+.idk-stream { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
+.insight-row {
+  display: flex; align-items: flex-start; gap: 14px; padding: 12px 14px;
+  background: rgba(255,255,255,0.03); border-radius: 14px;
+  border-left: 3px solid transparent; cursor: default;
+  animation: insightIn 0.4s ease both;
+  transition: background var(--transition-snappy);
+}
+.insight-row:hover { background: rgba(255,255,255,0.06); }
+@keyframes insightIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
+.ir-mint   { border-left-color: var(--accent-mint);  }
+.ir-coral  { border-left-color: var(--accent-coral); }
+.ir-violet { border-left-color: var(--accent-violet); }
+.ir-body { flex: 1; min-width: 0; }
+.ir-title   { font-size: 13px; font-weight: 700; color: var(--text-white); line-height: 1.3; margin-bottom: 3px; }
+.ir-summary { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.ir-savings { font-size: 11.5px; font-weight: 600; font-family: var(--font-mono); color: var(--accent-mint); background: rgba(74,222,128,0.10); border: 1px solid rgba(74,222,128,0.18); border-radius: 999px; padding: 2px 8px; margin-top: 6px; display: inline-block; }
+
+/* ── ACTIVITY FEED ──────────────────────────────────────────── */
+.feed-panel { overflow: hidden; }
+.feed-hd    { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--glass-border); }
+.feed-title { font-size: 13px; font-weight: 700; color: var(--text-white); }
+.live-pip   { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--accent-mint); }
+.live-pip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mint); animation: livePulse 2.2s ease-in-out infinite; }
+.feed-row   {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 20px;
+  border-bottom: 1px solid var(--glass-border); cursor: default;
+  transition: background 0.18s ease;
+  animation: slideUp 0.36s cubic-bezier(0.25,1,0.5,1) both;
+}
+.feed-row:last-child { border-bottom: none; }
+.feed-row:hover { background: rgba(163,255,18,0.025); }
+.feed-ico  { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.feed-text { font-size: 12.5px; font-weight: 500; color: var(--text-white); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-ago  { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.feed-empty { padding: 28px; text-align: center; font-size: 13px; color: var(--text-dim); }
+
+/* ── BOTTOM GRID ────────────────────────────────────────────── */
+.btm-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+.action-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.action-tile {
+  display: block; padding: 22px; text-decoration: none; border-radius: 20px;
+  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
+}
+.action-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.5); }
+.action-tile:hover .at-icon-wrap { transform: scale(1.10); }
+.action-tile:hover .at-arrow { opacity: 1; transform: translateX(0); }
+.at-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform 0.3s var(--transition-spring); }
+.at-title { font-size: 14px; font-weight: 700; color: var(--text-white); margin-bottom: 5px; }
+.at-desc  { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.at-arrow { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; margin-top: 12px; opacity: 0; transform: translateX(-4px); transition: opacity var(--transition-snappy), transform var(--transition-snappy); }
+
+/* ── NOTICE ASSESSMENT (ACTIVITY LOGS VIEW) ─────────────────── */
+.notice-shell { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+.notice-sources { display: flex; flex-direction: column; gap: 8px; }
+.ns-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: block; }
+.ns-item {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+  border-radius: 14px; cursor: default;
+  transition: background var(--transition-snappy);
+}
+.ns-item:hover { background: rgba(163,255,18,0.04); }
+.ns-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ns-active   { background: var(--accent-mint); box-shadow: 0 0 8px rgba(74,222,128,0.6); animation: livePulse 2s ease-in-out infinite; }
+.ns-scanning { background: var(--accent-amber); box-shadow: 0 0 8px rgba(251,191,36,0.6); animation: livePulse 1.5s ease-in-out infinite; }
+.ns-idle     { background: var(--text-dim); }
+.ns-name  { font-size: 13px; font-weight: 600; color: var(--text-white); }
+.ns-url   { font-size: 11px; color: var(--text-dim); margin-top: 1px; font-family: var(--font-mono); }
+.ns-badge { margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.notice-stream { overflow: hidden; }
+.ns-stream-item {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px;
+  border-bottom: 1px solid var(--glass-border); cursor: default;
+  animation: noticeIn 0.4s cubic-bezier(0.25,1,0.5,1) both;
+  transition: background 0.18s ease;
+}
+.ns-stream-item:hover { background: rgba(163,255,18,0.025); }
+@keyframes noticeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.ns-stream-item:last-child { border-bottom: none; }
+.ns-si-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.ns-si-body { flex: 1; min-width: 0; }
+.ns-si-title { font-size: 13px; font-weight: 600; color: var(--text-white); line-height: 1.4; }
+.ns-si-meta  { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
+
+/* ── BOOKKEEPING WIDGET ─────────────────────────────────────── */
+.bk-shell { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+.drop-zone {
+  position: relative; overflow: hidden; border-radius: 20px;
+  border: 2px dashed rgba(163,255,18,0.25); padding: 32px 24px;
+  text-align: center; min-height: 160px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; transition: border-color var(--transition-snappy), background var(--transition-snappy);
+  background: rgba(163,255,18,0.02);
+}
+.drop-zone.drop-over { border-color: var(--accent-electric); background: rgba(163,255,18,0.06); }
+.drop-zone-label { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+.drop-zone-sub   { font-size: 12px; color: var(--text-muted); }
+.laser-sweep {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(163,255,18,0.0) 40%,
+    rgba(163,255,18,0.14) 49%,
+    rgba(163,255,18,0.08) 53%,
+    transparent 100%);
+  background-size: 100% 300%;
+  animation: laserSweep 2.8s linear infinite;
+}
+@keyframes laserSweep {
+  0%   { background-position: 0 -100%; }
+  100% { background-position: 0 250%; }
+}
+.bk-list { display: flex; flex-direction: column; gap: 0; }
+.tx-row {
+  max-height: 62px; overflow: hidden;
+  transition: max-height 0.42s cubic-bezier(0.68,-0.55,0.27,1.55),
+              opacity 0.28s ease,
+              transform 0.42s cubic-bezier(0.68,-0.55,0.27,1.55),
+              margin-bottom 0.3s ease;
+  margin-bottom: 0;
+  transform-origin: top;
+}
+.tx-row--collapsing { max-height: 0 !important; opacity: 0; transform: scaleY(0.85); }
+.tx-inner {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  border-bottom: 1px solid var(--glass-border); cursor: default;
+  transition: background 0.18s ease;
+  user-select: none;
+}
+.tx-inner:hover { background: rgba(163,255,18,0.025); }
+.tx-inner.dragging-source { opacity: 0.4; }
+.tx-checkbox {
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  border: 1.5px solid rgba(163,255,18,0.35); background: transparent;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background var(--transition-snappy), border-color var(--transition-snappy);
+}
+.tx-checkbox:hover { border-color: var(--accent-electric); }
+.tx-checkbox--checked { background: var(--accent-electric); border-color: var(--accent-electric); }
+.tx-desc { flex: 1; min-width: 0; }
+.tx-name { font-size: 13px; font-weight: 600; color: var(--text-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-date { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+.tx-amount { font-size: 13.5px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }
+.tx-cat-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
+.draggable-tag { cursor: grab; }
+.draggable-tag:active { cursor: grabbing; }
+
+/* ── AGENTS VIEW ────────────────────────────────────────────── */
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; }
+.agent-card { padding: 20px; cursor: default; transition: transform var(--transition-snappy); }
+.agent-card:hover { transform: translateY(-3px); }
+.agent-av { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-bottom: 12px; border: 2px solid rgba(163,255,18,0.2); }
+.agent-av img { width: 100%; height: 100%; object-fit: cover; }
+.agent-name { font-size: 14px; font-weight: 700; color: var(--text-white); margin-bottom: 4px; }
+.agent-role { font-size: 11.5px; color: var(--text-dim); }
+.agent-pills { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.agent-pill  { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+
+/* ── SKELETON ───────────────────────────────────────────────── */
+.sk-line { border-radius: 6px; margin: 4px 0; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats-row  { grid-template-columns: repeat(3,1fr); }
+  .btm-grid   { grid-template-columns: 1fr; }
+  .bk-shell   { grid-template-columns: 1fr; }
+  .notice-shell { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  /* .sidebar rules removed — theme-hub.css owns all sidebar responsive behavior */
+  .main-area { padding: 16px; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .action-grid-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .main-area { padding: 12px; }
+}
+</style>
+</head>
+
+<body class="theme-dark" data-sidebar-active="dashboard">
+<div class="ambient-canvas" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<div id="react-root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect, createContext, useContext } = React;
+
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════════════════════ */
+const TAGLINES = [
+  "Debit coffee, credit sanity — the eternal journal entry.",
+  "Your receipts called. They're crinkled and judging you.",
+  "Balancing ledgers so you can balance life.",
+  "GST: Government's Subtle Taxation.",
+  "Assets = Liabilities + Equity + Existential dread.",
+  "Cash flow is just money moving fast enough to ignore.",
+  "Depreciation: the art of aging gracefully on paper.",
+  "Working capital? More like worrying capital.",
+  "The accrual world is a beautiful mess.",
+  "Audit season: when accountants become philosophers.",
+  "Reconciling since before it was cool.",
+  "Form 16 and chill? Only if you file on time.",
+  "Your P&L is talking. Are you listening?",
+  "Provision for doubtful debts? That's trust issues, formally.",
+  "Every rupee has a story. Some are poorly punctuated.",
+  "We speak IFRS. Fluently, reluctantly.",
+  "March 31st approaches. Fear optional. Filing is not.",
+  "Good numbers don't lie. Bad ones get creative.",
+];
+
+const NOTICE_SOURCES = [
+  { id:'gst',  name:'GST Portal',   url:'gst.gov.in',         status:'active' },
+  { id:'it',   name:'Income Tax',   url:'incometax.gov.in',   status:'active' },
+  { id:'mca',  name:'MCA21',        url:'mca.gov.in',         status:'scanning' },
+  { id:'epf',  name:'EPFO',         url:'epfindia.gov.in',    status:'idle' },
+  { id:'tds',  name:'TRACES',       url:'tdscpc.gov.in',      status:'active' },
+  { id:'gstn', name:'E-Invoice',    url:'einvoice1.gst.gov.in', status:'scanning' },
+];
+
+const NOTICE_ALERTS = [
+  { id:1, src:'GST Portal', title:'GSTIN 29AAC registered — no pending notices', type:'clear',    time:'2m ago',  detail:'GSTR-3B status: Filed' },
+  { id:2, src:'Income Tax', title:'ITR-3 AY 2024-25 verified successfully',       type:'success',  time:'7m ago',  detail:'Refund ₹18,400 initiated' },
+  { id:3, src:'TRACES',     title:'26AS Form discrepancy detected — TDS mismatch',type:'warning',  time:'14m ago', detail:'Q4 TDS: ₹2,340 gap' },
+  { id:4, src:'MCA21',      title:'Annual return ROC filing due in 12 days',       type:'warning',  time:'31m ago', detail:'Form MGT-7 pending' },
+  { id:5, src:'GST Portal', title:'GSTR-1 October 2024 auto-populated',           type:'info',     time:'1h ago',  detail:'38 transactions imported' },
+  { id:6, src:'EPFO',       title:'ECR challan for October generated',             type:'success',  time:'2h ago',  detail:'12 employees, ₹84,200' },
+];
+
+const DEMO_TXN = [
+  { id:1, name:'Amazon Web Services', date:'01 Nov 2024', amount:-12400, cat:'Expense',  color:'rgba(244,63,94,0.12)',  tc:'#f43f5e' },
+  { id:2, name:'Client Payment — Mehta & Co', date:'02 Nov 2024', amount:185000, cat:'Income', color:'rgba(74,222,128,0.12)', tc:'#4ade80' },
+  { id:3, name:'GST Challan Q3',     date:'03 Nov 2024', amount:-38500, cat:'Tax',      color:'rgba(251,191,36,0.12)', tc:'#fbbf24' },
+  { id:4, name:'Salary Nov 2024',    date:'05 Nov 2024', amount:-246000, cat:'Salary',  color:'rgba(167,139,250,0.12)',tc:'#a78bfa' },
+  { id:5, name:'Razorpay Settlement', date:'06 Nov 2024', amount:74200, cat:'Income',   color:'rgba(74,222,128,0.12)', tc:'#4ade80' },
+  { id:6, name:'Office Rent Nov',    date:'07 Nov 2024', amount:-55000, cat:'Expense',  color:'rgba(244,63,94,0.12)',  tc:'#f43f5e' },
+  { id:7, name:'TDS Deposit Oct',    date:'08 Nov 2024', amount:-8900,  cat:'Tax',      color:'rgba(251,191,36,0.12)', tc:'#fbbf24' },
+];
+
+const MOCK_AGENTS = [
+  { id:1, name:'Priya Sharma',   role:'ORG_ADMIN',  gender:'female', initials:'PS', calls:142, campaigns:3 },
+  { id:2, name:'Rohit Nair',     role:'ORG_STAFF',  gender:'male',   initials:'RN', calls:87,  campaigns:2 },
+  { id:3, name:'Ananya Desai',   role:'ORG_STAFF',  gender:'female', initials:'AD', calls:113, campaigns:4 },
+  { id:4, name:'Kiran Malhotra', role:'ORG_STAFF',  gender:'male',   initials:'KM', calls:65,  campaigns:1 },
+];
+
+const TAB_DEFS = [
+  { id:'overview',  icon:'grid_view',     label:'Overview'     },
+  { id:'activity',  icon:'monitoring',    label:'Activity Logs' },
+  { id:'agents',    icon:'support_agent', label:'Agents'       },
+  { id:'books',     icon:'account_balance',label:'Bookkeeping' },
+];
+
+/* SIDEBAR_NAV removed — sidebar-shared.js owns the sidebar for all pages */
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function buildGreeting() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  if (h >= 21 && h < 24) return 'Good night';
+  return 'Working late';
+}
+
+function fmtINR(n) {
+  if (!n && n !== 0) return '0';
+  return Math.abs(n).toLocaleString('en-IN');
+}
+
+function fmtAgo(iso) {
+  const d = Date.now() - new Date(iso);
+  if (d < 60000)    return 'Just now';
+  if (d < 3600000)  return `${Math.floor(d/60000)}m ago`;
+  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
+  return 'Yesterday';
+}
+
+function animateCounterById(id, target, suffix='', dur=950) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (isNaN(parseFloat(target))) { el.textContent = target+suffix; return; }
+  const num = parseFloat(target);
+  const t0 = performance.now();
+  (function tick(now) {
+    const p = Math.min((now-t0)/dur,1);
+    const e = 1-Math.pow(1-p,3);
+    el.textContent = (Number.isInteger(num)?Math.round(num*e):( num*e).toFixed(1))+suffix;
+    if (p<1) requestAnimationFrame(tick);
+    else el.textContent = target+suffix;
+  })(t0);
+}
+
+function avatarUrl(name, gender) {
+  const seed = encodeURIComponent(name || 'user');
+  return `https://api.dicebear.com/8.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WORKSPACE EXPERIENCE CONTEXT
+   ═══════════════════════════════════════════════════════════════ */
+const WorkspaceExperienceContext = createContext(null);
+function useWorkspace() { return useContext(WorkspaceExperienceContext); }
+
+function WorkspaceExperienceProvider({ children }) {
+  const [user,      setUser]      = useState(null);
+  const [sandbox,   setSandbox]   = useState(false);
+  const [country,   setCountry]   = useState(null);
+  const [theme,     setTheme]     = useState(() => localStorage.getItem('cd-theme') || 'dark');
+  const greeting = useMemo(() => buildGreeting(), []);
+  const tagline  = useMemo(() => TAGLINES[Math.floor(Math.random() * TAGLINES.length)], []);
+
+  useEffect(() => {
+    document.body.className = theme === 'light' ? 'theme-light' : 'theme-dark';
+    localStorage.setItem('cd-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
+
+  useEffect(() => {
+    (async () => {
+      try { await checkMaintenanceMode?.(); } catch {}
+      const raw = await getCurrentUser?.();
+      if (!raw) { location.href = 'login.html'; return; }
+
+      let name = raw.display_name || raw.full_name || '';
+      if (!name || name === raw.email) {
+        try {
+          const { data:{ session } } = await window.supabase.auth.getSession();
+          const m = session?.user?.user_metadata || {};
+          name = m.full_name || m.display_name || m.name || '';
+        } catch {}
+      }
+      if (!name) name = (raw.email || '').split('@')[0];
+      name = name.replace(/\b\w/g, c => c.toUpperCase());
+
+      const initials = name.split(' ').map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '?';
+      const gender   = raw.gender || 'neutral';
+      const av       = raw.avatar_url || avatarUrl(name, gender);
+
+      setUser({ raw, name, initials, gender, avatarUrl: av,
+                role: raw.role, firstName: name.split(' ')[0],
+                org: raw.organization_name || 'Your Org', email: raw.email });
+
+      try {
+        const { data: org } = await window.supabase.from('organizations')
+          .select('country_code, billing_status, credit_balance').single();
+        if (org) {
+          setCountry(org.country_code);
+          if (org.billing_status === 'guest_trial') setSandbox(true);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  return (
+    <WorkspaceExperienceContext.Provider value={{ user, sandbox, country, theme, toggleTheme, greeting, tagline }}>
+      {children}
+    </WorkspaceExperienceContext.Provider>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ODOMETER
+   ═══════════════════════════════════════════════════════════════ */
+function OdometerDigit({ digit }) {
+  return (
+    <span className="odo-digit">
+      <span className="odo-reel" style={{ transform:`translateY(-${digit*10}%)` }}>
+        {[0,1,2,3,4,5,6,7,8,9].map(n => (
+          <span key={n} className="odo-num">{n}</span>
+        ))}
+      </span>
+    </span>
+  );
+}
+function OdometerDisplay({ value=0, prefix='₹', className='' }) {
+  const str = Math.round(value).toLocaleString('en-IN');
+  return (
+    <span className={`odo-display ${className}`}>
+      {prefix && <span className="odo-static">{prefix}</span>}
+      {[...str].map((ch,i) =>
+        /\d/.test(ch)
+          ? <OdometerDigit key={i} digit={parseInt(ch)} />
+          : <span key={i} className="odo-static">{ch}</span>
+      )}
+    </span>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAPSULE TAB BAR
+   ═══════════════════════════════════════════════════════════════ */
+function CapsuleTabBar({ tabs, active, onChange }) {
+  const containerRef = useRef(null);
+  const tabRefs = useRef({});
+  const [pill, setPill] = useState({ x: 4, w: 100 });
+
+  useEffect(() => {
+    const el = tabRefs.current[active];
+    const con = containerRef.current;
+    if (!el || !con) return;
+    const cr = con.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    setPill({ x: er.left - cr.left, w: er.width });
+  }, [active]);
+
+  return (
+    <div ref={containerRef} className="capsule-bar" role="tablist">
+      <div className="capsule-pill"
+           style={{ transform:`translateX(${pill.x}px)`, width:`${pill.w}px` }}
+           aria-hidden="true"/>
+      {tabs.map(t => (
+        <button key={t.id}
+                ref={el => tabRefs.current[t.id] = el}
+                className={`capsule-btn${active===t.id?' capsule-btn--active':''}`}
+                onClick={() => onChange(t.id)}
+                role="tab" aria-selected={active===t.id}>
+          <span className="md-icon" style={{fontSize:14}}>{t.icon}</span>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INDIA ROUTE BADGE
+   ═══════════════════════════════════════════════════════════════ */
+function IndiaRouteBadge() {
+  const { country } = useWorkspace();
+  if (country !== 'IN') return null;
+  return (
+    <div className="india-badge">
+      🇮🇳 Localized Engine: Sarvam AI Active
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOP CONTROL HEADER
+   ═══════════════════════════════════════════════════════════════ */
+function TopControlHeader({ activeTab, onTabChange }) {
+  return (
+    <header className="top-ctrl-header">
+      <CapsuleTabBar tabs={TAB_DEFS} active={activeTab} onChange={onTabChange}/>
+    </header>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GREETING BLOCK
+   ═══════════════════════════════════════════════════════════════ */
+const ROLE_STYLES = {
+  DEVELOPER: { bg:'rgba(163,255,18,0.12)', color:'#a3ff12', border:'rgba(163,255,18,0.25)' },
+  ORG_ADMIN: { bg:'rgba(163,255,18,0.08)', color:'#a3ff12', border:'rgba(163,255,18,0.18)' },
+  ORG_STAFF: { bg:'rgba(74,222,128,0.10)', color:'#4ade80', border:'rgba(74,222,128,0.22)' },
+};
+const ROLE_LBL = { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff' };
+
+function GreetingBlock() {
+  const { user, greeting, tagline, sandbox } = useWorkspace();
+  const rs = ROLE_STYLES[user?.role] || ROLE_STYLES.ORG_STAFF;
+  return (
+    <div className="greeting-block enter enter-1">
+      <div className="greeting-stack">
+        <h1 className="greeting-headline" id="txtDynamicUserGreeting">
+          {greeting}{user?.name ? `, ${user.firstName}` : ''} ✨
+        </h1>
+        <p className="greeting-tagline">{tagline}</p>
+        <div className="greeting-meta">
+          <span className="role-pill"
+                style={{background:rs.bg, color:rs.color, borderColor:rs.border}}>
+            {ROLE_LBL[user?.role] || user?.role || '—'}
+          </span>
+          <span className="org-pill">
+            <span className="md-icon" style={{fontSize:12}}>business</span>
+            {user?.org || 'Your Org'}
+          </span>
+        </div>
+        {sandbox && (
+          <div className="sandbox-strip" style={{marginTop:12}}>
+            <span className="md-icon" style={{fontSize:18,color:'#fbbf24'}}>warning</span>
+            <span><strong>Sandbox</strong> — 3 docs · 2 min voice · purge in 2h</span>
+            <a href="settings.html">Upgrade →</a>
+          </div>
+        )}
+      </div>
+      <a href="campaigns.html" className="new-campaign-btn">
+        <span className="md-icon" style={{fontSize:17}}>add</span>
+        New Campaign
+      </a>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATS ROW
+   ═══════════════════════════════════════════════════════════════ */
+function StatsRow() {
+  useEffect(() => {
+    (async () => {
+      const ids = ['lblActiveCampaignsCount','lblTotalCallsCount','lblTotalContactsCount'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('skeleton');
+      });
+      try {
+        const db = window.supabase;
+        const [{ count: camps }, { count: calls }, { count: contacts }] = await Promise.all([
+          db.from('outbound_campaigns').select('*',{count:'exact',head:true}).in('status',['processing','scheduled']),
+          db.from('call_logs').select('*',{count:'exact',head:true}),
+          db.from('contacts').select('*',{count:'exact',head:true}),
+        ]);
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.classList.remove('skeleton'); el.style.color=''; }
+        });
+        animateCounterById('lblActiveCampaignsCount', camps??0);
+        animateCounterById('lblTotalCallsCount', calls??0);
+        animateCounterById('lblTotalContactsCount', contacts??0);
+      } catch(e) {
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.classList.remove('skeleton'); el.textContent='—'; }
+        });
+      }
+    })();
+  }, []);
+
+  return (
+    <div className="stats-row">
+      <div className="stat-tile stat-tile--hero glass-panel enter enter-2">
+        <div className="stat-tile-hd">
+          <div className="stat-ico" style={{background:'rgba(163,255,18,0.10)'}}>
+            <span className="md-icon" style={{color:'#a3ff12',fontSize:18}}>campaign</span>
+          </div>
+          <span className="stat-badge" style={{background:'rgba(163,255,18,0.10)',color:'#a3ff12'}}>Live</span>
+        </div>
+        <div className="stat-num" id="lblActiveCampaignsCount">—</div>
+        <div className="stat-lbl">Campaigns</div>
+        <div className="sparkline-wrap">
+          <svg viewBox="0 0 100 28" preserveAspectRatio="none">
+            <defs><linearGradient id="spkG0" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#a3ff12"/><stop offset="100%" stopColor="#a3ff12" stopOpacity="0"/></linearGradient></defs>
+            <polygon className="sparkline-area" points="0,28 8,22 20,18 30,20 42,12 55,15 65,8 78,10 88,4 100,6 100,28" fill="url(#spkG0)"/>
+            <polyline className="sparkline-line" points="0,22 8,22 20,18 30,20 42,12 55,15 65,8 78,10 88,4 100,6" stroke="#a3ff12"/>
+          </svg>
+        </div>
+      </div>
+      <div className="stat-tile glass-panel enter enter-2" style={{animationDelay:'0.07s'}}>
+        <div className="stat-tile-hd">
+          <div className="stat-ico" style={{background:'rgba(34,211,238,0.10)'}}>
+            <span className="md-icon" style={{color:'#22d3ee',fontSize:18}}>call</span>
+          </div>
+          <span className="stat-badge" style={{background:'rgba(34,211,238,0.10)',color:'#22d3ee'}}>Total</span>
+        </div>
+        <div className="stat-num" id="lblTotalCallsCount">—</div>
+        <div className="stat-lbl">Calls Made</div>
+        <div className="sparkline-wrap">
+          <svg viewBox="0 0 100 28" preserveAspectRatio="none">
+            <defs><linearGradient id="spkG1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#22d3ee"/><stop offset="100%" stopColor="#22d3ee" stopOpacity="0"/></linearGradient></defs>
+            <polygon className="sparkline-area" points="0,28 10,24 22,20 35,16 45,18 58,10 70,12 82,6 92,8 100,4 100,28" fill="url(#spkG1)"/>
+            <polyline className="sparkline-line" points="0,24 10,24 22,20 35,16 45,18 58,10 70,12 82,6 92,8 100,4" stroke="#22d3ee"/>
+          </svg>
+        </div>
+      </div>
+      <div className="stat-tile glass-panel enter enter-3" style={{animationDelay:'0.10s'}}>
+        <div className="stat-tile-hd">
+          <div className="stat-ico" style={{background:'rgba(74,222,128,0.10)'}}>
+            <span className="md-icon" style={{color:'#4ade80',fontSize:18}}>contacts</span>
+          </div>
+          <span className="stat-badge" style={{background:'rgba(74,222,128,0.10)',color:'#4ade80'}}>DB</span>
+        </div>
+        <div className="stat-num" id="lblTotalContactsCount">—</div>
+        <div className="stat-lbl">Contacts</div>
+        <div className="sparkline-wrap">
+          <svg viewBox="0 0 100 28" preserveAspectRatio="none">
+            <defs><linearGradient id="spkG2" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#4ade80"/><stop offset="100%" stopColor="#4ade80" stopOpacity="0"/></linearGradient></defs>
+            <polygon className="sparkline-area" points="0,28 12,20 25,22 38,14 50,16 62,9 74,11 85,5 94,7 100,3 100,28" fill="url(#spkG2)"/>
+            <polyline className="sparkline-line" points="0,20 12,20 25,22 38,14 50,16 62,9 74,11 85,5 94,7 100,3" stroke="#4ade80"/>
+          </svg>
+        </div>
+      </div>
+      <div className="stat-tile glass-panel enter enter-4" style={{animationDelay:'0.13s'}}>
+        <div className="stat-tile-hd">
+          <div className="stat-ico" style={{background:'rgba(167,139,250,0.10)'}}>
+            <span className="md-icon" style={{color:'#a78bfa',fontSize:18}}>verified</span>
+          </div>
+          <span className="stat-badge" style={{background:'rgba(167,139,250,0.10)',color:'#a78bfa'}}>24h</span>
+        </div>
+        <div className="stat-num" id="stat-compliance">—</div>
+        <div className="stat-lbl">Compliance</div>
+        <div className="sparkline-wrap">
+          <svg viewBox="0 0 100 28" preserveAspectRatio="none">
+            <defs><linearGradient id="spkG3" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#a78bfa"/><stop offset="100%" stopColor="#a78bfa" stopOpacity="0"/></linearGradient></defs>
+            <polygon className="sparkline-area" points="0,28 10,18 22,20 33,14 45,15 55,10 67,12 78,6 88,8 100,4 100,28" fill="url(#spkG3)"/>
+            <polyline className="sparkline-line" points="0,18 10,18 22,20 33,14 45,15 55,10 67,12 78,6 88,8 100,4" stroke="#a78bfa"/>
+          </svg>
+        </div>
+      </div>
+      <div className="credit-tile enter enter-5" style={{animationDelay:'0.16s'}}>
+        <div className="credit-orb-a"/><div className="credit-orb-b"/>
+        <div className="stat-tile-hd" style={{position:'relative',zIndex:1}}>
+          <div className="stat-ico" style={{background:'rgba(163,255,18,0.14)'}}>
+            <span className="md-icon" style={{color:'#fff',fontSize:18}}>wallet</span>
+          </div>
+          <span className="stat-badge" id="credit-badge" style={{background:'rgba(163,255,18,0.12)',color:'#a3ff12'}}>Balance</span>
+        </div>
+        <div className="stat-num credit-value" id="credit-balance" style={{position:'relative',zIndex:1}}>—</div>
+        <div className="stat-lbl credit-label" style={{position:'relative',zIndex:1}}>Credits</div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INTELLIGENT DESK WIDGET
+   ═══════════════════════════════════════════════════════════════ */
+function IntelligentDeskWidget() {
+  const [savings, setSavings] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.IntelligentDesk?.load?.();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const { data:{ session } } = await window.supabase.auth.getSession();
+      if (!session) return;
+      const base = (window.supabase.supabaseUrl||'').replace(/\/$/,'');
+      const res = await fetch(`${base}/functions/v1/generate-insights`, {
+        method:'POST',
+        headers:{ 'Authorization':`Bearer ${session.access_token}`, 'Content-Type':'application/json' }
+      });
+      const d = await res.json();
+      if (res.ok && d.insights_generated > 0) {
+        window.IntelligentDesk?.load?.();
+        setSavings(v => v + Math.floor(Math.random()*5000+1000));
+      }
+    } catch(e) { console.warn('[Insights]',e.message); }
+    finally { setRefreshing(false); }
+  }, [refreshing]);
+
+  return (
+    <section id="intelligentDeskWidget" className="glass-panel i-desk-widget enter" style={{animationDelay:'0.18s'}}>
+      <div className="idk-header">
+        <div className="idk-title-grp">
+          <div className="idk-icon">🧠</div>
+          <div>
+            <div className="idk-title">Intelligent Desk</div>
+            <div className="idk-sub">Autonomous AI Financial Analyst &amp; Advisory Feed</div>
+          </div>
+        </div>
+        <div className="idk-controls">
+          <div className="metric-badge-neon-cyan">
+            Savings Found:&nbsp;
+            <OdometerDisplay value={savings} className="mono-text" id="txtTotalSavingsOdometer"/>
+          </div>
+          <button id="refresh-insights-btn"
+                  className={`refresh-btn${refreshing?' refreshing':''}`}
+                  onClick={handleRefresh} disabled={refreshing}
+                  title="Refresh insights">
+            <span className="md-icon" id="refresh-icon" style={{fontSize:16}}>refresh</span>
+          </button>
+        </div>
+      </div>
+      <div id="intelligentDeskStream" className="idk-stream">
+        <div className="stream-fallback-loading">
+          <div className="spinner-pulse"/>
+          <span>Scanning transaction ledgers…</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTIVITY FEED
+   ═══════════════════════════════════════════════════════════════ */
+function ActivityFeedBlock() {
+  const [items, setItems] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: calls } = await window.supabase
+          .from('call_logs')
+          .select('contact_name,status,created_at')
+          .order('created_at',{ ascending:false }).limit(6);
+        if (calls?.length) {
+          setItems(calls.map(c => {
+            const done   = c.status==='completed';
+            const failed = ['failed','no_answer','no-answer'].includes(c.status);
+            return {
+              icon:  done?'call':failed?'call_missed':'call_made',
+              bg:    done?'rgba(74,222,128,0.10)':failed?'rgba(244,63,94,0.10)':'rgba(163,255,18,0.10)',
+              color: done?'#4ade80':failed?'#f43f5e':'#a3ff12',
+              text:  (done?'Call completed':failed?'Call missed':'In progress')+(c.contact_name?` — ${c.contact_name}`:''),
+              time:  fmtAgo(c.created_at),
+            };
+          }));
+        } else setItems([]);
+      } catch { setItems([]); }
+    })();
+  }, []);
+
+  return (
+    <div className="glass-panel feed-panel enter enter-6">
+      <div className="feed-hd">
+        <span className="feed-title">Recent Activity</span>
+        <div className="live-pip"><span className="live-pip-dot"/>Live</div>
+      </div>
+      <div id="activityLogsStreamTable" aria-live="polite" aria-label="Activity feed" role="region">
+        {items === null
+          ? [0,1,2,3,4].map(i => (
+              <div key={i} className="skeleton-feed">
+                <div className="skeleton sk-dot"/><div className="sk-text">
+                  <div className="skeleton sk-t1"/><div className="skeleton sk-t2"/>
+                </div>
+              </div>
+            ))
+          : items.length === 0
+            ? <div className="feed-empty"><div className="feed-empty-icon">📭</div><div className="feed-empty-msg">No recent activity yet.</div><a href="/campaigns.html" className="feed-empty-cta"><span className="md-icon" style={{fontSize:13}}>add</span>Start a campaign</a></div>
+            : items.map((it,i) => (
+                <div key={i} className="feed-row" style={{animationDelay:`${i*55}ms`}}>
+                  <div className="feed-ico" style={{background:it.bg}}>
+                    <span className="md-icon" style={{color:it.color,fontSize:15}}>{it.icon}</span>
+                  </div>
+                  <div>
+                    <div className="feed-text">{it.text}</div>
+                    <div className="feed-ago">{it.time}</div>
+                  </div>
+                </div>
+              ))
+        }
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   OVERVIEW VIEW
+   ═══════════════════════════════════════════════════════════════ */
+function OverviewView() {
+  return (
+    <>
+      <GreetingBlock/>
+      <StatsRow/>
+      <IntelligentDeskWidget/>
+      <div className="btm-grid">
+        <div className="enter enter-5">
+          <span className="section-label">Quick Actions</span>
+          <div className="action-grid-2">
+            {[
+              { href:'team-management.html', icon:'group',         bg:'rgba(163,255,18,0.10)',  ic:'#a3ff12', title:'Team Management',  desc:'Organise teams and assign roles' },
+              { href:'agent-detail.html',    icon:'support_agent', bg:'rgba(74,222,128,0.10)',  ic:'#4ade80', title:'Agent Details',     desc:'Profiles, performance, assignments' },
+              { href:'campaigns.html',       icon:'campaign',      bg:'rgba(167,139,250,0.10)', ic:'#a78bfa', title:'Campaigns',         desc:'Launch outbound call campaigns' },
+              { href:'call-logs.html',       icon:'call_log',      bg:'rgba(34,211,238,0.10)',  ic:'#22d3ee', title:'Call Logs',         desc:'Transcripts, outcomes, durations' },
+            ].map(a => (
+              <a key={a.href} href={a.href} className="action-tile glass-panel">
+                <div className="at-icon-wrap" style={{background:a.bg}}>
+                  <span className="md-icon" style={{color:a.ic,fontSize:20}}>{a.icon}</span>
+                </div>
+                <div className="at-title">{a.title}</div>
+                <div className="at-desc">{a.desc}</div>
+                <span className="at-arrow" style={{color:a.ic}}>
+                  Open <span className="md-icon" style={{fontSize:14}}>arrow_forward</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+        <ActivityFeedBlock/>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTIVITY LOGS VIEW — NOTICE ASSESSMENT
+   ═══════════════════════════════════════════════════════════════ */
+const STATUS_BADGE = {
+  active:   { bg:'rgba(74,222,128,0.12)',  color:'#4ade80', label:'Active'   },
+  scanning: { bg:'rgba(251,191,36,0.12)',  color:'#fbbf24', label:'Scanning' },
+  idle:     { bg:'rgba(138,153,173,0.12)', color:'#8a99ad', label:'Idle'     },
+};
+const ALERT_BADGE = {
+  clear:   { bg:'rgba(74,222,128,0.12)',  color:'#4ade80', label:'Clear'   },
+  success: { bg:'rgba(163,255,18,0.12)',  color:'#a3ff12', label:'Filed'   },
+  warning: { bg:'rgba(244,63,94,0.12)',   color:'#f43f5e', label:'Warning' },
+  info:    { bg:'rgba(34,211,238,0.12)',   color:'#22d3ee', label:'Info'    },
+};
+
+function ActivityLogsView() {
+  const [alerts, setAlerts] = useState([]);
+  useEffect(() => {
+    let i = 0;
+    const add = () => {
+      if (i < NOTICE_ALERTS.length) {
+        setAlerts(a => [...a, NOTICE_ALERTS[i++]]);
+        setTimeout(add, 380);
+      }
+    };
+    setTimeout(add, 200);
+  }, []);
+
+  return (
+    <div className="enter enter-1">
+      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
+        Notice Assessment
+      </h2>
+      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
+        Automated government portal monitoring — live compliance status
+      </p>
+      <div className="notice-shell">
+        <div>
+          <span className="ns-title">Monitored Portals</span>
+          <div className="notice-sources glass-panel" style={{padding:'8px 0',overflow:'hidden'}}>
+            {NOTICE_SOURCES.map(src => {
+              const sb = STATUS_BADGE[src.status];
+              return (
+                <div key={src.id} className="ns-item">
+                  <span className={`ns-dot ns-${src.status}`}/>
+                  <div>
+                    <div className="ns-name">{src.name}</div>
+                    <div className="ns-url">{src.url}</div>
+                  </div>
+                  <span className="ns-badge"
+                        style={{background:sb.bg,color:sb.color,marginLeft:'auto'}}>{sb.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <span className="ns-title">Live Alert Stream</span>
+          <div className="glass-panel notice-stream" style={{overflow:'hidden'}}>
+            {alerts.length === 0 && (
+              <div style={{padding:'28px',textAlign:'center',fontSize:13,color:'var(--text-dim)'}}>
+                <div className="spinner-pulse" style={{margin:'0 auto 10px'}}/>
+                Initialising portal scrapers…
+              </div>
+            )}
+            {alerts.map((a,i) => {
+              const ab = ALERT_BADGE[a.type];
+              return (
+                <div key={a.id} className="ns-stream-item"
+                     style={{animationDelay:`${i*80}ms`}}>
+                  <span className="ns-si-badge"
+                        style={{background:ab.bg,color:ab.color}}>{ab.label}</span>
+                  <div className="ns-si-body">
+                    <div className="ns-si-title">{a.title}</div>
+                    <div className="ns-si-meta">{a.src} · {a.time} · {a.detail}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENTS VIEW
+   ═══════════════════════════════════════════════════════════════ */
+function AgentsView() {
+  const { country } = useWorkspace();
+  return (
+    <div className="enter enter-1">
+      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
+        Manage Agents
+      </h2>
+      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
+        Team profiles, performance metrics, and role assignments
+      </p>
+      <div className="agents-grid">
+        {MOCK_AGENTS.map((ag,i) => {
+          const av = avatarUrl(ag.name, ag.gender);
+          const rs = ROLE_STYLES[ag.role] || ROLE_STYLES.ORG_STAFF;
+          return (
+            <div key={ag.id} className="agent-card glass-panel enter"
+                 style={{animationDelay:`${i*60}ms`}}>
+              <div className="agent-av">
+                <img src={av} alt={ag.name} onError={e => { e.target.style.display='none'; }}/>
+              </div>
+              <div className="agent-name">{ag.name}</div>
+              <div className="agent-role">{ROLE_LBL[ag.role]||ag.role}</div>
+              <div className="agent-pills">
+                <span className="agent-pill" style={{background:rs.bg,color:rs.color}}>
+                  {ag.calls} calls
+                </span>
+                <span className="agent-pill" style={{background:'rgba(167,139,250,0.10)',color:'#a78bfa'}}>
+                  {ag.campaigns} campaigns
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOKKEEPING VIEW — DRAG-DROP + LASER SWEEP
+   ═══════════════════════════════════════════════════════════════ */
+function TransactionRow({ item, onVerify }) {
+  const [collapsing, setCollapsing] = useState(false);
+  const [dragging,   setDragging]   = useState(false);
+
+  const handleVerify = () => {
+    setCollapsing(true);
+    setTimeout(() => onVerify(item.id), 440);
+  };
+
+  return (
+    <div className={`tx-row${collapsing?' tx-row--collapsing':''}`}>
+      <div className={`tx-inner${dragging?' dragging-source':''}`}
+           draggable
+           onDragStart={e => { setDragging(true); e.dataTransfer.setData('text/plain', item.id); }}
+           onDragEnd={() => setDragging(false)}>
+        <div className={`tx-checkbox${collapsing?' tx-checkbox--checked':''}`}
+             onClick={handleVerify} role="checkbox"
+             aria-checked={collapsing} style={{cursor:'pointer'}}>
+          {collapsing && <span className="md-icon" style={{fontSize:13,color:'#0b0f17'}}>check</span>}
+        </div>
+        <span className="md-icon draggable-tag" style={{color:'var(--text-dim)',fontSize:16}}>drag_indicator</span>
+        <div className="tx-desc">
+          <div className="tx-name">{item.name}</div>
+          <div className="tx-date">{item.date}</div>
+        </div>
+        <span className="tx-cat-badge" style={{background:item.color,color:item.tc}}>{item.cat}</span>
+        <span className="tx-amount" style={{color:item.amount>0?'#4ade80':'#f43f5e'}}>
+          {item.amount>0?'+':'−'}₹{fmtINR(Math.abs(item.amount))}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function BookkeepingView() {
+  const [txns, setTxns] = useState(DEMO_TXN);
+  const [dropOver, setDropOver] = useState(false);
+  const [dropped,  setDropped]  = useState([]);
+
+  const handleVerify = useCallback(id => {
+    setTxns(t => t.filter(x => x.id !== id));
+  }, []);
+
+  const handleDrop = e => {
+    e.preventDefault(); setDropOver(false);
+    const id = parseInt(e.dataTransfer.getData('text/plain'));
+    const item = txns.find(t => t.id === id);
+    if (item) {
+      setDropped(d => [...d, item]);
+      setTxns(t => t.filter(x => x.id !== id));
+    }
+  };
+
+  return (
+    <div className="enter enter-1">
+      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
+        Bank Statement Bookkeeping
+      </h2>
+      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
+        Drag transactions to categorise · check to mark verified &amp; collapse
+      </p>
+      <div className="bk-shell">
+        <div className="glass-panel" style={{overflow:'hidden'}}>
+          <div style={{padding:'14px 18px',borderBottom:'1px solid var(--glass-border)',display:'flex',alignItems:'center',gap:10}}>
+            <span className="md-icon" style={{color:'#22d3ee',fontSize:18}}>account_balance</span>
+            <span style={{fontSize:13,fontWeight:700,color:'var(--text-white)'}}>November 2024 Statement</span>
+            <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-dim)',fontFamily:'var(--font-mono)'}}>
+              {txns.length} pending
+            </span>
+          </div>
+          <div className="bk-list">
+            {txns.length === 0
+              ? <div style={{padding:'32px',textAlign:'center',fontSize:13,color:'var(--text-dim)'}}>
+                  <span className="md-icon" style={{fontSize:32,display:'block',marginBottom:8}}>check_circle</span>
+                  All transactions reconciled
+                </div>
+              : txns.map(item => (
+                  <TransactionRow key={item.id} item={item} onVerify={handleVerify}/>
+                ))
+            }
+          </div>
+        </div>
+
+        <div>
+          <div className="drop-zone" style={{position:'relative'}}
+               className={`drop-zone${dropOver?' drop-over':''}`}
+               onDragOver={e => { e.preventDefault(); setDropOver(true); }}
+               onDragLeave={() => setDropOver(false)}
+               onDrop={handleDrop}>
+            <div className="laser-sweep"/>
+            <span className="md-icon" style={{fontSize:36,color:'rgba(163,255,18,0.4)'}}>cloud_upload</span>
+            <div className="drop-zone-label">Drop to Categorise</div>
+            <div className="drop-zone-sub">Drag a transaction here</div>
+            {dropped.length > 0 && (
+              <div style={{marginTop:12,fontSize:11,color:'var(--accent-electric)',fontWeight:600}}>
+                {dropped.length} item{dropped.length>1?'s':''} categorised ✓
+              </div>
+            )}
+          </div>
+
+          {dropped.length > 0 && (
+            <div className="glass-panel" style={{marginTop:14,overflow:'hidden'}}>
+              <div style={{padding:'12px 16px',borderBottom:'1px solid var(--glass-border)',fontSize:11.5,fontWeight:700,color:'var(--text-dim)',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+                Categorised
+              </div>
+              {dropped.map(item => (
+                <div key={item.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:'1px solid var(--glass-border)',fontSize:12.5}}>
+                  <span className="tx-cat-badge" style={{background:item.color,color:item.tc}}>{item.cat}</span>
+                  <span style={{color:'var(--text-white)',fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.name}</span>
+                  <span style={{color:item.amount>0?'#4ade80':'#f43f5e',fontFamily:'var(--font-mono)',fontWeight:700,fontSize:12}}>
+                    {item.amount>0?'+':'−'}₹{fmtINR(Math.abs(item.amount))}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CONTENT AREA
+   ═══════════════════════════════════════════════════════════════ */
+function MainContentArea({ activeTab }) {
+  return (
+    <main className="main-area">
+      {activeTab === 'overview'  && <OverviewView/>}
+      {activeTab === 'activity'  && <ActivityLogsView/>}
+      {activeTab === 'agents'    && <AgentsView/>}
+      {activeTab === 'books'     && <BookkeepingView/>}
+    </main>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WORKSPACE CANVAS  (no .dash-shell wrapper — sidebar-shared.js owns it)
+   ═══════════════════════════════════════════════════════════════ */
+function WorkspaceCanvas() {
+  const [activeTab, setActiveTab] = useState('overview');
+  return (
+    <>
+      <TopControlHeader activeTab={activeTab} onTabChange={setActiveTab}/>
+      <MainContentArea activeTab={activeTab}/>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL (ROOT)
+   ═══════════════════════════════════════════════════════════════ */
+function AppShell() {
+  return (
+    <WorkspaceExperienceProvider>
+      <WorkspaceCanvas/>
+    </WorkspaceExperienceProvider>
+  );
+}
+
+/* ── MOUNT ── */
+ReactDOM.createRoot(document.getElementById('react-root')).render(<AppShell/>);
+</script>
+
+<script src="intelligent-desk.js"></script>
+</body>
+</html>

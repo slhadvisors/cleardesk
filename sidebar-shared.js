@@ -26,7 +26,7 @@
 
   /* ── Nav items ──────────────────────────────────────────────── */
   const NAV = [
-    { id: 'dashboard',  icon: 'grid_view',      label: 'Dashboard', href: 'index.html' },
+    { id: 'dashboard',  icon: 'grid_view',      label: 'Dashboard', href: 'app.html' },
     { id: 'campaigns',  icon: 'campaign',        label: 'Campaigns', href: 'campaigns.html' },
     { id: 'contacts',   icon: 'contacts',        label: 'Contacts',  href: 'contacts.html' },
     { id: 'calls',      icon: 'call',            label: 'Calls',     href: 'call-logs.html' },
@@ -35,6 +35,15 @@
     { id: 'agents',     icon: 'support_agent',   label: 'Agents',    href: 'agent-detail.html' },
     { id: 'settings',   icon: 'settings',        label: 'Settings',  href: 'settings.html' },
     { id: 'profile',    icon: 'manage_accounts', label: 'Profile',   href: 'profile.html' },
+  ];
+
+
+  /* ── Nav groups (for section labels in sidebar) ─────────────── */
+  const NAV_GROUPS = [
+    { label: null,        ids: ['dashboard', 'campaigns', 'contacts'] },
+    { label: 'ACTIVITY',  ids: ['calls', 'sms'] },
+    { label: 'WORKSPACE', ids: ['teams', 'agents'] },
+    { label: 'ACCOUNT',   ids: ['settings', 'profile'] },
   ];
 
   /* Pages that must do a full hard-navigation (legacy / security isolation) */
@@ -67,13 +76,21 @@
 
   /* ── Build sidebar HTML ─────────────────────────────────────── */
   function buildSidebar(activeId, user) {
-    const items = NAV.map(n => {
-      const isActive = n.id === activeId;
-      return `<a href="${n.href}" class="sidebar-item${isActive ? ' sidebar-item--active' : ''}" title="${n.label}">
-        ${isActive ? '<span class="sidebar-dot"></span>' : ''}
-        <span class="md-icon" style="font-size:22px">${n.icon}</span>
-        <span class="sidebar-label">${n.label}</span>
-      </a>`;
+    const items = NAV_GROUPS.map(group => {
+      const groupItems = group.ids.map(id => {
+        const n = NAV.find(x => x.id === id);
+        if (!n) return '';
+        const isActive = n.id === activeId;
+        return `<a href="${n.href}" class="sidebar-item${isActive ? ' sidebar-item--active' : ''}" title="${n.label}">
+          ${isActive ? '<span class="sidebar-dot"></span>' : ''}
+          <span class="md-icon" style="font-size:22px">${n.icon}</span>
+          <span class="sidebar-label">${n.label}</span>
+        </a>`;
+      }).join('');
+      const sectionLabel = group.label
+        ? `<span class="sidebar-section-label">${group.label}</span>`
+        : '';
+      return `<div class="sidebar-group">${sectionLabel}${groupItems}</div>`;
     }).join('');
 
     const initials = user ? user.initials : '?';
@@ -84,7 +101,7 @@
     const themeIcon = (localStorage.getItem('cd-theme') || 'dark') === 'dark' ? 'light_mode' : 'dark_mode';
 
     return `
-      <a href="index.html" class="sidebar-brand" title="ClearDesk">
+      <a href="app.html" class="sidebar-brand" title="ClearDesk">
         <div class="sidebar-brand-icon">${LOGO_SVG}</div>
         <span class="sidebar-brand-name">ClearDesk</span>
       </a>
@@ -272,7 +289,7 @@
   /* ── Main init ──────────────────────────────────────────────── */
   function init() {
     /* Legacy pages keep their own layout entirely — no shell injection */
-    const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+    const currentFile = window.location.pathname.split('/').pop() || 'app.html';
     const LEGACY_LAYOUT_PAGES = ['settings.html', 'ops.html', 'developer-portal.html'];
     if (LEGACY_LAYOUT_PAGES.includes(currentFile)) {
       document.body.classList.remove('theme-dark', 'theme-light', 'text-on-surface');
@@ -310,6 +327,26 @@
     /* Workspace canvas */
     const canvas = document.createElement('div');
     canvas.className = 'workspace-canvas';
+    /* ── Persistent shared topbar (survives PJAX) ── */
+    const sharedTopbar = document.createElement('header');
+    sharedTopbar.className = 'shared-topbar';
+    sharedTopbar.id = 'sb-shared-topbar';
+    sharedTopbar.innerHTML = `
+      <div class="st-left"></div>
+      <div class="st-right">
+        <div class="st-profile-chip">
+          <div class="st-avatar" id="sb-topbar-avatar"><span id="sb-topbar-initials">—</span></div>
+          <div class="st-profile-info">
+            <div class="st-name" id="sb-topbar-name">—</div>
+            <div class="st-role" id="sb-topbar-role">—</div>
+          </div>
+          <button class="st-logout" id="sb-topbar-logout" title="Sign out" aria-label="Sign out">
+            <span class="md-icon" style="font-size:14px">logout</span>
+          </button>
+        </div>
+      </div>`;
+    canvas.appendChild(sharedTopbar);
+
     const pageContent = document.createElement('div');
     pageContent.style.cssText = 'flex:1;overflow-y:auto;overflow-x:hidden;';
     bodyChildren.forEach(el => pageContent.appendChild(el));
@@ -324,7 +361,7 @@
     topbar.className = 'mobile-topbar';
     topbar.setAttribute('role', 'banner');
     topbar.innerHTML = `
-      <a href="index.html" class="mobile-topbar-brand" title="ClearDesk Dashboard">
+      <a href="app.html" class="mobile-topbar-brand" title="ClearDesk Dashboard">
         <div class="mobile-topbar-brand-icon">${LOGO_SVG}</div>
         <span class="mobile-topbar-brand-name">ClearDesk</span>
       </a>
@@ -384,7 +421,7 @@
     bottomNav.querySelectorAll('.mob-nav-item').forEach(link => {
       link.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
-        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+        const currentFile = window.location.pathname.split('/').pop() || 'app.html';
         if (href === currentFile) return;
         e.preventDefault();
         /* Update active state */
@@ -427,7 +464,7 @@
         if (!href || href === '#') return;
 
         /* Same page — no-op */
-        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+        const currentFile = window.location.pathname.split('/').pop() || 'app.html';
         if (href === currentFile) return;
 
         e.preventDefault();
@@ -452,16 +489,16 @@
     const logoLink = sidebar.querySelector('.sidebar-logo');
     if (logoLink) {
       logoLink.addEventListener('click', function (e) {
-        const currentFile = window.location.pathname.split('/').pop() || 'index.html';
-        if (currentFile === 'index.html') return;
+        const currentFile = window.location.pathname.split('/').pop() || 'app.html';
+        if (currentFile === 'app.html') return;
         e.preventDefault();
-        pjaxNavigate('index.html');
+        pjaxNavigate('app.html');
       });
     }
 
     /* ── Browser back/forward (popstate) ── */
     window.addEventListener('popstate', function (e) {
-      const href = (e.state && e.state.href) || window.location.pathname.split('/').pop() || 'index.html';
+      const href = (e.state && e.state.href) || window.location.pathname.split('/').pop() || 'app.html';
       if (!e.state || !e.state.pjax) {
         /* Initial entry — hard reload is fine */
         window.location.reload();
@@ -501,28 +538,34 @@
         const { data: { session } } = await window.supabase.auth.getSession();
         if (!session) return;
         const meta = session.user.user_metadata || {};
+        const appMeta = session.user.app_metadata || {};
         let name = meta.full_name || meta.display_name || meta.name || '';
         if (!name) name = (session.user.email || '').split('@')[0];
         name = name.replace(/\b\w/g, c => c.toUpperCase());
         const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
-        const avatarUrl = meta.avatar_url ||
-          `https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(name)}&backgroundColor=transparent`;
-        const el = document.getElementById('sb-avatar');
-        if (el) {
-          el.title = name;
-          el.innerHTML = `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover"
-            onerror="this.outerHTML='<span style=\\"font-size:13px;font-weight:800;color:#0b0f17\\">${initials}</span>'">`;
+        const avatarUrl = meta.avatar_url || null;
+
+        /* Shared avatar img HTML — falls back to initials */
+        function avatarImgHtml(size, initialsStyle) {
+          if (avatarUrl) {
+            return `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"
+              onerror="this.outerHTML='<span style=\\"${initialsStyle}\\">${initials}</span>'">`;
+          }
+          return `<span style="${initialsStyle}">${initials}</span>`;
+        }
+
+        /* Sidebar footer avatar */
+        const sbAv = document.getElementById('sb-avatar');
+        if (sbAv) {
+          sbAv.title = name;
+          sbAv.innerHTML = avatarImgHtml(32, 'font-size:13px;font-weight:800;color:#0b0f17');
         }
         const nameEl = document.getElementById('sb-avatar-name');
-        if (nameEl) nameEl.textContent = name.split(' ')[0]; /* first name only */
-      } catch (_) {}
-    })();
-  }
+        if (nameEl) nameEl.textContent = name.split(' ')[0];
 
-  /* ── Run after DOM ready ── */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+        /* Topbar capsule avatar */
+        const tbAv = document.getElementById('sb-topbar-avatar');
+        if (tbAv) {
+          tbAv.innerHTML = avatarImgHtml(32, 'font-size:12px;font-weight:700;color:#0b0f17');
+        }
+        const tbName = document.g

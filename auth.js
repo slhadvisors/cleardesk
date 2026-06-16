@@ -23,8 +23,12 @@ async function getCurrentUser() {
     const { user } = session;
     const claims = user.user_metadata || {};
     
-    // Get role from JWT claims (set by auth hook)
-    const role = user.role || session.user.app_metadata?.user_role || 'ORG_STAFF';
+    // Get role from JWT claims (set by auth hook).
+    // NOTE: `user.role` is the Postgres auth role (always 'authenticated') — NOT the app role.
+    // The app role lives in app_metadata.user_role (service-role-set, not client-writable).
+    const role = session.user.app_metadata?.user_role
+      || user.user_metadata?.user_role
+      || 'ORG_STAFF';
     const organizationId = session.user.app_metadata?.organization_id;
     const preferredLanguage = session.user.app_metadata?.preferred_language || 'ENGLISH';
     // Prefer full_name from user_metadata (set during signup), fallback to app_metadata, then email

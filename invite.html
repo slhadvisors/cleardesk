@@ -178,7 +178,7 @@ async function init() {
     const user = sessionData.user;
     invitedUserEmail = user.email;
     invitedUserMeta  = user.user_metadata || {};
-    if (user.last_sign_in_at && user.user_metadata?.invite_accepted) { window.location.href = 'index.html'; return; }
+    if (user.last_sign_in_at && user.user_metadata?.invite_accepted) { window.location.href = 'app.html'; return; }
     const displayName = invitedUserMeta.display_name || '';
     const role        = invitedUserMeta.user_role || 'ORG_STAFF';
     document.getElementById('field-email').value = invitedUserEmail;
@@ -233,7 +233,7 @@ async function submitInvite() {
     showFormAlert('Unexpected error — please try again.','err');
   }
 }
-function goToDashboard() { window.location.href = 'index.html'; }
+function goToDashboard() { window.location.href = 'app.html'; }
 function formatRole(role) { return { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff Member' }[role] || role; }
 function showState(name) {
   ['loading','error','form','success'].forEach(s => {

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.toolbar{display:flex;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.filter{height:36px;padding:0 12px;border:1px solid var(--border-strong);border-radius:var(--r-sm);background:var(--surface);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:7px;color:var(--text-muted)}
+.filter svg{width:15px;height:15px}
+.av-sm{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:600;flex:0 0 30px}
+.cell-name{display:flex;align-items:center;gap:10px}
+</style>
+</head>
+<body data-page="contacts">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head">
+        <div><h1>Contacts</h1><p>1,847 clients across India, US and UAE.</p></div>
+        <div class="head-actions">
+          <button class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>Import CSV</button>
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>Add contact</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <div class="search" style="max-width:300px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search name, firm, phone…" aria-label="Search contacts"/></div>
+          <button class="filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z"/></svg>Status: All</button>
+          <button class="filter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>Country: All</button>
+          <span style="margin-left:auto;font-size:13px" class="subtle">1,847 results</span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th style="width:34px"><span class="checkbox"></span></th><th class="sortable">Client</th><th>Firm</th><th>Phone</th><th>Country</th><th>Filing status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">PM</span><div><div class="strong">Priya Mehta</div><div class="sub">priya@mehtagst.in</div></div></div></td><td>Mehta GST Co</td><td class="mono">+91 98201 21043</td><td><span class="tag">IN</span></td><td><span class="pill amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">JS</span><div><div class="strong">John Spencer</div><div class="sub">john@spencerllc.com</div></div></div></td><td>Spencer LLC</td><td class="mono">+1 415 555 0182</td><td><span class="tag">US</span></td><td><span class="pill green">Filed</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">AA</span><div><div class="strong">Aisha Al-Mansoori</div><div class="sub">aisha@gulftrade.ae</div></div></div></td><td>Gulf Trade FZE</td><td class="mono">+971 50 123 4567</td><td><span class="tag">AE</span></td><td><span class="pill red">Overdue</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">RS</span><div><div class="strong">Rahul Sharma</div><div class="sub">rahul@sharmaco.in</div></div></div></td><td>Sharma &amp; Co</td><td class="mono">+91 99876 33210</td><td><span class="tag">IN</span></td><td><span class="pill green">Filed</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">LC</span><div><div class="strong">Lena Cho</div><div class="sub">lena@chobooks.com</div></div></div></td><td>Cho Bookkeeping</td><td class="mono">+1 212 555 7741</td><td><span class="tag">US</span></td><td><span class="pill amber">Pending</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+            <tr><td><span class="checkbox"></span></td><td><div class="cell-name"><span class="av-sm">MK</span><div><div class="strong">Mohammed Khan</div><div class="sub">m.khan@desertcap.ae</div></div></div></td><td>Desert Capital</td><td class="mono">+971 55 998 2210</td><td><span class="tag">AE</span></td><td><span class="pill gray">No filing</span></td><td><button class="btn btn-ghost btn-sm">Open</button></td></tr>
+          </tbody>
+        </table>
+        <div class="toolbar" style="border-top:1px solid var(--border);border-bottom:none;justify-content:space-between">
+          <span class="subtle" style="font-size:13px">Showing 1–6 of 1,847</span>
+          <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm">Previous</button><button class="btn btn-ghost btn-sm">Next</button></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

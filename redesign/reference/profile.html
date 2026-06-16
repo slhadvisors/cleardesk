@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.av-lg{width:76px;height:76px;border-radius:50%;background:linear-gradient(150deg,var(--accent),#7c5cff);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:600;flex:0 0 76px}
+.opt{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--border)}
+.opt:first-child{border-top:none}
+.opt .t{font-size:13.5px;font-weight:600}.opt .s{font-size:12.5px;color:var(--text-subtle)}
+</style>
+</head>
+<body data-page="settings">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head"><div><h1>Your profile</h1><p>Manage your personal details and preferences.</p></div></div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-body" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <span class="av-lg">JR</span>
+          <div style="flex:1;min-width:200px"><div style="font-size:19px;font-weight:700">Justin Rao</div><div class="subtle">Org Admin · Rao &amp; Associates</div><div class="subtle" style="font-size:13px;margin-top:2px">justin@raoassociates.in</div></div>
+          <button class="btn btn-ghost">Change photo</button>
+        </div>
+      </div>
+
+      <section class="grid2">
+        <div class="stack">
+          <div class="panel">
+            <div class="panel-head"><h2>Personal details</h2></div>
+            <div class="panel-body">
+              <div class="field"><label>Full name</label><input class="input" value="Justin Rao"/></div>
+              <div class="field"><label>Work email</label><input class="input" type="email" value="justin@raoassociates.in"/></div>
+              <div class="field" style="margin-bottom:0"><label>Phone</label><input class="input" type="tel" value="+91 98200 11223"/></div>
+              <button class="btn btn-primary" style="margin-top:16px">Save changes</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Security</h2></div>
+            <div class="panel-body">
+              <div class="opt"><div><div class="t">Password</div><div class="s">Last changed 3 months ago</div></div><button class="btn btn-ghost btn-sm">Update</button></div>
+              <div class="opt"><div><div class="t">Two-factor authentication</div><div class="s">Add an extra layer of security</div></div><span class="switch on" role="switch" aria-checked="true"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="panel">
+            <div class="panel-head"><h2>Preferences</h2></div>
+            <div class="panel-body">
+              <div class="opt"><div><div class="t">Theme</div><div class="s">Light, dark, or match system</div></div><div class="seg"><button class="on">Light</button><button>Dark</button><button>Auto</button></div></div>
+              <div class="opt"><div><div class="t">Language</div><div class="s">Interface language</div></div><select class="select" style="width:auto;min-height:36px;padding:6px 12px"><option>English</option><option>Hindi</option><option>Arabic</option></select></div>
+              <div class="opt"><div><div class="t">Email notifications</div><div class="s">Campaign summaries &amp; alerts</div></div><span class="switch on" role="switch" aria-checked="true"></span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Active sessions</h2></div>
+            <div class="panel-body">
+              <div class="opt"><div><div class="t">Chrome · macOS</div><div class="s">Mumbai, IN · current session</div></div><span class="pill green">This device</span></div>
+              <div class="opt"><div><div class="t">Safari · iPhone</div><div class="s">Mumbai, IN · 2 days ago</div></div><button class="btn btn-ghost btn-sm">Revoke</button></div>
+            </div>
+          </div>
+
+          <button class="btn btn-ghost" style="color:var(--danger-on-soft);border-color:var(--danger-soft)">Sign out</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

@@ -506,7 +506,7 @@ select.field-input option{background:#161c26;color:var(--text-white);}
 (async () => {
   try {
     const { data: { session } } = await window.supabase.auth.getSession();
-    if (session) window.location.href = 'index.html';
+    if (session) window.location.href = 'app.html';
   } catch(e) {}
 })();
 
@@ -571,7 +571,7 @@ async function handleSignIn(e) {
     document.getElementById('spinner')?.remove();
     btn.insertAdjacentHTML('beforeend', '<span class="md-icon" style="font-size:19px">check_circle</span>');
     btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
-    setTimeout(() => { window.location.href = 'index.html'; }, 600);
+    setTimeout(() => { window.location.href = 'app.html'; }, 600);
   } catch(err) {
     btn.disabled = false; label.textContent = 'Sign In'; arrow.style.display = '';
     document.getElementById('spinner')?.remove();
@@ -778,7 +778,7 @@ function friendlySignupError(raw) {
 }
 async function signInWithGoogle() {
   try {
-    const { error } = await window.supabase.auth.signInWithOAuth({ provider:'google', options:{ redirectTo:window.location.origin+'/index.html' } });
+    const { error } = await window.supabase.auth.signInWithOAuth({ provider:'google', options:{ redirectTo:window.location.origin+'/app.html' } });
     if (error) throw error;
   } catch(err) { showAlert('creds-alert','Google sign-in unavailable. Use email/password.','err'); }
 }

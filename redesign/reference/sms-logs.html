@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — SMS &amp; WhatsApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.toolbar{display:flex;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.msg{max-width:380px;color:var(--text-muted);font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:0 0 26px}
+.ch-ico svg{width:15px;height:15px}
+.ch-ico.wa{background:var(--success-soft);color:var(--success-on-soft)}
+.ch-ico.sms{background:var(--accent-soft);color:var(--accent)}
+.cell-ch{display:flex;align-items:center;gap:8px;font-size:13.5px}
+</style>
+</head>
+<body data-page="sms">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head">
+        <div><h1>SMS &amp; WhatsApp</h1><p>Message delivery across all channels and campaigns.</p></div>
+        <div class="head-actions">
+          <div class="seg"><button class="on">All</button><button>WhatsApp</button><button>SMS</button></div>
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg>New message</button>
+        </div>
+      </div>
+
+      <section class="grid4" style="margin-bottom:16px">
+        <div class="kpi"><div class="kpi-lbl">Sent today</div><div class="kpi-val mono" style="margin-top:6px">214</div></div>
+        <div class="kpi"><div class="kpi-lbl">Delivered</div><div class="kpi-val mono" style="margin-top:6px">201</div></div>
+        <div class="kpi"><div class="kpi-lbl">Read</div><div class="kpi-val mono" style="margin-top:6px">168</div></div>
+        <div class="kpi"><div class="kpi-lbl">Failed</div><div class="kpi-val mono" style="margin-top:6px">13</div></div>
+      </section>
+
+      <div class="panel">
+        <div class="toolbar">
+          <div class="search" style="max-width:300px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search recipient or message…" aria-label="Search messages"/></div>
+          <span style="margin-left:auto;font-size:13px" class="subtle">214 messages</span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Recipient</th><th>Channel</th><th>Message</th><th>Status</th><th>Campaign</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr><td><div class="strong">Priya Mehta</div><div class="sub mono">+91 98201 21043</div></td><td><span class="cell-ch"><span class="ch-ico wa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>WhatsApp</span></td><td><div class="msg">Hi Priya, your GSTR-1 sales register is still pending…</div></td><td><span class="pill green">Read</span></td><td>Q1 GSTR-1</td><td class="subtle">10:31</td></tr>
+            <tr><td><div class="strong">John Spencer</div><div class="sub mono">+1 415 555 0182</div></td><td><span class="cell-ch"><span class="ch-ico sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>SMS</span></td><td><div class="msg">Welcome to Spencer LLC's onboarding — here's your secure link…</div></td><td><span class="pill green">Delivered</span></td><td>Onboarding</td><td class="subtle">10:18</td></tr>
+            <tr><td><div class="strong">Aisha Al-Mansoori</div><div class="sub mono">+971 50 123 4567</div></td><td><span class="cell-ch"><span class="ch-ico sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>SMS</span></td><td><div class="msg">Reminder: your VAT return for the period ending May is due…</div></td><td><span class="pill red">Failed</span></td><td>VAT reminder</td><td class="subtle">09:52</td></tr>
+            <tr><td><div class="strong">Rahul Sharma</div><div class="sub mono">+91 99876 33210</div></td><td><span class="cell-ch"><span class="ch-ico wa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>WhatsApp</span></td><td><div class="msg">Thank you! We've received your documents and started filing.</div></td><td><span class="pill green">Read</span></td><td>Document chaser</td><td class="subtle">09:40</td></tr>
+            <tr><td><div class="strong">Lena Cho</div><div class="sub mono">+1 212 555 7741</div></td><td><span class="cell-ch"><span class="ch-ico sms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>SMS</span></td><td><div class="msg">Your quarterly review is scheduled. Reply YES to confirm.</div></td><td><span class="pill amber">Sent</span></td><td>—</td><td class="subtle">09:12</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ClearDesk — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../assets/spatial.css"/>
+<style>
+.feed{padding:6px 18px 14px}
+.act{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}.act:last-child{border-bottom:none}
+.act-ico{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+.act-ico svg{width:15px;height:15px}
+.act-ico.green{background:var(--success-soft);color:var(--success-on-soft)}
+.act-ico.blue{background:var(--accent-soft);color:var(--accent)}
+.act-ico.amber{background:var(--warning-soft);color:var(--warning-on-soft)}
+.act-ico.red{background:var(--danger-soft);color:var(--danger-on-soft)}
+.act-body{font-size:13.5px;flex:1}.act-time{font-size:12px;color:var(--text-subtle);margin-top:2px}
+.dl{display:flex;align-items:center;gap:12px;padding:13px 18px;border-top:1px solid var(--border)}.dl:first-of-type{border-top:none}
+.dl-date{flex:0 0 46px;text-align:center;background:var(--surface-2);border-radius:var(--r-sm);padding:5px 0}
+.dl-date .d{font-size:17px;font-weight:700;line-height:1}.dl-date .m{font-size:10.5px;color:var(--text-subtle);text-transform:uppercase;margin-top:1px}
+.dl-body{flex:1}.dl-body .t{font-size:14px;font-weight:600}.dl-body .s{font-size:12.5px;color:var(--text-subtle)}
+.bars{display:flex;gap:18px;align-items:flex-end;height:128px}
+.bars .col{flex:1;text-align:center}
+.bars .col .b{background:var(--accent-soft);border-radius:6px 6px 0 0;position:relative}
+.bars .col .b i{position:absolute;bottom:0;left:0;right:0;background:var(--accent);border-radius:6px 6px 0 0}
+.bars .col span{font-size:12px;color:var(--text-subtle);margin-top:6px;display:block}
+</style>
+</head>
+<body data-page="dashboard">
+<div class="app">
+  <div class="main">
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1>Good morning, Justin</h1>
+          <p>Here's what's happening across your firm today — Friday, 15 June.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>Import contacts</button>
+          <a class="btn btn-primary" href="campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>New campaign</a>
+        </div>
+      </div>
+
+      <section class="grid4" style="margin-bottom:16px">
+        <div class="kpi"><div class="kpi-top"><span class="kpi-ico blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3Z"/></svg></span><span class="kpi-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg>12%</span></div><div class="kpi-val mono">4</div><div class="kpi-lbl">Active campaigns</div></div>
+        <div class="kpi"><div class="kpi-top"><span class="kpi-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 11a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 18Z"/></svg></span><span class="kpi-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg>8%</span></div><div class="kpi-val mono">312</div><div class="kpi-lbl">Calls made this week</div></div>
+        <div class="kpi"><div class="kpi-top"><span class="kpi-ico amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></span><span class="kpi-delta down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 7 17 17M17 17V9m0 8H9"/></svg>5%</span></div><div class="kpi-val mono">23</div><div class="kpi-lbl">Documents pending</div></div>
+        <div class="kpi"><div class="kpi-top"><span class="kpi-ico navy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span class="kpi-delta up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg>3%</span></div><div class="kpi-val mono">1,847</div><div class="kpi-lbl">Total contacts</div></div>
+      </section>
+
+      <section class="grid2" style="margin-bottom:16px">
+        <div class="panel">
+          <div class="panel-head"><h2>Active campaigns</h2><a class="link" href="campaigns.html">View all</a></div>
+          <table class="tbl">
+            <thead><tr><th>Campaign</th><th>Status</th><th>Progress</th><th>Channel</th></tr></thead>
+            <tbody>
+              <tr><td><div class="strong">Q1 GSTR-1 reminders</div><div class="sub">Deadline reminder · 128 contacts</div></td><td><span class="pill blue">Processing</span></td><td><div class="prog"><div class="bar"><i style="width:62%"></i></div><span class="pct mono">62%</span></div></td><td><span class="chan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3 5 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72"/></svg>Voice</span></td></tr>
+              <tr><td><div class="strong">Missing bank statements</div><div class="sub">Document chaser · 54 contacts</div></td><td><span class="pill green">Completed</span></td><td><div class="prog"><div class="bar"><i style="width:100%;background:var(--success)"></i></div><span class="pct mono">100%</span></div></td><td><span class="chan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>WhatsApp</span></td></tr>
+              <tr><td><div class="strong">New client onboarding</div><div class="sub">Sales outreach · 36 contacts</div></td><td><span class="pill amber">Scheduled</span></td><td><div class="prog"><div class="bar"><i style="width:0%"></i></div><span class="pct mono">0%</span></div></td><td><span class="chan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>SMS</span></td></tr>
+              <tr><td><div class="strong">1099-NEC filing nudge</div><div class="sub">Deadline reminder · 89 contacts</div></td><td><span class="pill gray">Paused</span></td><td><div class="prog"><div class="bar"><i style="width:41%;background:var(--text-subtle)"></i></div><span class="pct mono">41%</span></div></td><td><span class="chan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3 5 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72"/></svg>Voice</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Recent activity</h2><a class="link" href="call-logs.html">View all</a></div>
+          <div class="feed">
+            <div class="act"><span class="act-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg></span><div class="act-body"><b>Priya Mehta</b> uploaded the missing GST invoice<div class="act-time">8 minutes ago</div></div></div>
+            <div class="act"><span class="act-ico blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3 5 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72"/></svg></span><div class="act-body">AI voice call completed with <b>Sharma &amp; Co</b><div class="act-time">26 minutes ago</div></div></div>
+            <div class="act"><span class="act-ico amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="act-body"><b>Q1 GSTR-1 reminders</b> reached 62% completion<div class="act-time">1 hour ago</div></div></div>
+            <div class="act"><span class="act-ico red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span><div class="act-body">Call to <b>+91 98••• 21043</b> failed — no answer<div class="act-time">2 hours ago</div></div></div>
+            <div class="act"><span class="act-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg></span><div class="act-body">WhatsApp reminder delivered to <b>14 clients</b><div class="act-time">3 hours ago</div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid2">
+        <div class="panel">
+          <div class="panel-head"><h2>Upcoming compliance deadlines</h2><a class="link" href="#">Calendar</a></div>
+          <div class="dl"><div class="dl-date"><div class="d mono">20</div><div class="m">Jun</div></div><div class="dl-body"><div class="t">GSTR-1 filing</div><div class="s">23 clients with pending status</div></div><span class="tag" style="color:var(--warning-on-soft);background:var(--warning-soft)">5 days</span></div>
+          <div class="dl"><div class="dl-date"><div class="d mono">30</div><div class="m">Jun</div></div><div class="dl-body"><div class="t">Form 1099-NEC</div><div class="s">11 US clients · corrections window</div></div><span class="tag" style="color:var(--warning-on-soft);background:var(--warning-soft)">15 days</span></div>
+          <div class="dl"><div class="dl-date"><div class="d mono">11</div><div class="m">Jul</div></div><div class="dl-body"><div class="t">GSTR-1 (monthly)</div><div class="s">42 clients</div></div><span class="tag">26 days</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>This week's outreach</h2><a class="link" href="#">Reports</a></div>
+          <div class="panel-body">
+            <div class="bars">
+              <div class="col"><div class="b" style="height:54%"><i style="height:62%"></i></div><span>Mon</span></div>
+              <div class="col"><div class="b" style="height:78%"><i style="height:70%"></i></div><span>Tue</span></div>
+              <div class="col"><div class="b" style="height:64%"><i style="height:80%"></i></div><span>Wed</span></div>
+              <div class="col"><div class="b" style="height:92%"><i style="height:74%"></i></div><span>Thu</span></div>
+              <div class="col"><div class="b" style="height:70%"><i style="height:88%"></i></div><span>Fri</span></div>
+            </div>
+            <div style="display:flex;gap:18px;margin-top:14px;font-size:12.5px;color:var(--text-muted)">
+              <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--accent);display:inline-block"></i>Connected</span>
+              <span style="display:flex;align-items:center;gap:6px"><i style="width:10px;height:10px;border-radius:3px;background:var(--accent-soft);display:inline-block"></i>Attempted</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="../assets/shell.js"></script>
+</body>
+</html>

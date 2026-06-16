@@ -9,21 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
   <link rel="stylesheet" href="/theme-hub.css"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            "on-surface":"#1b1b24","surface":"#fcf8ff","on-surface-variant":"#464555",
-            "outline-variant":"#c7c4d8","surface-container":"#f0ecf9",
-            "surface-container-high":"#eae6f3","primary":"#a3ff12","error":"#ba1a1a"
-          },
-          fontFamily: { sans: ['Plus Jakarta Sans','sans-serif'] }
-        }
-      }
-    };
-  </script>
   <style>
     .md-icon {
       font-family: 'Material Symbols Outlined';
@@ -31,413 +16,745 @@
       font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
       line-height: 1;
       user-select: none;
-    }
-    /* Ambient background matching other pages */    .ambient-bg {
-      position:fixed; inset:0; z-index:0;
-      background:
-        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(163,255,18,.06) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 85% 100%, rgba(6,182,212,.05) 0%, transparent 55%),
-        var(--bg-canvas);
+      vertical-align: middle;
     }
 
-    /* Avatar upload hover overlay */
+    /* ── Page shell ──────────────────────────────────── */
+    .profile-page {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 40px 56px;
+    }
+    @media (max-width: 900px) {
+      .profile-page { padding: 20px 20px 48px; }
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .profile-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      max-width: 960px;
+    }
+    .profile-left-panel {
+      width: 224px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .profile-right-panel {
+      flex: 1;
+      min-width: 0;
+    }
+    @media (max-width: 800px) {
+      .profile-layout { flex-direction: column; }
+      .profile-left-panel { width: 100%; }
+    }
+
+    /* ── Avatar upload ───────────────────────────────── */
+    .avatar-upload-wrap { cursor: pointer; }
     .avatar-upload-wrap:hover .avatar-overlay { opacity: 1; }
     .avatar-overlay {
       position: absolute; inset: 0; border-radius: 50%;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.50);
       display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.2s ease; cursor: pointer;
+      opacity: 0; transition: opacity 0.2s ease;
     }
-    /* Tab nav */
+
+    /* ── Avatar card specifics ───────────────────────── */
+    .profile-avatar-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 20px 20px;
+    }
+    .profile-identity-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-white);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .profile-identity-email {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 2px;
+    }
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(163,255,18,0.10);
+      color: var(--accent-electric);
+      border: 1px solid rgba(163,255,18,0.22);
+    }
+
+    /* ── Tab nav ─────────────────────────────────────── */
     .profile-tab {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 16px; border-radius: 10px;
-      font-size: 13.5px; font-weight: 500;
-      color: var(--text-dim); cursor: pointer;
-      border: none; background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-dim);
+      cursor: pointer;
+      border: none;
+      background: transparent;
       transition: var(--transition-snappy);
-      width: 100%; text-align: left;
+      width: 100%;
+      text-align: left;
     }
-    .profile-tab:hover { background: rgba(163,255,18,0.06); color: var(--text-white); }
+    .profile-tab:hover {
+      background: rgba(163,255,18,0.06);
+      color: var(--text-white);
+    }
     .profile-tab.active {
       background: rgba(163,255,18,0.10);
       color: var(--accent-electric);
+      font-weight: 600;
     }
+    .profile-tab .md-icon { font-size: 17px; flex-shrink: 0; }
+    .profile-tab-divider {
+      height: 1px;
+      background: var(--glass-border);
+      margin: 4px 6px;
+    }
+
     body.theme-light .profile-tab:hover { background: rgba(0,0,0,0.05); color: #0f172a; }
     body.theme-light .profile-tab.active { background: rgba(76,206,0,0.10); color: #4d7c0f; }
 
-    /* Section panels fade in */
+    /* ── Tab panes ───────────────────────────────────── */
     .tab-pane { display: none; animation: fadeUp 0.22s ease both; }
     .tab-pane.active { display: block; }
-    @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0);   }
+    }
 
-    /* Password strength bar */
-    .pw-strength-bar { height: 3px; border-radius: 2px; transition: width 0.3s ease, background 0.3s ease; }
+    /* ── Avatar upload row ───────────────────────────── */
+    .avatar-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(163,255,18,0.04);
+      border: 1px solid rgba(163,255,18,0.10);
+    }
+    .avatar-upload-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      color: var(--text-white);
+      background: rgba(255,255,255,0.07);
+      cursor: pointer;
+      transition: var(--transition-snappy);
+    }
+    .btn-upload:hover { background: rgba(255,255,255,0.12); }
+    .btn-remove-avatar {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 8px;
+      border: 1px solid rgba(244,63,94,0.25);
+      color: #f87171;
+      background: transparent;
+      cursor: pointer;
+      transition: var(--transition-snappy);
+    }
+    .btn-remove-avatar:hover { background: rgba(244,63,94,0.08); }
 
-    /* Notification toggle */
+    /* ── Form helpers ────────────────────────────────── */
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 560px) { .form-grid-2 { grid-template-columns: 1fr; } }
+    .helper-text {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      margin-top: 5px;
+    }
+    .field-tag {
+      font-size: 11px;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--text-dim);
+    }
+
+    /* ── Password ────────────────────────────────────── */
+    .pw-strength-track {
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.07);
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .pw-strength-bar {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .input-icon-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dim);
+      padding: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon-btn .md-icon { font-size: 17px; }
+    .input-icon-btn:hover { color: var(--text-white); }
+
+    /* ── Session row ─────────────────────────────────── */
+    .session-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(163,255,18,0.06);
+      border: 1px solid rgba(163,255,18,0.12);
+    }
+
+    /* ── Notification toggle ─────────────────────────── */
     .notif-toggle {
-      width: 44px; height: 24px; border-radius: 12px;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
       background: rgba(255,255,255,0.12);
       border: 1px solid var(--glass-border);
-      position: relative; cursor: pointer;
+      position: relative;
+      cursor: pointer;
       transition: background 0.22s ease;
       flex-shrink: 0;
     }
     .notif-toggle.on { background: var(--accent-electric); border-color: transparent; }
     .notif-toggle::after {
-      content: ''; position: absolute;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: white; top: 2px; left: 2px;
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
       transition: transform 0.22s cubic-bezier(0.25,1,0.5,1);
       box-shadow: 0 1px 4px rgba(0,0,0,0.25);
     }
     .notif-toggle.on::after { transform: translateX(20px); }
+    .notif-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .notif-row:last-child { border-bottom: none; }
+
+    /* ── Org read-only fields ────────────────────────── */
+    .status-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    /* ── Section footer ──────────────────────────────── */
+    .section-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--glass-border);
+    }
+    .btn-reset {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+    .btn-reset:hover { color: var(--text-white); }
+
+    /* ── Danger zone ─────────────────────────────────── */
+    .danger-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(220,38,38,0.12);
+    }
+
+    /* ── Delete modal ────────────────────────────────── */
+    .delete-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(5,5,5,0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+    }
+    .delete-modal-card {
+      width: 440px;
+      max-width: 94vw;
+      animation: fadeUp 0.2s ease both;
+    }
+
+    /* ── Light mode overrides ────────────────────────── */
     body.theme-light .notif-toggle { background: rgba(0,0,0,0.10); }
+    body.theme-light .session-row {
+      background: rgba(76,206,0,0.06);
+      border-color: rgba(76,206,0,0.15);
+    }
+
+    /* ── Spin animation ──────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="theme-dark" data-sidebar-active="profile">
 
-<!-- Ambient background -->
-<div class="ambient-bg" aria-hidden="true"></div>
+<!-- ── Content (sidebar-shared.js wraps this in .workspace-canvas + nav.sidebar) ── -->
+<main class="profile-page" id="profile-page">
 
-<!-- PJAX shell injected by sidebar-shared.js -->
-<div class="workspace-canvas" id="workspace-canvas">
-  <main class="workspace-main" id="workspace-main" style="position:relative;z-index:1">
+  <!-- Page header -->
+  <div style="margin-bottom:28px">
+    <h1 style="font-size:22px;font-weight:800;color:var(--text-white);line-height:1.2">My Profile</h1>
+    <p style="font-size:14px;color:var(--text-dim);margin-top:4px">Manage your account details, security, and preferences.</p>
+  </div>
 
-    <!-- Page header -->
-    <div class="mb-8">
-      <h1 class="text-[22px] font-bold" style="color:var(--text-white)">My Profile</h1>
-      <p class="text-[14px] mt-1" style="color:var(--text-dim)">Manage your account details, security, and preferences.</p>
-    </div>
+  <div class="profile-layout">
 
-    <div class="flex gap-6 items-start profile-layout" style="max-width:900px">
+    <!-- ── Left panel ── -->
+    <div class="profile-left-panel">
 
-      <!-- ── Left sidebar: avatar + tab nav ── -->
-      <div class="profile-left-panel" style="width:220px;flex-shrink:0;">
-        <!-- Avatar card -->
-        <div class="profile-section-card mb-4">
-          <div class="flex flex-col items-center gap-3 py-2">
-            <!-- Avatar -->
-            <div style="position:relative">
-              <div class="profile-avatar-ring avatar-upload-wrap" id="avatar-ring" onclick="document.getElementById('avatar-file').click()" title="Change photo">
-                <div class="profile-avatar-inner" id="avatar-inner">
-                  <span id="avatar-initials" style="font-size:28px;font-weight:700">?</span>
-                  <img id="avatar-img" src="" alt="Profile photo" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0"/>
-                </div>
-                <div class="avatar-overlay" aria-hidden="true">
-                  <span class="md-icon" style="color:#fff;font-size:20px">photo_camera</span>
-                </div>
+      <!-- Identity card -->
+      <div class="profile-section-card" style="padding:0;overflow:hidden">
+        <div class="profile-avatar-card">
+          <!-- Avatar ring -->
+          <div style="position:relative">
+            <div class="profile-avatar-ring avatar-upload-wrap" id="avatar-ring"
+                 onclick="document.getElementById('avatar-file').click()" title="Change photo"
+                 style="width:88px;height:88px">
+              <div class="profile-avatar-inner" id="avatar-inner">
+                <span id="avatar-initials" style="font-size:28px;font-weight:700">?</span>
+                <img id="avatar-img" src="" alt="Profile photo"
+                     style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0"/>
               </div>
-              <input type="file" id="avatar-file" accept="image/*" style="display:none" onchange="handleAvatarChange(event)"/>
+              <div class="avatar-overlay" aria-hidden="true">
+                <span class="md-icon" style="color:#fff;font-size:20px">photo_camera</span>
+              </div>
             </div>
+            <input type="file" id="avatar-file" accept="image/*" style="display:none"
+                   onchange="handleAvatarChange(event)"/>
+          </div>
+          <div>
+            <p class="profile-identity-name" id="hdr-name">Loading…</p>
+            <p class="profile-identity-email" id="hdr-email"></p>
             <div style="text-align:center">
-              <p class="font-bold text-[15px] profile-panel-name" id="hdr-name" style="color:var(--text-white)">Loading…</p>
-              <p class="text-[12px] mt-0.5" id="hdr-email" style="color:var(--text-dim)"></p>
-              <span class="inline-block mt-2 px-2.5 py-0.5 rounded-full text-[11px] font-semibold" id="role-badge"
-                    style="background:rgba(163,255,18,0.12);color:var(--accent-electric);border:1px solid rgba(163,255,18,0.22)">Staff</span>
+              <span class="role-pill" id="role-badge">
+                <span class="md-icon" style="font-size:12px">verified_user</span>Staff
+              </span>
             </div>
           </div>
         </div>
-
-        <!-- Tab nav -->
-        <nav class="profile-section-card profile-tab-nav flex flex-col gap-0.5 p-2">
-          <button class="profile-tab active" onclick="switchTab('account')" id="tab-account">
-            <span class="md-icon" style="font-size:18px">person</span>Account
-          </button>
-          <button class="profile-tab" onclick="switchTab('security')" id="tab-security">
-            <span class="md-icon" style="font-size:18px">lock</span>Security
-          </button>
-          <button class="profile-tab" onclick="switchTab('notifications')" id="tab-notifications">
-            <span class="md-icon" style="font-size:18px">notifications</span>Notifications
-          </button>
-          <button class="profile-tab" onclick="switchTab('organisation')" id="tab-organisation">
-            <span class="md-icon" style="font-size:18px">business</span>Organisation
-          </button>
-          <div style="height:1px;background:var(--glass-border);margin:6px 4px"></div>
-          <button class="profile-tab" onclick="switchTab('danger')" id="tab-danger">
-            <span class="md-icon" style="font-size:18px;color:#f87171">shield_person</span>
-            <span style="color:#f87171">Account Safety</span>
-          </button>
-        </nav>
+        <!-- Divider -->
+        <div style="height:1px;background:var(--glass-border)"></div>
+        <!-- Quick stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div style="padding:14px 16px;text-align:center;border-right:1px solid var(--glass-border)">
+            <p style="font-size:18px;font-weight:700;color:var(--accent-electric)" id="stat-campaigns">—</p>
+            <p style="font-size:11px;color:var(--text-dim);margin-top:2px">Campaigns</p>
+          </div>
+          <div style="padding:14px 16px;text-align:center">
+            <p style="font-size:18px;font-weight:700;color:var(--text-white)" id="stat-days">—</p>
+            <p style="font-size:11px;color:var(--text-dim);margin-top:2px">Days active</p>
+          </div>
+        </div>
       </div>
 
-      <!-- ── Right: tab content ── -->
-      <div style="flex:1;min-width:0">
-
-        <!-- ════ ACCOUNT ════ -->
-        <div class="tab-pane active" id="pane-account">
-          <div class="profile-section-card">
-            <p class="profile-section-title">Personal Information</p>
-            <div class="space-y-5">
-
-              <!-- Avatar upload row -->
-              <div class="flex items-center gap-4 p-4 rounded-xl" style="background:rgba(163,255,18,0.04);border:1px solid rgba(163,255,18,0.10)">
-                <div class="profile-avatar-ring" style="width:56px;height:56px;cursor:pointer" onclick="document.getElementById('avatar-file').click()">
-                  <div class="profile-avatar-inner" id="avatar-initials-sm" style="font-size:18px;font-weight:700">?</div>
-                </div>
-                <div>
-                  <p class="text-[13px] font-semibold" style="color:var(--text-white)">Profile Photo</p>
-                  <p class="text-[12px] mt-0.5" style="color:var(--text-dim)">JPG, PNG or WebP · Max 2 MB</p>
-                  <div class="flex gap-2 mt-2">
-                    <button onclick="document.getElementById('avatar-file').click()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-lg border" style="border-color:var(--glass-border);color:var(--text-white);background:rgba(255,255,255,0.06);cursor:pointer;transition:var(--transition-snappy)">
-                      <span class="md-icon" style="font-size:14px">upload</span>Upload
-                    </button>
-                    <button onclick="removeAvatar()" id="btn-remove-avatar" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-lg border" style="border-color:rgba(244,63,94,0.25);color:#f87171;background:transparent;cursor:pointer;display:none;transition:var(--transition-snappy)">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Name row -->
-              <div class="grid grid-cols-2 gap-4">
-                <div class="profile-field">
-                  <label for="inp-fname">First Name</label>
-                  <input class="profile-input" type="text" id="inp-fname" placeholder="Your first name" autocomplete="given-name"/>
-                </div>
-                <div class="profile-field">
-                  <label for="inp-lname">Last Name</label>
-                  <input class="profile-input" type="text" id="inp-lname" placeholder="Your last name" autocomplete="family-name"/>
-                </div>
-              </div>
-
-              <!-- Display name -->
-              <div class="profile-field">
-                <label for="inp-display">Display Name <span style="color:var(--text-dim);font-weight:400;text-transform:none;font-size:11px;letter-spacing:0">(shown in sidebar and greetings)</span></label>
-                <input class="profile-input" type="text" id="inp-display" placeholder="How you appear in ClearDesk" autocomplete="nickname"/>
-              </div>
-
-              <!-- Email -->
-              <div class="profile-field">
-                <label for="inp-email">Email Address</label>
-                <div style="position:relative">
-                  <input class="profile-input" type="email" id="inp-email" placeholder="you@firm.com" autocomplete="email" style="padding-right:90px"/>
-                  <span id="email-verified-badge" class="inline-flex items-center gap-1 text-[11px] font-semibold"
-                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#4ade80;display:none">
-                    <span class="md-icon" style="font-size:14px">verified</span>Verified
-                  </span>
-                </div>
-                <p class="text-[11.5px] mt-1.5" style="color:var(--text-dim)">A confirmation link will be sent if you change your email.</p>
-              </div>
-
-              <!-- Phone -->
-              <div class="profile-field">
-                <label for="inp-phone">Phone Number <span style="color:var(--text-dim);font-weight:400;text-transform:none;font-size:11px;letter-spacing:0">(optional)</span></label>
-                <input class="profile-input" type="tel" id="inp-phone" placeholder="+91 98765 43210" autocomplete="tel"/>
-              </div>
-
-              <!-- Timezone -->
-              <div class="profile-field">
-                <label for="inp-timezone">Timezone</label>
-                <select class="profile-input" id="inp-timezone">
-                  <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
-                  <option value="America/New_York">America/New_York (EST)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
-                  <option value="Europe/London">Europe/London (GMT)</option>
-                  <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
-                  <option value="UTC">UTC</option>
-                </select>
-              </div>
-
-            </div>
-
-            <div class="flex items-center gap-3 mt-7 pt-6" style="border-top:1px solid var(--glass-border)">
-              <button class="profile-save-btn" id="btn-save-account" onclick="saveAccount()">
-                <span class="md-icon" style="font-size:16px">save</span>Save Changes
-              </button>
-              <button onclick="loadProfile()" class="text-[13px] font-medium" style="background:none;border:none;cursor:pointer;color:var(--text-dim)">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ════ SECURITY ════ -->
-        <div class="tab-pane" id="pane-security">
-          <div class="profile-section-card mb-4">
-            <p class="profile-section-title">Change Password</p>
-            <div class="space-y-4">
-              <div class="profile-field">
-                <label for="inp-pw-current">Current Password</label>
-                <div style="position:relative">
-                  <input class="profile-input" type="password" id="inp-pw-current" placeholder="Enter current password" style="padding-right:44px" autocomplete="current-password"/>
-                  <button type="button" onclick="togglePwVis('inp-pw-current','eye-cur')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim)">
-                    <span class="md-icon" id="eye-cur" style="font-size:18px">visibility_off</span>
-                  </button>
-                </div>
-              </div>
-              <div class="profile-field">
-                <label for="inp-pw-new">New Password</label>
-                <div style="position:relative">
-                  <input class="profile-input" type="password" id="inp-pw-new" placeholder="Min. 8 characters" oninput="checkPwStrength()" style="padding-right:44px" autocomplete="new-password"/>
-                  <button type="button" onclick="togglePwVis('inp-pw-new','eye-new')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim)">
-                    <span class="md-icon" id="eye-new" style="font-size:18px">visibility_off</span>
-                  </button>
-                </div>
-                <!-- Strength bar -->
-                <div style="margin-top:8px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;height:3px">
-                  <div class="pw-strength-bar" id="pw-strength-bar" style="width:0%;background:#f43f5e"></div>
-                </div>
-                <p class="text-[11.5px] mt-1" id="pw-strength-label" style="color:var(--text-dim)">Use 8+ characters, a number, and a symbol.</p>
-              </div>
-              <div class="profile-field">
-                <label for="inp-pw-confirm">Confirm New Password</label>
-                <div style="position:relative">
-                  <input class="profile-input" type="password" id="inp-pw-confirm" placeholder="Re-enter new password" style="padding-right:44px" autocomplete="new-password"/>
-                  <button type="button" onclick="togglePwVis('inp-pw-confirm','eye-con')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim)">
-                    <span class="md-icon" id="eye-con" style="font-size:18px">visibility_off</span>
-                  </button>
-                </div>
-                <p class="text-[11.5px] mt-1 hidden" id="pw-match-err" style="color:#f43f5e">Passwords do not match.</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 mt-7 pt-6" style="border-top:1px solid var(--glass-border)">
-              <button class="profile-save-btn" onclick="changePassword()">
-                <span class="md-icon" style="font-size:16px">lock_reset</span>Update Password
-              </button>
-            </div>
-          </div>
-
-          <!-- Active Sessions -->
-          <div class="profile-section-card">
-            <p class="profile-section-title">Active Sessions</p>
-            <div id="sessions-list">
-              <div class="skeleton h-12 rounded-xl mb-2"></div>
-              <div class="skeleton h-12 rounded-xl" style="opacity:0.5"></div>
-            </div>
-            <div class="mt-5 pt-5" style="border-top:1px solid var(--glass-border)">
-              <button onclick="signOutAllDevices()" class="danger-btn">
-                <span class="md-icon" style="font-size:15px">logout</span>Sign out all other devices
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ════ NOTIFICATIONS ════ -->
-        <div class="tab-pane" id="pane-notifications">
-          <div class="profile-section-card">
-            <p class="profile-section-title">Email Notifications</p>
-            <div class="space-y-1">
-              <div id="notif-rows">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-            <div class="flex items-center gap-3 mt-7 pt-6" style="border-top:1px solid var(--glass-border)">
-              <button class="profile-save-btn" onclick="saveNotifications()">
-                <span class="md-icon" style="font-size:16px">notifications_active</span>Save Preferences
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ════ ORGANISATION ════ -->
-        <div class="tab-pane" id="pane-organisation">
-          <div class="profile-section-card">
-            <p class="profile-section-title">Organisation Details</p>
-            <div class="space-y-4">
-              <div class="profile-field">
-                <label>Organisation Name</label>
-                <input class="profile-input readonly" type="text" id="inp-org-name" readonly placeholder="Your organisation"/>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="profile-field">
-                  <label>Country</label>
-                  <input class="profile-input readonly" type="text" id="inp-org-country" readonly placeholder="—"/>
-                </div>
-                <div class="profile-field">
-                  <label>Billing Status</label>
-                  <div style="position:relative">
-                    <input class="profile-input readonly" type="text" id="inp-billing" readonly/>
-                  </div>
-                </div>
-              </div>
-              <div class="profile-field">
-                <label>Organisation ID</label>
-                <div style="position:relative">
-                  <input class="profile-input readonly" type="text" id="inp-org-id" readonly style="font-family:var(--font-mono);font-size:12.5px;padding-right:44px"/>
-                  <button onclick="copyOrgId()" title="Copy" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim)">
-                    <span class="md-icon" id="copy-icon" style="font-size:17px">content_copy</span>
-                  </button>
-                </div>
-              </div>
-              <div class="profile-field">
-                <label>Account Created</label>
-                <input class="profile-input readonly" type="text" id="inp-created" readonly/>
-              </div>
-            </div>
-            <p class="text-[12px] mt-5" style="color:var(--text-dim)">To change organisation details, contact your Admin or use the <a href="settings.html" style="color:var(--accent-electric)">Settings</a> panel.</p>
-          </div>
-        </div>
-
-        <!-- ════ DANGER / ACCOUNT SAFETY ════ -->
-        <div class="tab-pane" id="pane-danger">
-          <div class="danger-zone-card">
-            <div class="flex items-center gap-3 mb-5">
-              <span class="md-icon" style="font-size:20px;color:#f87171">shield_person</span>
-              <p class="text-[15px] font-bold" style="color:#fca5a5">Account Safety</p>
-            </div>
-
-            <div class="danger-action">
-              <div>
-                <p class="text-[13.5px] font-semibold" style="color:var(--text-white)">Download My Data</p>
-                <p class="text-[12px] mt-0.5" style="color:var(--text-dim)">Export all your contacts, call logs, and campaign data as CSV.</p>
-              </div>
-              <button class="danger-btn" onclick="downloadData()" style="border-color:rgba(163,255,18,0.30);color:#a3ff12">
-                <span class="md-icon" style="font-size:15px">download</span>Export
-              </button>
-            </div>
-
-            <div class="danger-action">
-              <div>
-                <p class="text-[13.5px] font-semibold" style="color:var(--text-white)">Sign Out All Devices</p>
-                <p class="text-[12px] mt-0.5" style="color:var(--text-dim)">Revoke all active sessions. You will be signed out here too.</p>
-              </div>
-              <button class="danger-btn" onclick="signOutAllDevices()">
-                <span class="md-icon" style="font-size:15px">logout</span>Sign Out All
-              </button>
-            </div>
-
-            <div class="danger-action">
-              <div>
-                <p class="text-[13.5px] font-semibold" style="color:var(--text-white)">Deactivate Account</p>
-                <p class="text-[12px] mt-0.5" style="color:var(--text-dim)">Temporarily disable your account. Admins can reactivate it.</p>
-              </div>
-              <button class="danger-btn" onclick="deactivateAccount()">
-                <span class="md-icon" style="font-size:15px">pause_circle</span>Deactivate
-              </button>
-            </div>
-
-            <div class="danger-action" style="border-bottom:none">
-              <div>
-                <p class="text-[13.5px] font-semibold" style="color:#fca5a5">Delete Account Permanently</p>
-                <p class="text-[12px] mt-0.5" style="color:var(--text-dim)">This is irreversible. All your data will be purged.</p>
-              </div>
-              <button class="danger-btn" onclick="confirmDeleteAccount()" style="border-color:rgba(244,63,94,0.50);color:#f87171">
-                <span class="md-icon" style="font-size:15px">delete_forever</span>Delete
-              </button>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /right col -->
-    </div><!-- /flex row -->
-
-    <div class="h-12"></div>
-  </main>
-</div>
-
-<!-- Delete confirmation modal -->
-<div id="delete-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(5,5,5,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center">
-  <div class="profile-section-card" style="width:420px;max-width:94vw;border:1px solid rgba(244,63,94,0.30)">
-    <div class="flex items-center gap-3 mb-4">
-      <span class="md-icon" style="font-size:24px;color:#f87171">warning</span>
-      <p class="text-[16px] font-bold" style="color:var(--text-white)">Delete account?</p>
+      <!-- Tab nav -->
+      <nav class="profile-section-card" style="padding:8px" aria-label="Profile sections">
+        <button class="profile-tab active" onclick="switchTab('account')" id="tab-account">
+          <span class="md-icon">person</span>Account
+        </button>
+        <button class="profile-tab" onclick="switchTab('security')" id="tab-security">
+          <span class="md-icon">lock</span>Security
+        </button>
+        <button class="profile-tab" onclick="switchTab('notifications')" id="tab-notifications">
+          <span class="md-icon">notifications</span>Notifications
+        </button>
+        <button class="profile-tab" onclick="switchTab('organisation')" id="tab-organisation">
+          <span class="md-icon">business</span>Organisation
+        </button>
+        <div class="profile-tab-divider"></div>
+        <button class="profile-tab" onclick="switchTab('danger')" id="tab-danger">
+          <span class="md-icon" style="color:#f87171">shield_person</span>
+          <span style="color:#f87171">Account Safety</span>
+        </button>
+      </nav>
     </div>
-    <p class="text-[13px] mb-5" style="color:var(--text-dim)">This will permanently delete your account and all associated data. Type <strong style="color:#f87171">DELETE</strong> to confirm.</p>
-    <input class="profile-input" type="text" id="delete-confirm-input" placeholder="Type DELETE to confirm" style="margin-bottom:16px"/>
-    <div class="flex gap-3">
-      <button onclick="closeDeleteModal()" class="profile-save-btn" style="background:rgba(255,255,255,0.08);color:var(--text-white)">Cancel</button>
-      <button onclick="executeDeleteAccount()" id="btn-confirm-delete" class="danger-btn" style="height:40px;padding:0 20px;font-size:13px;font-weight:700;border-color:rgba(244,63,94,0.50)">
+
+    <!-- ── Right panel ── -->
+    <div class="profile-right-panel">
+
+      <!-- ════ ACCOUNT ════ -->
+      <div class="tab-pane active" id="pane-account">
+        <div class="profile-section-card">
+          <p class="profile-section-title">Personal Information</p>
+
+          <!-- Avatar upload row -->
+          <div class="avatar-upload-row" style="margin-bottom:20px">
+            <div class="profile-avatar-ring" style="width:56px;height:56px;cursor:pointer;flex-shrink:0"
+                 onclick="document.getElementById('avatar-file').click()">
+              <div class="profile-avatar-inner" id="avatar-sm" style="font-size:18px;font-weight:700">?</div>
+            </div>
+            <div>
+              <p style="font-size:13px;font-weight:600;color:var(--text-white)">Profile Photo</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:2px">JPG, PNG or WebP · Max 2 MB</p>
+              <div class="avatar-upload-actions">
+                <button onclick="document.getElementById('avatar-file').click()" class="btn-upload">
+                  <span class="md-icon" style="font-size:13px">upload</span>Upload
+                </button>
+                <button onclick="removeAvatar()" id="btn-remove-avatar" class="btn-remove-avatar">
+                  <span class="md-icon" style="font-size:13px">delete</span>Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <!-- Name row -->
+            <div class="form-grid-2">
+              <div class="profile-field">
+                <label for="inp-fname">First Name</label>
+                <input class="profile-input" type="text" id="inp-fname"
+                       placeholder="Your first name" autocomplete="given-name"/>
+              </div>
+              <div class="profile-field">
+                <label for="inp-lname">Last Name</label>
+                <input class="profile-input" type="text" id="inp-lname"
+                       placeholder="Your last name" autocomplete="family-name"/>
+              </div>
+            </div>
+
+            <!-- Display name -->
+            <div class="profile-field">
+              <label for="inp-display">
+                Display Name
+                <span class="field-tag">— shown in sidebar & greetings</span>
+              </label>
+              <input class="profile-input" type="text" id="inp-display"
+                     placeholder="How you appear in ClearDesk" autocomplete="nickname"/>
+            </div>
+
+            <!-- Email -->
+            <div class="profile-field">
+              <label for="inp-email">Email Address</label>
+              <div style="position:relative">
+                <input class="profile-input" type="email" id="inp-email"
+                       placeholder="you@firm.com" autocomplete="email" style="padding-right:92px"/>
+                <span id="email-verified-badge" style="display:none;position:absolute;right:12px;
+                      top:50%;transform:translateY(-50%);display:none;align-items:center;gap:4px;
+                      font-size:11px;font-weight:600;color:#4ade80">
+                  <span class="md-icon" style="font-size:14px">verified</span>Verified
+                </span>
+              </div>
+              <p class="helper-text">A confirmation link will be sent if you change your email.</p>
+            </div>
+
+            <!-- Phone -->
+            <div class="profile-field">
+              <label for="inp-phone">
+                Phone
+                <span class="field-tag">— optional</span>
+              </label>
+              <input class="profile-input" type="tel" id="inp-phone"
+                     placeholder="+91 98765 43210" autocomplete="tel"/>
+            </div>
+
+            <!-- Timezone -->
+            <div class="profile-field">
+              <label for="inp-timezone">Timezone</label>
+              <select class="profile-input" id="inp-timezone">
+                <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
+                <option value="America/New_York">America/New_York (EST)</option>
+                <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                <option value="Europe/London">Europe/London (GMT)</option>
+                <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-footer">
+            <button class="profile-save-btn" id="btn-save-account" onclick="saveAccount()">
+              <span class="md-icon" style="font-size:15px">save</span>Save Changes
+            </button>
+            <button onclick="loadProfile()" class="btn-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ SECURITY ════ -->
+      <div class="tab-pane" id="pane-security">
+        <div class="profile-section-card" style="margin-bottom:16px">
+          <p class="profile-section-title">Change Password</p>
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <div class="profile-field">
+              <label for="inp-pw-current">Current Password</label>
+              <div style="position:relative">
+                <input class="profile-input" type="password" id="inp-pw-current"
+                       placeholder="Enter current password" style="padding-right:44px"
+                       autocomplete="current-password"/>
+                <button type="button" class="input-icon-btn"
+                        onclick="togglePwVis('inp-pw-current','eye-cur')">
+                  <span class="md-icon" id="eye-cur">visibility_off</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="profile-field">
+              <label for="inp-pw-new">New Password</label>
+              <div style="position:relative">
+                <input class="profile-input" type="password" id="inp-pw-new"
+                       placeholder="Min. 8 characters" oninput="checkPwStrength()"
+                       style="padding-right:44px" autocomplete="new-password"/>
+                <button type="button" class="input-icon-btn"
+                        onclick="togglePwVis('inp-pw-new','eye-new')">
+                  <span class="md-icon" id="eye-new">visibility_off</span>
+                </button>
+              </div>
+              <div class="pw-strength-track">
+                <div class="pw-strength-bar" id="pw-strength-bar"></div>
+              </div>
+              <p class="helper-text" id="pw-strength-label">Use 8+ characters, a number, and a symbol.</p>
+            </div>
+
+            <div class="profile-field">
+              <label for="inp-pw-confirm">Confirm New Password</label>
+              <div style="position:relative">
+                <input class="profile-input" type="password" id="inp-pw-confirm"
+                       placeholder="Re-enter new password" style="padding-right:44px"
+                       autocomplete="new-password"/>
+                <button type="button" class="input-icon-btn"
+                        onclick="togglePwVis('inp-pw-confirm','eye-con')">
+                  <span class="md-icon" id="eye-con">visibility_off</span>
+                </button>
+              </div>
+              <p style="font-size:11.5px;color:#f43f5e;margin-top:5px;display:none"
+                 id="pw-match-err">Passwords do not match.</p>
+            </div>
+          </div>
+
+          <div class="section-footer">
+            <button class="profile-save-btn" onclick="changePassword()">
+              <span class="md-icon" style="font-size:15px">lock_reset</span>Update Password
+            </button>
+          </div>
+        </div>
+
+        <!-- Active sessions -->
+        <div class="profile-section-card">
+          <p class="profile-section-title">Active Sessions</p>
+          <div id="sessions-list">
+            <div class="skeleton" style="height:56px;border-radius:12px;margin-bottom:8px"></div>
+            <div class="skeleton" style="height:56px;border-radius:12px;opacity:0.45"></div>
+          </div>
+          <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--glass-border)">
+            <button onclick="signOutAllDevices()" class="danger-btn">
+              <span class="md-icon" style="font-size:14px">logout</span>Sign out all other devices
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ NOTIFICATIONS ════ -->
+      <div class="tab-pane" id="pane-notifications">
+        <div class="profile-section-card">
+          <p class="profile-section-title">Email Notifications</p>
+          <div id="notif-rows"></div>
+          <div class="section-footer">
+            <button class="profile-save-btn" onclick="saveNotifications()">
+              <span class="md-icon" style="font-size:15px">notifications_active</span>Save Preferences
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ORGANISATION ════ -->
+      <div class="tab-pane" id="pane-organisation">
+        <div class="profile-section-card">
+          <p class="profile-section-title">Organisation Details</p>
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <div class="profile-field">
+              <label>Organisation Name</label>
+              <input class="profile-input readonly" type="text" id="inp-org-name" readonly
+                     placeholder="Your organisation"/>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="profile-field">
+                <label>Country</label>
+                <input class="profile-input readonly" type="text" id="inp-org-country" readonly placeholder="—"/>
+              </div>
+              <div class="profile-field">
+                <label>Billing Status</label>
+                <input class="profile-input readonly" type="text" id="inp-billing" readonly/>
+              </div>
+            </div>
+
+            <div class="profile-field">
+              <label>Organisation ID</label>
+              <div style="position:relative">
+                <input class="profile-input readonly" type="text" id="inp-org-id" readonly
+                       style="font-family:var(--font-mono);font-size:12px;padding-right:44px"/>
+                <button onclick="copyOrgId()" title="Copy" class="input-icon-btn">
+                  <span class="md-icon" id="copy-icon">content_copy</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="profile-field">
+              <label>Account Created</label>
+              <input class="profile-input readonly" type="text" id="inp-created" readonly/>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-dim);margin-top:18px">
+            To change organisation details, contact your Admin or use the
+            <a href="settings.html" style="color:var(--accent-electric);text-decoration:none">Settings</a> panel.
+          </p>
+        </div>
+      </div>
+
+      <!-- ════ DANGER / ACCOUNT SAFETY ════ -->
+      <div class="tab-pane" id="pane-danger">
+        <div class="danger-zone-card">
+          <div class="danger-header">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(220,38,38,0.12);
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <span class="md-icon" style="font-size:18px;color:#f87171">shield_person</span>
+            </div>
+            <div>
+              <p style="font-size:14px;font-weight:700;color:#fca5a5">Account Safety</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:1px">Sensitive actions that affect your account and data.</p>
+            </div>
+          </div>
+
+          <div class="danger-action">
+            <div>
+              <p style="font-size:13.5px;font-weight:600;color:var(--text-white)">Download My Data</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:3px">Export all contacts, call logs, and campaign data as CSV.</p>
+            </div>
+            <button class="danger-btn" onclick="downloadData()"
+                    style="border-color:rgba(163,255,18,0.30);color:#a3ff12">
+              <span class="md-icon" style="font-size:14px">download</span>Export
+            </button>
+          </div>
+
+          <div class="danger-action">
+            <div>
+              <p style="font-size:13.5px;font-weight:600;color:var(--text-white)">Sign Out All Devices</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:3px">Revoke all active sessions. You will be signed out here too.</p>
+            </div>
+            <button class="danger-btn" onclick="signOutAllDevices()">
+              <span class="md-icon" style="font-size:14px">logout</span>Sign Out All
+            </button>
+          </div>
+
+          <div class="danger-action">
+            <div>
+              <p style="font-size:13.5px;font-weight:600;color:var(--text-white)">Deactivate Account</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:3px">Temporarily disable your account. Admins can reactivate it.</p>
+            </div>
+            <button class="danger-btn" onclick="deactivateAccount()">
+              <span class="md-icon" style="font-size:14px">pause_circle</span>Deactivate
+            </button>
+          </div>
+
+          <div class="danger-action" style="border-bottom:none;padding-bottom:0">
+            <div>
+              <p style="font-size:13.5px;font-weight:600;color:#fca5a5">Delete Account Permanently</p>
+              <p style="font-size:12px;color:var(--text-dim);margin-top:3px">Irreversible. All your data will be purged immediately.</p>
+            </div>
+            <button class="danger-btn" onclick="confirmDeleteAccount()"
+                    style="border-color:rgba(244,63,94,0.50);color:#f87171">
+              <span class="md-icon" style="font-size:14px">delete_forever</span>Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right panel -->
+  </div><!-- /profile-layout -->
+</main>
+
+<!-- ── Delete confirmation modal ── -->
+<div id="delete-modal" class="delete-modal-backdrop">
+  <div class="profile-section-card delete-modal-card"
+       style="border:1px solid rgba(244,63,94,0.30)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(220,38,38,0.15);
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <span class="md-icon" style="font-size:20px;color:#f87171">warning</span>
+      </div>
+      <p style="font-size:16px;font-weight:700;color:var(--text-white)">Delete account permanently?</p>
+    </div>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.6">
+      This will permanently delete your account and all associated data. This action
+      <strong style="color:#f87171">cannot be undone</strong>. Type <strong style="color:#f87171">DELETE</strong> to confirm.
+    </p>
+    <input class="profile-input" type="text" id="delete-confirm-input"
+           placeholder="Type DELETE to confirm" style="margin-bottom:16px"/>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeDeleteModal()" class="profile-save-btn"
+              style="background:rgba(255,255,255,0.08);color:var(--text-white);box-shadow:none">
+        Cancel
+      </button>
+      <button onclick="executeDeleteAccount()" id="btn-confirm-delete" class="danger-btn"
+              style="height:40px;padding:0 20px;font-size:13px;font-weight:700;
+                     border-color:rgba(244,63,94,0.50)">
         <span class="md-icon" style="font-size:15px">delete_forever</span>Delete Forever
       </button>
     </div>
@@ -461,20 +778,20 @@ function switchTab(id) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
   document.getElementById('pane-' + id).classList.add('active');
-  if (id === 'organisation') renderOrg();
+  if (id === 'organisation')  renderOrg();
   if (id === 'notifications') renderNotifications();
-  if (id === 'security') renderSessions();
+  if (id === 'security')      renderSessions();
 }
 
 /* ── Notification config ────────────────────────────────────── */
 const NOTIF_OPTIONS = [
-  { id: 'campaign_complete',  label: 'Campaign completed',        desc: 'When a campaign finishes executing',   default: true  },
-  { id: 'call_failed',        label: 'Call failures',             desc: 'When calls fail or are unanswered',    default: true  },
-  { id: 'budget_alert',       label: 'Budget alerts',             desc: 'When spend approaches cap',            default: true  },
-  { id: 'new_reply',          label: 'SMS replies received',      desc: 'When a contact replies to an SMS',     default: false },
-  { id: 'weekly_digest',      label: 'Weekly performance digest', desc: 'Summary email every Monday morning',  default: true  },
-  { id: 'new_team_member',    label: 'New team member joined',    desc: 'When someone accepts an invite',       default: false },
-  { id: 'system_maintenance', label: 'System maintenance notices',desc: 'Planned downtime and updates',         default: true  },
+  { id: 'campaign_complete',  label: 'Campaign completed',         desc: 'When a campaign finishes executing',  default: true  },
+  { id: 'call_failed',        label: 'Call failures',              desc: 'When calls fail or are unanswered',   default: true  },
+  { id: 'budget_alert',       label: 'Budget alerts',              desc: 'When spend approaches your cap',      default: true  },
+  { id: 'new_reply',          label: 'SMS replies received',       desc: 'When a contact replies to an SMS',    default: false },
+  { id: 'weekly_digest',      label: 'Weekly performance digest',  desc: 'Summary email every Monday morning', default: true  },
+  { id: 'new_team_member',    label: 'New team member joined',     desc: 'When someone accepts an invite',      default: false },
+  { id: 'system_maintenance', label: 'System maintenance notices', desc: 'Planned downtime and updates',        default: true  },
 ];
 let notifState = {};
 NOTIF_OPTIONS.forEach(o => { notifState[o.id] = o.default; });
@@ -482,13 +799,14 @@ NOTIF_OPTIONS.forEach(o => { notifState[o.id] = o.default; });
 function renderNotifications() {
   const container = document.getElementById('notif-rows');
   container.innerHTML = NOTIF_OPTIONS.map(o => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--glass-border)">
+    <div class="notif-row">
       <div>
         <p style="font-size:13.5px;font-weight:600;color:var(--text-white)">${o.label}</p>
         <p style="font-size:12px;color:var(--text-dim);margin-top:2px">${o.desc}</p>
       </div>
-      <div class="notif-toggle ${notifState[o.id] ? 'on' : ''}" role="switch" aria-checked="${notifState[o.id]}"
-           aria-label="${o.label}" onclick="toggleNotif('${o.id}', this)"></div>
+      <div class="notif-toggle ${notifState[o.id] ? 'on' : ''}"
+           role="switch" aria-checked="${notifState[o.id]}" aria-label="${o.label}"
+           onclick="toggleNotif('${o.id}', this)"></div>
     </div>`).join('');
 }
 
@@ -499,7 +817,6 @@ function toggleNotif(id, el) {
 }
 
 function saveNotifications() {
-  // Persist to user_metadata
   window.supabase.auth.updateUser({ data: { notification_prefs: notifState } })
     .then(() => showToast('Notification preferences saved', 'success'))
     .catch(e => showToast('Save failed: ' + e.message, 'error'));
@@ -511,20 +828,18 @@ function handleAvatarChange(event) {
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2 MB', 'warning'); return; }
   const reader = new FileReader();
-  reader.onload = e => {
-    const url = e.target.result;
-    setAvatarPreview(url);
-    uploadAvatar(file);
-  };
+  reader.onload = e => { setAvatarPreview(e.target.result); uploadAvatar(file); };
   reader.readAsDataURL(file);
 }
 
 function setAvatarPreview(url) {
   const img = document.getElementById('avatar-img');
+  img.src = url;
+  img.style.display = 'block';
   const initials = document.getElementById('avatar-initials');
-  img.src = url; img.style.display = 'block';
   if (initials) initials.style.display = 'none';
-  document.getElementById('btn-remove-avatar').style.display = 'inline-flex';
+  const removeBtn = document.getElementById('btn-remove-avatar');
+  if (removeBtn) removeBtn.style.display = 'inline-flex';
 }
 
 async function uploadAvatar(file) {
@@ -542,7 +857,8 @@ function removeAvatar() {
   const img = document.getElementById('avatar-img');
   img.src = ''; img.style.display = 'none';
   document.getElementById('avatar-initials').style.display = '';
-  document.getElementById('btn-remove-avatar').style.display = 'none';
+  const removeBtn = document.getElementById('btn-remove-avatar');
+  if (removeBtn) removeBtn.style.display = 'none';
   window.supabase.auth.updateUser({ data: { avatar_url: null } })
     .then(() => showToast('Profile photo removed', 'info'))
     .catch(e => showToast('Remove failed: ' + e.message, 'error'));
@@ -550,33 +866,33 @@ function removeAvatar() {
 
 /* ── Password strength ──────────────────────────────────────── */
 function checkPwStrength() {
-  const pw = document.getElementById('inp-pw-new').value;
+  const pw  = document.getElementById('inp-pw-new').value;
   const bar = document.getElementById('pw-strength-bar');
   const lbl = document.getElementById('pw-strength-label');
   let score = 0;
-  if (pw.length >= 8)  score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
+  if (pw.length >= 8)        score++;
+  if (/[A-Z]/.test(pw))     score++;
+  if (/[0-9]/.test(pw))     score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
   const levels = [
     { w:'25%', c:'#f43f5e', t:'Too weak' },
-    { w:'50%', c:'#f59e0b', t:'Weak' },
-    { w:'75%', c:'#fbbf24', t:'Good' },
-    { w:'100%',c:'#4ade80', t:'Strong' },
+    { w:'50%', c:'#f59e0b', t:'Weak'     },
+    { w:'75%', c:'#fbbf24', t:'Good'     },
+    { w:'100%',c:'#4ade80', t:'Strong'   },
   ];
   const lvl = levels[Math.min(score, 3)];
-  bar.style.width = pw.length ? lvl.w : '0%';
+  bar.style.width      = pw.length ? lvl.w : '0%';
   bar.style.background = lvl.c;
-  lbl.textContent = pw.length ? lvl.t : 'Use 8+ characters, a number, and a symbol.';
-  lbl.style.color = pw.length ? lvl.c : 'var(--text-dim)';
+  lbl.textContent      = pw.length ? lvl.t : 'Use 8+ characters, a number, and a symbol.';
+  lbl.style.color      = pw.length ? lvl.c : 'var(--text-dim)';
 }
 
 function togglePwVis(inputId, iconId) {
-  const input = document.getElementById(inputId);
-  const icon  = document.getElementById(iconId);
-  const isHidden = input.type === 'password';
-  input.type = isHidden ? 'text' : 'password';
-  icon.textContent = isHidden ? 'visibility' : 'visibility_off';
+  const input  = document.getElementById(inputId);
+  const icon   = document.getElementById(iconId);
+  const hidden = input.type === 'password';
+  input.type   = hidden ? 'text' : 'password';
+  icon.textContent = hidden ? 'visibility' : 'visibility_off';
 }
 
 /* ── Load profile ───────────────────────────────────────────── */
@@ -584,51 +900,64 @@ async function loadProfile() {
   const user = await getCurrentUser();
   if (!user) { window.location.href = '/login.html'; return; }
 
-  const full = user.full_name || user.display_name || '';
-  const parts = full.trim().split(' ');
-  const firstName = parts[0] || '';
-  const lastName  = parts.slice(1).join(' ') || '';
+  const full   = user.full_name || user.display_name || '';
+  const parts  = full.trim().split(' ');
+  const fname  = parts[0] || '';
+  const lname  = parts.slice(1).join(' ') || '';
 
-  // Header
   document.getElementById('hdr-name').textContent  = full || user.email;
   document.getElementById('hdr-email').textContent = user.email;
 
   // Role badge
   const badge = document.getElementById('role-badge');
   const roleLabels = { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff' };
-  badge.textContent = roleLabels[user.role] || user.role || 'Staff';
+  const roleIcons  = { DEVELOPER:'code',      ORG_ADMIN:'admin_panel_settings', ORG_STAFF:'verified_user' };
+  const roleKey    = user.role || 'ORG_STAFF';
+  badge.innerHTML  = `<span class="md-icon" style="font-size:12px">${roleIcons[roleKey] || 'verified_user'}</span>${roleLabels[roleKey] || 'Staff'}`;
 
   // Avatar
-  const avatarUrl = (await window.supabase.auth.getSession()).data.session?.user.user_metadata?.avatar_url;
-  if (avatarUrl) { setAvatarPreview(avatarUrl); }
-  else {
-    const initials = (firstName[0] || '') + (lastName[0] || firstName[1] || '');
-    document.getElementById('avatar-initials').textContent = initials.toUpperCase() || '?';
+  const session    = (await window.supabase.auth.getSession()).data.session;
+  const avatarUrl  = session?.user?.user_metadata?.avatar_url;
+  if (avatarUrl) {
+    setAvatarPreview(avatarUrl);
+    const sm = document.getElementById('avatar-sm');
+    if (sm) sm.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;inset:0" alt=""/>`;
+  } else {
+    const initials = ((fname[0] || '') + (lname[0] || fname[1] || '')).toUpperCase() || '?';
+    document.getElementById('avatar-initials').textContent = initials;
+    const sm = document.getElementById('avatar-sm');
+    if (sm) sm.textContent = initials;
   }
 
   // Form fields
-  document.getElementById('inp-fname').value   = firstName;
-  document.getElementById('inp-lname').value   = lastName;
+  document.getElementById('inp-fname').value   = fname;
+  document.getElementById('inp-lname').value   = lname;
   document.getElementById('inp-display').value = full;
   document.getElementById('inp-email').value   = user.email;
 
   // Email verified badge
-  const session = (await window.supabase.auth.getSession()).data.session;
   if (session?.user?.email_confirmed_at) {
-    document.getElementById('email-verified-badge').style.display = 'inline-flex';
+    const badge = document.getElementById('email-verified-badge');
+    badge.style.display = 'inline-flex';
   }
 
   // Phone / timezone from metadata
   const meta = session?.user?.user_metadata || {};
-  document.getElementById('inp-phone').value = meta.phone || '';
+  document.getElementById('inp-phone').value   = meta.phone || '';
   const tzSel = document.getElementById('inp-timezone');
-  if (meta.timezone) tzSel.value = meta.timezone;
-  else tzSel.value = 'Asia/Kolkata';
+  tzSel.value = meta.timezone || 'Asia/Kolkata';
+
+  // Quick stats: days active
+  const createdAt = session?.user?.created_at;
+  if (createdAt) {
+    const days = Math.floor((Date.now() - new Date(createdAt)) / 86400000);
+    document.getElementById('stat-days').textContent = days;
+  }
 }
 
 /* ── Save account ───────────────────────────────────────────── */
 async function saveAccount() {
-  const btn = document.getElementById('btn-save-account');
+  const btn     = document.getElementById('btn-save-account');
   const fname   = document.getElementById('inp-fname').value.trim();
   const lname   = document.getElementById('inp-lname').value.trim();
   const display = document.getElementById('inp-display').value.trim() || `${fname} ${lname}`.trim();
@@ -636,24 +965,20 @@ async function saveAccount() {
   const tz      = document.getElementById('inp-timezone').value;
   const email   = document.getElementById('inp-email').value.trim();
 
-  if (!fname) { showToast('First name is required', 'warning'); document.getElementById('inp-fname').focus(); return; }
+  if (!fname) {
+    showToast('First name is required', 'warning');
+    document.getElementById('inp-fname').focus();
+    return;
+  }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="md-icon" style="font-size:16px;animation:spin 0.8s linear infinite">progress_activity</span>Saving…';
+  btn.innerHTML = '<span class="md-icon" style="font-size:15px;display:inline-block;animation:spin 0.8s linear infinite">progress_activity</span>Saving…';
 
   try {
-    const updatePayload = {
-      data: {
-        full_name:    `${fname} ${lname}`.trim(),
-        display_name: display,
-        phone,
-        timezone:     tz,
-      }
-    };
-    if (email !== document.getElementById('hdr-email').textContent) {
-      updatePayload.email = email;
-    }
-    const { error } = await window.supabase.auth.updateUser(updatePayload);
+    const payload = { data: { full_name: `${fname} ${lname}`.trim(), display_name: display, phone, timezone: tz } };
+    const currentEmail = document.getElementById('hdr-email').textContent;
+    if (email && email !== currentEmail) payload.email = email;
+    const { error } = await window.supabase.auth.updateUser(payload);
     if (error) throw error;
     document.getElementById('hdr-name').textContent = display || `${fname} ${lname}`.trim();
     showToast('Profile saved successfully', 'success');
@@ -661,7 +986,7 @@ async function saveAccount() {
     showToast('Save failed: ' + e.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="md-icon" style="font-size:16px">save</span>Save Changes';
+    btn.innerHTML = '<span class="md-icon" style="font-size:15px">save</span>Save Changes';
   }
 }
 
@@ -674,28 +999,34 @@ async function changePassword() {
 
   if (!current || !next) { showToast('Fill in all password fields', 'warning'); return; }
   if (next !== confirm) {
-    errEl.classList.remove('hidden'); document.getElementById('inp-pw-confirm').focus(); return;
+    errEl.style.display = 'block';
+    document.getElementById('inp-pw-confirm').focus();
+    return;
   }
-  errEl.classList.add('hidden');
+  errEl.style.display = 'none';
   if (next.length < 8) { showToast('Password must be at least 8 characters', 'warning'); return; }
 
   const { error } = await window.supabase.auth.updateUser({ password: next });
   if (error) { showToast('Password update failed: ' + error.message, 'error'); return; }
   showToast('Password updated successfully', 'success');
-  ['inp-pw-current','inp-pw-new','inp-pw-confirm'].forEach(id => {
+  ['inp-pw-current', 'inp-pw-new', 'inp-pw-confirm'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('pw-strength-bar').style.width = '0%';
 }
 
-/* ── Sessions (stub — Supabase doesn't expose active sessions list via client) */
+/* ── Sessions ───────────────────────────────────────────────── */
 function renderSessions() {
   document.getElementById('sessions-list').innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:rgba(163,255,18,0.06);border:1px solid rgba(163,255,18,0.12)">
+    <div class="session-row">
       <span class="md-icon" style="font-size:22px;color:var(--accent-electric)">computer</span>
-      <div>
-        <p style="font-size:13px;font-weight:600;color:var(--text-white)">This device <span style="font-size:11px;font-weight:500;color:var(--accent-electric);margin-left:6px">Current</span></p>
-        <p style="font-size:12px;color:var(--text-dim)">Last active just now</p>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:13px;font-weight:600;color:var(--text-white)">
+          This device
+          <span style="font-size:11px;font-weight:600;color:var(--accent-electric);
+                background:rgba(163,255,18,0.10);padding:2px 7px;border-radius:20px;margin-left:6px">Current</span>
+        </p>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:2px">Last active just now</p>
       </div>
     </div>`;
 }
@@ -710,13 +1041,15 @@ async function signOutAllDevices() {
 async function renderOrg() {
   const session = (await window.supabase.auth.getSession()).data.session;
   if (!session) return;
-  const meta = session.user.user_metadata || {};
-  const appMeta = session.user.app_metadata || {};
-  document.getElementById('inp-org-name').value    = meta.firm_name || appMeta.firm_name || '—';
-  document.getElementById('inp-org-country').value = (meta.country_code || appMeta.country_code || '—');
+  const meta    = session.user.user_metadata  || {};
+  const appMeta = session.user.app_metadata   || {};
+
+  document.getElementById('inp-org-name').value    = meta.firm_name    || appMeta.firm_name    || '—';
+  document.getElementById('inp-org-country').value = meta.country_code || appMeta.country_code || '—';
   document.getElementById('inp-billing').value     = appMeta.billing_status || 'trial';
   document.getElementById('inp-org-id').value      = appMeta.organization_id || session.user.id;
-  document.getElementById('inp-created').value     = new Date(session.user.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('inp-created').value     = new Date(session.user.created_at)
+    .toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
 }
 
 function copyOrgId() {
@@ -745,6 +1078,7 @@ function confirmDeleteAccount() {
   const modal = document.getElementById('delete-modal');
   modal.style.display = 'flex';
   document.getElementById('delete-confirm-input').value = '';
+  setTimeout(() => document.getElementById('delete-confirm-input').focus(), 100);
 }
 
 function closeDeleteModal() {
@@ -756,7 +1090,6 @@ async function executeDeleteAccount() {
   if (val !== 'DELETE') { showToast('Type DELETE to confirm', 'warning'); return; }
   const btn = document.getElementById('btn-confirm-delete');
   btn.disabled = true; btn.textContent = 'Deleting…';
-  // Mark for deletion (actual purge handled server-side)
   await window.supabase.auth.updateUser({ data: { deletion_requested_at: new Date().toISOString() } });
   await window.supabase.auth.signOut();
   window.location.href = '/login.html';
@@ -773,5 +1106,168 @@ async function init() {
 
 init();
 </script>
+</body>
+</html>
+/ Quick stats: days active
+  const createdAt = session?.user?.created_at;
+  if (createdAt) {
+    const days = Math.floor((Date.now() - new Date(createdAt)) / 86400000);
+    document.getElementById('stat-days').textContent = days;
+  }
+}
+
+/* ── Save account ───────────────────────────────────────────── */
+async function saveAccount() {
+  const btn     = document.getElementById('btn-save-account');
+  const fname   = document.getElementById('inp-fname').value.trim();
+  const lname   = document.getElementById('inp-lname').value.trim();
+  const display = document.getElementById('inp-display').value.trim() || `${fname} ${lname}`.trim();
+  const phone   = document.getElementById('inp-phone').value.trim();
+  const tz      = document.getElementById('inp-timezone').value;
+  const email   = document.getElementById('inp-email').value.trim();
+
+  if (!fname) {
+    showToast('First name is required', 'warning');
+    document.getElementById('inp-fname').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="md-icon" style="font-size:15px;display:inline-block;animation:spin 0.8s linear infinite">progress_activity</span>Saving…';
+
+  try {
+    const payload = { data: { full_name: `${fname} ${lname}`.trim(), display_name: display, phone, timezone: tz } };
+    const currentEmail = document.getElementById('hdr-email').textContent;
+    if (email && email !== currentEmail) payload.email = email;
+    const { error } = await window.supabase.auth.updateUser(payload);
+    if (error) throw error;
+    document.getElementById('hdr-name').textContent = display || `${fname} ${lname}`.trim();
+    showToast('Profile saved successfully', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="md-icon" style="font-size:15px">save</span>Save Changes';
+  }
+}
+
+/* ── Change password ────────────────────────────────────────── */
+async function changePassword() {
+  const current = document.getElementById('inp-pw-current').value;
+  const next    = document.getElementById('inp-pw-new').value;
+  const confirm = document.getElementById('inp-pw-confirm').value;
+  const errEl   = document.getElementById('pw-match-err');
+
+  if (!current || !next) { showToast('Fill in all password fields', 'warning'); return; }
+  if (next !== confirm) {
+    errEl.style.display = 'block';
+    document.getElementById('inp-pw-confirm').focus();
+    return;
+  }
+  errEl.style.display = 'none';
+  if (next.length < 8) { showToast('Password must be at least 8 characters', 'warning'); return; }
+
+  const { error } = await window.supabase.auth.updateUser({ password: next });
+  if (error) { showToast('Password update failed: ' + error.message, 'error'); return; }
+  showToast('Password updated successfully', 'success');
+  ['inp-pw-current', 'inp-pw-new', 'inp-pw-confirm'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pw-strength-bar').style.width = '0%';
+}
+
+/* ── Sessions ───────────────────────────────────────────────── */
+function renderSessions() {
+  document.getElementById('sessions-list').innerHTML = `
+    <div class="session-row">
+      <span class="md-icon" style="font-size:22px;color:var(--accent-electric)">computer</span>
+      <div style="flex:1;min-width:0">
+        <p style="font-size:13px;font-weight:600;color:var(--text-white)">
+          This device
+          <span style="font-size:11px;font-weight:600;color:var(--accent-electric);background:rgba(163,255,18,0.10);padding:2px 7px;border-radius:20px;margin-left:6px">Current</span>
+        </p>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:2px">Last active just now</p>
+      </div>
+    </div>`;
+}
+
+async function signOutAllDevices() {
+  if (!confirm('Sign out of all devices? You will be redirected to login.')) return;
+  await window.supabase.auth.signOut({ scope: 'global' });
+  window.location.href = '/login.html';
+}
+
+/* ── Organisation tab ───────────────────────────────────────── */
+async function renderOrg() {
+  const session = (await window.supabase.auth.getSession()).data.session;
+  if (!session) return;
+  const meta    = session.user.user_metadata  || {};
+  const appMeta = session.user.app_metadata   || {};
+
+  document.getElementById('inp-org-name').value    = meta.firm_name    || appMeta.firm_name    || '—';
+  document.getElementById('inp-org-country').value = meta.country_code || appMeta.country_code || '—';
+  document.getElementById('inp-billing').value     = appMeta.billing_status || 'trial';
+  document.getElementById('inp-org-id').value      = appMeta.organization_id || session.user.id;
+  document.getElementById('inp-created').value     = new Date(session.user.created_at)
+    .toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+}
+
+function copyOrgId() {
+  const val = document.getElementById('inp-org-id').value;
+  navigator.clipboard.writeText(val).then(() => {
+    const icon = document.getElementById('copy-icon');
+    icon.textContent = 'check'; icon.style.color = 'var(--accent-electric)';
+    setTimeout(() => { icon.textContent = 'content_copy'; icon.style.color = ''; }, 1800);
+    showToast('Organisation ID copied', 'info');
+  });
+}
+
+/* ── Danger zone ────────────────────────────────────────────── */
+function downloadData() {
+  showToast("Export queued — we'll email you the download link.", 'info');
+}
+
+function deactivateAccount() {
+  if (!confirm('Deactivate your account? An admin can reactivate it later.')) return;
+  window.supabase.auth.updateUser({ data: { account_status: 'deactivated' } })
+    .then(() => { showToast('Account deactivated', 'warning'); setTimeout(() => signOut(), 1500); })
+    .catch(e => showToast('Failed: ' + e.message, 'error'));
+}
+
+function confirmDeleteAccount() {
+  const modal = document.getElementById('delete-modal');
+  modal.style.display = 'flex';
+  document.getElementById('delete-confirm-input').value = '';
+  setTimeout(() => document.getElementById('delete-confirm-input').focus(), 100);
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+}
+
+async function executeDeleteAccount() {
+  const val = document.getElementById('delete-confirm-input').value.trim();
+  if (val !== 'DELETE') { showToast('Type DELETE to confirm', 'warning'); return; }
+  const btn = document.getElementById('btn-confirm-delete');
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  await window.supabase.auth.updateUser({ data: { deletion_requested_at: new Date().toISOString() } });
+  await window.supabase.auth.signOut();
+  window.location.href = '/login.html';
+}
+
+/* ── Init ───────────────────────────────────────────────────── */
+async function init() {
+  await checkMaintenanceMode();
+  const user = await protectPage();
+  if (!user) return;
+  await loadProfile();
+  renderNotifications();
+}
+
+init();
+</script>
+</body>
+</html>
+>
 </body>
 </html>

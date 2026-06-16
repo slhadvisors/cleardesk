@@ -1,1385 +1,1559 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ClearDesk — Workspace</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClearDesk — AI-Powered Outreach for Accounting Firms</title>
+  <meta name="description" content="ClearDesk automates document chasing, sales outreach, and deadline reminders for accounting firms across India, US, and UAE — with AI voice, WhatsApp, and SMS."/>
+  <meta name="theme-color" content="#0b0f17"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <style>
+    /* ─── Design Tokens ──────────────────────────────── */
+    :root {
+      --bg:          #080c14;
+      --bg-card:     #101620;
+      --bg-card2:    #141b27;
+      --surface:     rgba(255,255,255,0.03);
+      --surface-hi:  rgba(255,255,255,0.06);
+      --electric:    #a3ff12;
+      --electric-dim:rgba(163,255,18,0.12);
+      --electric-glow:rgba(163,255,18,0.28);
+      --cyan:        #22d3ee;
+      --cyan-dim:    rgba(34,211,238,0.12);
+      --coral:       #f43f5e;
+      --violet:      #a78bfa;
+      --amber:       #fbbf24;
+      --white:       #f8fafc;
+      --dim:         #7a8fa8;
+      --dim2:        #3d4e63;
+      --border:      rgba(255,255,255,0.07);
+      --border-hi:   rgba(255,255,255,0.14);
+      --border-e:    rgba(163,255,18,0.2);
 
-<!-- ── SCRIPT LOAD ORDER (CLAUDE.md) ─────────────────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="supabase-config.js"></script>
-<script src="auth.js"></script>
-<script src="maintenance.js"></script>
-<script src="translations.js"></script>
-<script src="sandbox-guard.js"></script>
-<script>protectPage(); initSandboxGuard();</script>
+      --radius:      22px;
+      --radius-sm:   12px;
+      --radius-pill: 999px;
 
-<!-- ── REACT + BABEL ──────────────────────────────────────────── -->
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+      --spring:  cubic-bezier(0.34,1.56,0.64,1);
+      --fluid:   cubic-bezier(0.4,0,0.2,1);
+      --snappy:  0.2s cubic-bezier(0.25,1,0.5,1);
 
-<!-- ── FONTS ─────────────────────────────────────────────────── -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-<link href="theme-hub.css" rel="stylesheet"/>
+      --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
 
-<style>
-/* ── SHELL LAYOUT ───────────────────────────────────────────── */
-.dash-shell {
-  display: flex; flex-direction: row;
-  height: 100vh; width: 100vw; overflow: hidden;
-  position: relative; z-index: 1;
-}
+    /* ─── Reset ──────────────────────────────────────── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    img { max-width: 100%; display: block; }
+    :focus-visible { outline: 2px solid var(--electric); outline-offset: 3px; border-radius: 4px; }
+    :focus:not(:focus-visible) { outline: none; }
+    .md-icon {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-variation-settings: 'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;
+      line-height: 1; user-select: none; vertical-align: middle; display: inline-block;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      .reveal, .reveal-left, .reveal-right { opacity: 1 !important; transform: none !important; }
+    }
 
-/* ── SIDEBAR ────────────────────────────────────────────────── */
-.sidebar {
-  width: 86px; flex-shrink: 0;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 20px 0;
-  background: rgba(11,15,23,0.92);
-  border-right: 1px solid rgba(163,255,18,0.07);
-  backdrop-filter: blur(24px);
-  z-index: 50; gap: 4px;
-}
-.sidebar-logo {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(135deg, #a3ff12 0%, #4ade80 100%);
-  display: flex; align-items: center; justify-content: center;
-  color: #0b0f17; margin-bottom: 24px; flex-shrink: 0;
-  box-shadow: 0 0 16px rgba(163,255,18,0.35);
-  text-decoration: none;
-}
-.sidebar-item {
-  position: relative; width: 54px; height: 54px;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px; border-radius: 14px;
-  cursor: pointer; text-decoration: none; border: none; background: transparent;
-  transition: background var(--transition-snappy), color var(--transition-snappy);
-  color: var(--text-dim); font-family: var(--font-clean);
-}
-.sidebar-item:hover { background: rgba(255,255,255,0.06); color: var(--text-white); }
-.sidebar-item--active { background: rgba(163,255,18,0.10); color: var(--accent-electric); }
-.sidebar-item--active .sidebar-dot {
-  width: 4px; height: 4px; border-radius: 50%;
-  background: var(--accent-electric); position: absolute;
-  left: 6px; top: 50%; transform: translateY(-50%);
-  box-shadow: 0 0 8px rgba(163,255,18,0.8);
-}
-.sidebar-label { font-size: 9px; font-weight: 600; letter-spacing: 0.04em; }
-.sidebar-spacer { flex: 1; }
-.sidebar-avatar-wrap {
-  width: 40px; height: 40px; border-radius: 50%;
-  overflow: hidden; border: 2px solid rgba(163,255,18,0.25);
-  cursor: pointer; flex-shrink: 0;
-  transition: border-color var(--transition-snappy);
-}
-.sidebar-avatar-wrap:hover { border-color: var(--accent-electric); }
+    /* ─── Ambient background ─────────────────────────── */
+    .ambient { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(130px); opacity: 0.15;
+      animation: orbDrift 22s ease-in-out infinite;
+    }
+    .orb-1 { width:800px;height:800px;background:var(--electric);top:-300px;right:-250px;animation-delay:0s; }
+    .orb-2 { width:600px;height:600px;background:var(--cyan);bottom:-150px;left:-200px;animation-delay:-9s; }
+    .orb-3 { width:450px;height:450px;background:var(--violet);top:45%;left:35%;animation-delay:-16s;opacity:0.08; }
+    @keyframes orbDrift {
+      0%,100%{transform:translate(0,0) scale(1)}
+      33%{transform:translate(40px,-50px) scale(1.06)}
+      66%{transform:translate(-25px,25px) scale(0.95)}
+    }
+    .grid-bg {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
+                        linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%);
+    }
 
-/* ── WORKSPACE CANVAS ───────────────────────────────────────── */
-.workspace-canvas {
-  flex: 1; display: flex; flex-direction: column;
-  overflow: hidden; min-width: 0;
-}
+    /* ─── Layout ─────────────────────────────────────── */
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+    .section { position: relative; z-index: 1; }
 
-/* ── TOP CONTROL HEADER ─────────────────────────────────────── */
-.top-ctrl-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px; height: 60px; flex-shrink: 0;
-  background: rgba(11,15,23,0.80);
-  backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(163,255,18,0.07);
-  gap: 16px;
-}
-body.theme-light .top-ctrl-header {
-  background: rgba(244,246,249,0.88);
-  border-bottom-color: rgba(0,0,0,0.07);
-}
+    /* ─── Reveal Animations ──────────────────────────── */
+    .reveal       { opacity:0; transform:translateY(40px); transition:opacity 0.75s var(--fluid),transform 0.75s var(--fluid); }
+    .reveal.on    { opacity:1; transform:translateY(0); }
+    .reveal-left  { opacity:0; transform:translateX(-44px); transition:opacity 0.75s var(--fluid),transform 0.75s var(--fluid); }
+    .reveal-left.on  { opacity:1; transform:translateX(0); }
+    .reveal-right { opacity:0; transform:translateX(44px);  transition:opacity 0.75s var(--fluid),transform 0.75s var(--fluid); }
+    .reveal-right.on { opacity:1; transform:translateX(0); }
+    .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}.d5{transition-delay:.40s}
 
-/* ── CAPSULE TAB BAR ────────────────────────────────────────── */
-.capsule-bar {
-  position: relative; display: inline-flex; align-items: center;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  padding: 4px; gap: 0;
-}
-.capsule-pill {
-  position: absolute; top: 4px; height: calc(100% - 8px);
-  background: var(--accent-electric); border-radius: 999px; z-index: 0;
-  pointer-events: none;
-  transition: transform 0.28s cubic-bezier(0.68,-0.55,0.27,1.55),
-              width    0.28s cubic-bezier(0.68,-0.55,0.27,1.55);
-}
-.capsule-btn {
-  position: relative; z-index: 1;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; font-size: 12.5px; font-weight: 500;
-  color: var(--text-dim); background: transparent; border: none;
-  border-radius: 999px; cursor: pointer; white-space: nowrap;
-  transition: color 0.2s ease; font-family: var(--font-clean);
-}
-.capsule-btn--active { color: #0b0f17; font-weight: 700; }
+    /* ─── Buttons ────────────────────────────────────── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: var(--radius-pill);
+      font-size: 15px; font-weight: 700; color: #0b0f17;
+      background: var(--electric);
+      transition: transform 0.25s var(--spring), box-shadow 0.25s ease;
+      white-space: nowrap; touch-action: manipulation;
+    }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 32px var(--electric-glow); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 24px; border-radius: var(--radius-pill);
+      font-size: 15px; font-weight: 600; color: var(--white);
+      border: 1px solid var(--border-hi); backdrop-filter: blur(8px);
+      transition: all var(--snappy); white-space: nowrap; touch-action: manipulation;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.26); background: var(--surface-hi); transform: translateY(-1px); }
 
-/* ── HEADER RIGHT ───────────────────────────────────────────── */
-.header-right { display: flex; align-items: center; gap: 10px; }
-.india-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 12px; border-radius: var(--radius-pill);
-  background: rgba(22,28,38,0.75); backdrop-filter: blur(12px);
-  border: 1px solid rgba(163,255,18,0.22);
-  font-size: 11.5px; font-weight: 700;
-  color: var(--accent-electric);
-  text-shadow: 0 0 10px rgba(163,255,18,0.55);
-  box-shadow: 0 0 14px rgba(163,255,18,0.10);
-  animation: slideUp 0.5s cubic-bezier(0.68,-0.55,0.27,1.55) both;
-  white-space: nowrap;
-}
-.theme-btn {
-  width: 32px; height: 32px; border-radius: 9px;
-  border: 1px solid var(--glass-border); background: transparent;
-  color: var(--text-dim); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: color var(--transition-snappy), border-color var(--transition-snappy);
-}
-.theme-btn:hover { color: var(--accent-electric); border-color: rgba(163,255,18,0.28); }
-.profile-chip {
-  display: flex; align-items: center; gap: 8px;
-  padding: 4px 12px 4px 4px; border-radius: var(--radius-pill);
-  border: 1px solid var(--glass-border); background: var(--glass-bg);
-  cursor: pointer; transition: border-color var(--transition-snappy);
-}
-.profile-chip:hover { border-color: rgba(244,63,94,0.28); }
-.profile-chip:hover .pc-name,
-.profile-chip:hover .pc-logout { color: var(--accent-coral); }
-.pc-avatar-sm {
-  width: 26px; height: 26px; border-radius: 50%; overflow: hidden;
-  background: linear-gradient(135deg,#a3ff12,#4ade80);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 800; color: #0b0f17; flex-shrink: 0;
-}
-.pc-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
-.pc-name { font-size: 12.5px; font-weight: 500; color: var(--text-white); transition: color var(--transition-snappy); }
-.pc-role { font-size: 10px; color: var(--text-dim); }
-.pc-logout { transition: color var(--transition-snappy); }
+    /* ═══════════════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════════════ */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 0;
+      transition: background 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease, padding 0.4s ease;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      padding: 12px 0;
+      background: rgba(8,12,20,0.88);
+      backdrop-filter: blur(24px) saturate(150%);
+      border-color: var(--border);
+    }
+    .nav-inner { display:flex; align-items:center; gap:32px; }
+    .nav-logo {
+      display:flex; align-items:center; gap:10px;
+      font-size:17px; font-weight:800; letter-spacing:-0.3px; flex-shrink:0;
+    }
+    .logo-mark {
+      width:34px; height:34px; border-radius:9px;
+      background:var(--electric); display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .nav-links { display:flex; align-items:center; gap:2px; margin-left:auto; list-style:none; }
+    .nav-links a {
+      padding:8px 14px; border-radius:10px; font-size:14px; font-weight:500;
+      color:var(--dim); transition:color var(--snappy),background var(--snappy);
+    }
+    .nav-links a:hover { color:var(--white); background:var(--surface-hi); }
+    .nav-acts { display:flex; align-items:center; gap:10px; }
+    .btn-nav-login {
+      padding:8px 18px; border-radius:var(--radius-pill); font-size:14px; font-weight:600;
+      color:var(--dim); border:1px solid var(--border);
+      transition:all var(--snappy);
+    }
+    .btn-nav-login:hover { color:var(--white); border-color:var(--border-hi); background:var(--surface-hi); }
+    .btn-nav-cta {
+      padding:9px 22px; border-radius:var(--radius-pill); font-size:14px; font-weight:700;
+      background:var(--electric); color:#0b0f17; transition:all var(--snappy); white-space:nowrap;
+    }
+    .btn-nav-cta:hover { transform:translateY(-1px); box-shadow:0 6px 20px var(--electric-glow); }
+    .hamburger { display:none; flex-direction:column; gap:5px; padding:8px; margin-left:auto; }
+    .hamburger span { width:22px; height:2px; background:var(--white); border-radius:2px; transition:all 0.25s ease; display:block; }
+    @media(max-width:768px){ .nav-links,.btn-nav-login{display:none} .hamburger{display:flex} }
 
-/* ── MAIN CONTENT AREA ──────────────────────────────────────── */
-.main-area {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 28px 32px; display: flex; flex-direction: column; gap: 24px;
-}
+    .nav-drawer {
+      display:none; position:fixed; inset:0; z-index:99;
+      background:rgba(8,12,20,0.97); padding:90px 28px 32px;
+      flex-direction:column; gap:6px;
+    }
+    .nav-drawer.open { display:flex; }
+    .nav-drawer a { padding:14px 16px; font-size:18px; font-weight:600; border-radius:14px; display:block; }
+    .nav-drawer a:hover { background:var(--surface-hi); }
+    .nav-drawer .dcta { margin-top:16px; text-align:center; }
 
-/* ── GREETING BLOCK ─────────────────────────────────────────── */
-.greeting-block { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.greeting-stack {}
-.greeting-headline {
-  font-size: 26px; font-weight: 800; letter-spacing: -0.4px; color: var(--text-white); line-height: 1.2;
-}
-.greeting-tagline {
-  font-size: 13px; color: var(--text-dim); font-style: italic; margin-top: 5px; line-height: 1.5;
-}
-.greeting-meta { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.role-pill {
-  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid;
-}
-.org-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 11.5px; font-weight: 500; color: var(--text-dim);
-  background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
-  padding: 3px 10px; border-radius: 999px;
-}
-.sandbox-strip {
-  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
-  border-radius: 14px; background: rgba(251,191,36,0.07); border: 1px solid rgba(251,191,36,0.20);
-  font-size: 12.5px; color: #fbbf24;
-}
-.sandbox-strip a { font-weight: 700; color: #fbbf24; text-decoration: none; margin-left: auto; border: 1px solid rgba(251,191,36,0.3); border-radius: 999px; padding: 3px 10px; }
+    /* ═══════════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════════ */
+    .hero {
+      min-height: 100dvh;
+      display: flex; align-items: center;
+      padding: 130px 0 90px;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 55fr 45fr; gap: 64px; align-items: center;
+    }
+    @media(max-width:960px){ .hero-grid{grid-template-columns:1fr;gap:52px} }
 
-/* ── STATS ROW ──────────────────────────────────────────────── */
-.stats-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
-.stat-tile {
-  padding: 18px; border-radius: 20px; cursor: default;
-  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
-}
-.stat-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.5); }
-.stat-tile-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.stat-ico { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.stat-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-.stat-num { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--text-white); line-height: 1; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
-.stat-lbl { font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-.credit-tile {
-  position: relative; overflow: hidden; padding: 18px; border-radius: 20px;
-  background: linear-gradient(135deg,#0d1a0b,#0a1410,#0b1319);
-  border: 1px solid rgba(163,255,18,0.18);
-  box-shadow: 0 0 28px rgba(163,255,18,0.08);
-  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
-}
-.credit-tile:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(163,255,18,0.15); }
-.credit-orb-a { position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(163,255,18,0.28);filter:blur(28px);top:-26px;right:-16px; }
-.credit-orb-b { position:absolute;width:55px;height:55px;border-radius:50%;background:rgba(74,222,128,0.22);filter:blur(24px);top:38px;right:20px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: var(--radius-pill);
+      background: var(--electric-dim); border: 1px solid var(--border-e);
+      font-size: 12px; font-weight: 700; color: var(--electric); letter-spacing: 0.3px;
+      margin-bottom: 28px; width: fit-content;
+    }
+    .hero-dot { width:7px;height:7px;border-radius:50%;background:var(--electric);animation:blink 2s ease-in-out infinite; }
+    @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.75)}}
 
-/* ── ODOMETER ───────────────────────────────────────────────── */
-.odo-display { display: inline-flex; align-items: center; font-variant-numeric: tabular-nums; overflow: hidden; }
-.odo-digit   { position: relative; height: 1.1em; width: 0.65em; overflow: hidden; display: inline-block; }
-.odo-reel    {
-  position: absolute; top: 0; left: 0; width: 100%;
-  transition: transform 0.45s cubic-bezier(0.68,-0.55,0.27,1.55);
-}
-.odo-num     { display: block; height: 1.1em; line-height: 1.1; text-align: center; }
-.odo-static  { display: inline-block; }
+    h1.hero-h1 {
+      font-size: clamp(40px, 5.2vw, 72px);
+      font-weight: 900; line-height: 1.035; letter-spacing: -2.5px;
+      margin-bottom: 22px;
+    }
+    .hero-h1 .accent { color: var(--electric); }
+    .hero-h1 .stroke {
+      -webkit-text-stroke: 1.5px var(--electric);
+      color: transparent;
+    }
 
-/* ── INTELLIGENT DESK WIDGET ────────────────────────────────── */
-.idk-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--glass-border); gap: 12px; flex-wrap: wrap; }
-.idk-title-grp { display: flex; align-items: center; gap: 12px; }
-.idk-icon { width: 38px; height: 38px; border-radius: 11px; background: rgba(34,211,238,0.10); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.idk-title { font-size: 14px; font-weight: 700; color: var(--text-white); }
-.idk-sub   { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
-.idk-controls { display: flex; align-items: center; gap: 8px; }
-.idk-stream { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 80px; }
-.insight-row {
-  display: flex; align-items: flex-start; gap: 14px; padding: 12px 14px;
-  background: rgba(255,255,255,0.03); border-radius: 14px;
-  border-left: 3px solid transparent; cursor: default;
-  animation: insightIn 0.4s ease both;
-  transition: background var(--transition-snappy);
-}
-.insight-row:hover { background: rgba(255,255,255,0.06); }
-@keyframes insightIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:translateX(0); } }
-.ir-mint   { border-left-color: var(--accent-mint);  }
-.ir-coral  { border-left-color: var(--accent-coral); }
-.ir-violet { border-left-color: var(--accent-violet); }
-.ir-body { flex: 1; min-width: 0; }
-.ir-title   { font-size: 13px; font-weight: 700; color: var(--text-white); line-height: 1.3; margin-bottom: 3px; }
-.ir-summary { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-.ir-savings { font-size: 11.5px; font-weight: 600; font-family: var(--font-mono); color: var(--accent-mint); background: rgba(74,222,128,0.10); border: 1px solid rgba(74,222,128,0.18); border-radius: 999px; padding: 2px 8px; margin-top: 6px; display: inline-block; }
+    .hero-sub {
+      font-size: 18px; color: var(--dim); line-height: 1.7;
+      margin-bottom: 40px; max-width: 500px;
+    }
+    .hero-actions { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:52px; }
+    .hero-trust { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .trust-faces { display:flex; }
+    .t-face {
+      width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);
+      display:flex;align-items:center;justify-content:center;
+      font-size:11px;font-weight:800;margin-right:-8px;overflow:hidden;
+    }
+    .trust-text { font-size:13px; color:var(--dim); margin-left:16px; }
+    .trust-text strong { color:var(--white); }
 
-/* ── ACTIVITY FEED ──────────────────────────────────────────── */
-.feed-panel { overflow: hidden; }
-.feed-hd    { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--glass-border); }
-.feed-title { font-size: 13px; font-weight: 700; color: var(--text-white); }
-.live-pip   { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--accent-mint); }
-.live-pip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mint); animation: livePulse 2.2s ease-in-out infinite; }
-.feed-row   {
-  display: flex; align-items: flex-start; gap: 10px; padding: 12px 20px;
-  border-bottom: 1px solid var(--glass-border); cursor: default;
-  transition: background 0.18s ease;
-  animation: slideUp 0.36s cubic-bezier(0.25,1,0.5,1) both;
-}
-.feed-row:last-child { border-bottom: none; }
-.feed-row:hover { background: rgba(163,255,18,0.025); }
-.feed-ico  { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
-.feed-text { font-size: 12.5px; font-weight: 500; color: var(--text-white); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.feed-ago  { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
-.feed-empty { padding: 28px; text-align: center; font-size: 13px; color: var(--text-dim); }
+    /* Hero Visual */
+    .hero-visual {
+      position: relative;
+      animation: floatY 7s ease-in-out infinite;
+    }
+    @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+    @media(max-width:960px){ .hero-visual{display:none} }
 
-/* ── BOTTOM GRID ────────────────────────────────────────────── */
-.btm-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-.action-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.action-tile {
-  display: block; padding: 22px; text-decoration: none; border-radius: 20px;
-  transition: transform var(--transition-snappy), box-shadow var(--transition-snappy);
-}
-.action-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(0,0,0,0.5); }
-.action-tile:hover .at-icon-wrap { transform: scale(1.10); }
-.action-tile:hover .at-arrow { opacity: 1; transform: translateX(0); }
-.at-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; transition: transform 0.3s var(--transition-spring); }
-.at-title { font-size: 14px; font-weight: 700; color: var(--text-white); margin-bottom: 5px; }
-.at-desc  { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-.at-arrow { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; margin-top: 12px; opacity: 0; transform: translateX(-4px); transition: opacity var(--transition-snappy), transform var(--transition-snappy); }
+    .dash-card {
+      background: linear-gradient(160deg, rgba(20,27,39,0.9) 0%, rgba(14,19,30,0.95) 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      backdrop-filter: blur(24px);
+      padding: 24px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    }
+    .dc-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .dc-title { font-size:12px; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:0.8px; }
+    .dc-live {
+      display:flex;align-items:center;gap:6px;
+      padding:3px 10px; border-radius:var(--radius-pill);
+      background:rgba(163,255,18,0.12); border:1px solid rgba(163,255,18,0.22);
+      font-size:11px; font-weight:700; color:var(--electric);
+    }
+    .live-dot { width:5px;height:5px;border-radius:50%;background:var(--electric);animation:blink 1.4s ease-in-out infinite; }
+    .dc-bignum { font-size:48px;font-weight:900;letter-spacing:-2.5px;line-height:1;margin-bottom:4px; }
+    .dc-bignum sup { font-size:0.45em;color:var(--electric);vertical-align:super; }
+    .dc-sub { font-size:12px;color:var(--dim);margin-bottom:18px; }
+    .progress-wrap { height:5px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;margin-bottom:6px; }
+    .progress-fill { height:100%;border-radius:3px;background:linear-gradient(90deg,var(--electric),var(--cyan));animation:grow 2.4s ease both; }
+    @keyframes grow{from{width:0}}
+    .dc-ratio { font-size:11px;color:var(--dim);text-align:right;margin-bottom:18px; }
+    .dc-rows { display:flex;flex-direction:column;gap:9px; }
+    .dc-row {
+      display:flex;align-items:center;gap:12px;padding:10px 12px;
+      border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);
+      transition:background var(--snappy);
+    }
+    .dc-row:hover { background:rgba(255,255,255,0.055); }
+    .dc-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+    .dc-row-label { font-size:13px;font-weight:500;flex:1; }
+    .dc-row-val { font-size:12px;font-weight:700;color:var(--electric); }
 
-/* ── NOTICE ASSESSMENT (ACTIVITY LOGS VIEW) ─────────────────── */
-.notice-shell { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-.notice-sources { display: flex; flex-direction: column; gap: 8px; }
-.ns-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; display: block; }
-.ns-item {
-  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-  border-radius: 14px; cursor: default;
-  transition: background var(--transition-snappy);
-}
-.ns-item:hover { background: rgba(163,255,18,0.04); }
-.ns-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.ns-active   { background: var(--accent-mint); box-shadow: 0 0 8px rgba(74,222,128,0.6); animation: livePulse 2s ease-in-out infinite; }
-.ns-scanning { background: var(--accent-amber); box-shadow: 0 0 8px rgba(251,191,36,0.6); animation: livePulse 1.5s ease-in-out infinite; }
-.ns-idle     { background: var(--text-dim); }
-.ns-name  { font-size: 13px; font-weight: 600; color: var(--text-white); }
-.ns-url   { font-size: 11px; color: var(--text-dim); margin-top: 1px; font-family: var(--font-mono); }
-.ns-badge { margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-.notice-stream { overflow: hidden; }
-.ns-stream-item {
-  display: flex; align-items: flex-start; gap: 12px; padding: 12px 18px;
-  border-bottom: 1px solid var(--glass-border); cursor: default;
-  animation: noticeIn 0.4s cubic-bezier(0.25,1,0.5,1) both;
-  transition: background 0.18s ease;
-}
-.ns-stream-item:hover { background: rgba(163,255,18,0.025); }
-@keyframes noticeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-.ns-stream-item:last-child { border-bottom: none; }
-.ns-si-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
-.ns-si-body { flex: 1; min-width: 0; }
-.ns-si-title { font-size: 13px; font-weight: 600; color: var(--text-white); line-height: 1.4; }
-.ns-si-meta  { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-family: var(--font-mono); }
+    .float-chip {
+      position:absolute; padding:10px 14px; border-radius:14px;
+      background:rgba(14,19,30,0.95); border:1px solid var(--border-hi);
+      backdrop-filter:blur(16px); font-size:12px; white-space:nowrap;
+      box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    }
+    .fc1 { bottom:-22px; left:-28px; }
+    .fc2 { top:-18px; right:-22px; }
+    .fc-lbl { color:var(--dim); font-size:11px;margin-bottom:2px; }
+    .fc-val { font-weight:800;font-size:16px; }
 
-/* ── BOOKKEEPING WIDGET ─────────────────────────────────────── */
-.bk-shell { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
-.drop-zone {
-  position: relative; overflow: hidden; border-radius: 20px;
-  border: 2px dashed rgba(163,255,18,0.25); padding: 32px 24px;
-  text-align: center; min-height: 160px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 10px; transition: border-color var(--transition-snappy), background var(--transition-snappy);
-  background: rgba(163,255,18,0.02);
-}
-.drop-zone.drop-over { border-color: var(--accent-electric); background: rgba(163,255,18,0.06); }
-.drop-zone-label { font-size: 14px; font-weight: 600; color: var(--text-dim); }
-.drop-zone-sub   { font-size: 12px; color: var(--text-muted); }
-.laser-sweep {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(163,255,18,0.0) 40%,
-    rgba(163,255,18,0.14) 49%,
-    rgba(163,255,18,0.08) 53%,
-    transparent 100%);
-  background-size: 100% 300%;
-  animation: laserSweep 2.8s linear infinite;
-}
-@keyframes laserSweep {
-  0%   { background-position: 0 -100%; }
-  100% { background-position: 0 250%; }
-}
-.bk-list { display: flex; flex-direction: column; gap: 0; }
-.tx-row {
-  max-height: 62px; overflow: hidden;
-  transition: max-height 0.42s cubic-bezier(0.68,-0.55,0.27,1.55),
-              opacity 0.28s ease,
-              transform 0.42s cubic-bezier(0.68,-0.55,0.27,1.55),
-              margin-bottom 0.3s ease;
-  margin-bottom: 0;
-  transform-origin: top;
-}
-.tx-row--collapsing { max-height: 0 !important; opacity: 0; transform: scaleY(0.85); }
-.tx-inner {
-  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
-  border-bottom: 1px solid var(--glass-border); cursor: default;
-  transition: background 0.18s ease;
-  user-select: none;
-}
-.tx-inner:hover { background: rgba(163,255,18,0.025); }
-.tx-inner.dragging-source { opacity: 0.4; }
-.tx-checkbox {
-  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
-  border: 1.5px solid rgba(163,255,18,0.35); background: transparent;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  transition: background var(--transition-snappy), border-color var(--transition-snappy);
-}
-.tx-checkbox:hover { border-color: var(--accent-electric); }
-.tx-checkbox--checked { background: var(--accent-electric); border-color: var(--accent-electric); }
-.tx-desc { flex: 1; min-width: 0; }
-.tx-name { font-size: 13px; font-weight: 600; color: var(--text-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-date { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
-.tx-amount { font-size: 13.5px; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; }
-.tx-cat-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
-.draggable-tag { cursor: grab; }
-.draggable-tag:active { cursor: grabbing; }
+    /* ═══════════════════════════════════════════════════
+       TICKER
+    ═══════════════════════════════════════════════════ */
+    .ticker-band {
+      overflow:hidden; padding:16px 0;
+      border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,0.015); position:relative; z-index:1;
+    }
+    .ticker-track { display:flex; width:max-content; animation:scroll 32s linear infinite; }
+    .ticker-track:hover { animation-play-state:paused; }
+    @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    .ti { display:flex;align-items:center;gap:10px;padding:0 36px;font-size:13px;font-weight:600;color:var(--dim);white-space:nowrap; }
+    .ti .md-icon { color:var(--electric);font-size:15px; }
 
-/* ── AGENTS VIEW ────────────────────────────────────────────── */
-.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; }
-.agent-card { padding: 20px; cursor: default; transition: transform var(--transition-snappy); }
-.agent-card:hover { transform: translateY(-3px); }
-.agent-av { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-bottom: 12px; border: 2px solid rgba(163,255,18,0.2); }
-.agent-av img { width: 100%; height: 100%; object-fit: cover; }
-.agent-name { font-size: 14px; font-weight: 700; color: var(--text-white); margin-bottom: 4px; }
-.agent-role { font-size: 11.5px; color: var(--text-dim); }
-.agent-pills { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-.agent-pill  { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    /* ═══════════════════════════════════════════════════
+       SECTION HEADER
+    ═══════════════════════════════════════════════════ */
+    .sh { text-align:center; margin-bottom:72px; }
+    .sh-eye {
+      display:inline-flex;align-items:center;gap:10px;
+      font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;
+      color:var(--electric); margin-bottom:18px;
+    }
+    .sh-eye::before,.sh-eye::after { content:'';width:28px;height:1px;background:var(--electric);opacity:0.4; }
+    .sh-h2 { font-size:clamp(30px,4vw,48px);font-weight:900;letter-spacing:-1.8px;line-height:1.08;margin-bottom:18px; }
+    .sh-p { font-size:17px;color:var(--dim);max-width:580px;margin:0 auto;line-height:1.7; }
 
-/* ── SKELETON ───────────────────────────────────────────────── */
-.sk-line { border-radius: 6px; margin: 4px 0; }
+    /* ═══════════════════════════════════════════════════
+       FEATURES
+    ═══════════════════════════════════════════════════ */
+    .features { padding:112px 0; }
+    .feat-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+    }
+    @media(max-width:900px){.feat-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.feat-grid{grid-template-columns:1fr}}
 
-/* ── RESPONSIVE ─────────────────────────────────────────────── */
-@media (max-width: 1100px) {
-  .stats-row  { grid-template-columns: repeat(3,1fr); }
-  .btm-grid   { grid-template-columns: 1fr; }
-  .bk-shell   { grid-template-columns: 1fr; }
-  .notice-shell { grid-template-columns: 1fr; }
-}
-@media (max-width: 768px) {
-  .sidebar { width: 60px; }
-  .sidebar-label { display: none; }
-  .main-area { padding: 16px; }
-  .stats-row { grid-template-columns: repeat(2,1fr); }
-  .action-grid-2 { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-  .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .main-area { padding: 12px; }
-}
-</style>
+    .fc-card {
+      padding:28px; border-radius:var(--radius);
+      background:var(--bg-card); border:1px solid var(--border);
+      transition:transform 0.3s var(--spring),border-color 0.3s ease,box-shadow 0.3s ease;
+      cursor:default; display:flex; flex-direction:column;
+    }
+    .fc-card:hover { transform:translateY(-6px); border-color:var(--border-e); box-shadow:0 28px 56px rgba(0,0,0,0.35); }
+    .fc-card.hero-feat {
+      background:linear-gradient(145deg,rgba(163,255,18,0.07),rgba(34,211,238,0.04));
+      border-color:rgba(163,255,18,0.16); grid-column:span 2;
+    }
+    @media(max-width:560px){.fc-card.hero-feat{grid-column:span 1}}
+
+    .fi {
+      width:48px;height:48px;border-radius:13px;
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:22px; font-size:22px; flex-shrink:0;
+    }
+    .fi.e{background:rgba(163,255,18,0.1);color:var(--electric)}
+    .fi.c{background:var(--cyan-dim);color:var(--cyan)}
+    .fi.v{background:rgba(167,139,250,0.1);color:var(--violet)}
+    .fi.r{background:rgba(244,63,94,0.1);color:var(--coral)}
+    .fi.a{background:rgba(251,191,36,0.1);color:var(--amber)}
+
+    .fc-h3 { font-size:17px;font-weight:800;margin-bottom:10px; }
+    .fc-p { font-size:14px;color:var(--dim);line-height:1.68;flex:1; }
+    .fc-tags { display:flex;flex-wrap:wrap;gap:6px;margin-top:18px; }
+    .fc-tag {
+      display:inline-flex;align-items:center;gap:4px;
+      padding:4px 11px;border-radius:var(--radius-pill);
+      font-size:11.5px;font-weight:600;
+      background:rgba(255,255,255,0.05);color:var(--dim);
+      border:1px solid var(--border);
+    }
+    .fc-tag .md-icon { font-size:12px; }
+
+    /* ═══════════════════════════════════════════════════
+       HOW IT WORKS
+    ═══════════════════════════════════════════════════ */
+    .how { padding:112px 0; }
+    .how-row {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative;
+    }
+    .how-row::before {
+      content:''; position:absolute; top:27px; left:12.5%; right:12.5%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--border) 15%,var(--border) 85%,transparent);
+    }
+    @media(max-width:768px){.how-row{grid-template-columns:1fr 1fr;gap:36px;} .how-row::before{display:none}}
+    @media(max-width:480px){.how-row{grid-template-columns:1fr}}
+
+    .how-step { padding:0 20px; text-align:center; }
+    .step-bubble {
+      width:54px;height:54px;border-radius:50%;
+      background:var(--bg-card); border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 22px; font-size:18px;font-weight:900;color:var(--electric);
+      position:relative; z-index:1;
+      transition:all 0.3s var(--spring);
+    }
+    .how-step:hover .step-bubble {
+      background:rgba(163,255,18,0.12); border-color:rgba(163,255,18,0.35); transform:scale(1.1);
+    }
+    .step-h { font-size:15px;font-weight:800;margin-bottom:9px; }
+    .step-p { font-size:13px;color:var(--dim);line-height:1.65; }
+
+    /* ═══════════════════════════════════════════════════
+       STATS
+    ═══════════════════════════════════════════════════ */
+    .stats { padding:80px 0; }
+    .stats-grid {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+    }
+    @media(max-width:768px){.stats-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:480px){.stats-grid{grid-template-columns:1fr}}
+    .stat-cell {
+      padding:38px 28px; background:var(--bg-card); text-align:center;
+      border-right:1px solid var(--border); transition:background 0.3s ease;
+    }
+    .stat-cell:last-child { border-right:none; }
+    @media(max-width:768px){.stat-cell:nth-child(2n){border-right:none} .stat-cell{border-bottom:1px solid var(--border)}}
+    .stat-cell:hover { background:rgba(163,255,18,0.035); }
+    .stat-n {
+      font-size:clamp(34px,4vw,54px); font-weight:900; letter-spacing:-2.5px;
+      color:var(--electric); display:flex;align-items:baseline;justify-content:center;gap:2px;
+    }
+    .stat-suf { font-size:0.52em; }
+    .stat-lbl { font-size:13px;color:var(--dim);margin-top:6px;line-height:1.45; }
+
+    /* ═══════════════════════════════════════════════════
+       JURISDICTIONS
+    ═══════════════════════════════════════════════════ */
+    .juris { padding:80px 0; }
+    .juris-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    @media(max-width:768px){.juris-grid{grid-template-columns:1fr}}
+    .j-card {
+      padding:36px 28px; border-radius:var(--radius);
+      background:var(--bg-card); border:1px solid var(--border);
+      text-align:center; transition:all 0.3s var(--spring);
+    }
+    .j-card:hover { transform:translateY(-5px); border-color:var(--border-e); }
+    .j-flag { font-size:52px; margin-bottom:16px; line-height:1; }
+    .j-name { font-size:20px;font-weight:800;margin-bottom:8px; }
+    .j-desc { font-size:13.5px;color:var(--dim);line-height:1.65;margin-bottom:16px; }
+    .j-chips { display:flex;flex-wrap:wrap;gap:6px;justify-content:center; }
+    .j-chip {
+      padding:3px 11px; border-radius:var(--radius-pill);
+      font-size:11px; font-weight:600;
+      background:var(--electric-dim); color:var(--electric); border:1px solid var(--border-e);
+    }
+
+    /* ═══════════════════════════════════════════════════
+       SOCIAL PROOF / LOGOS
+    ═══════════════════════════════════════════════════ */
+    .social-proof { padding:72px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .sp-label { text-align:center; font-size:12.5px;font-weight:600;color:var(--dim2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px; }
+    .sp-logos { display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:40px; }
+    .sp-logo { font-size:15px;font-weight:800;color:var(--dim2);letter-spacing:-0.3px;white-space:nowrap;transition:color var(--snappy); }
+    .sp-logo:hover { color:var(--dim); }
+
+    /* ═══════════════════════════════════════════════════
+       TESTIMONIALS
+    ═══════════════════════════════════════════════════ */
+    .testimonials { padding:112px 0; }
+    .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    @media(max-width:900px){.testi-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.testi-grid{grid-template-columns:1fr}}
+    .t-card {
+      padding:28px; border-radius:var(--radius);
+      background:var(--bg-card); border:1px solid var(--border);
+      transition:transform 0.3s var(--spring),box-shadow 0.3s ease;
+      display:flex;flex-direction:column;
+    }
+    .t-card:hover { transform:translateY(-5px); box-shadow:0 24px 52px rgba(0,0,0,0.3); }
+    .t-stars { display:flex;gap:3px;margin-bottom:18px; }
+    .t-stars span { color:var(--amber);font-size:14px; }
+    .t-q { font-size:15px;line-height:1.75;color:rgba(248,250,252,0.86);margin-bottom:24px;flex:1; }
+    .t-person { display:flex;align-items:center;gap:12px; }
+    .t-av {
+      width:40px;height:40px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;font-weight:800;color:#0b0f17;flex-shrink:0;
+    }
+    .t-name { font-size:14px;font-weight:700; }
+    .t-role { font-size:12px;color:var(--dim);margin-top:1px; }
+
+    /* ═══════════════════════════════════════════════════
+       PRICING
+    ═══════════════════════════════════════════════════ */
+    .pricing { padding:112px 0; }
+    .pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start; }
+    @media(max-width:900px){.pricing-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto}}
+    .p-card {
+      padding:32px; border-radius:var(--radius);
+      background:var(--bg-card); border:1px solid var(--border);
+      transition:transform 0.3s var(--spring),box-shadow 0.3s ease;
+    }
+    .p-card:hover { transform:translateY(-5px); box-shadow:0 28px 56px rgba(0,0,0,0.3); }
+    .p-card.pop {
+      background:linear-gradient(170deg,rgba(163,255,18,0.07) 0%,var(--bg-card) 55%);
+      border-color:rgba(163,255,18,0.28); position:relative;
+    }
+    .pop-badge {
+      position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+      padding:4px 18px;border-radius:var(--radius-pill);
+      background:var(--electric);color:#0b0f17;
+      font-size:11px;font-weight:800;white-space:nowrap;
+    }
+    .p-tier { font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px; }
+    .p-name { font-size:20px;font-weight:900;margin-bottom:4px; }
+    .p-tag { font-size:13px;color:var(--dim);margin-bottom:24px; }
+    .p-price { display:flex;align-items:baseline;gap:3px;margin-bottom:4px; }
+    .p-cur { font-size:20px;font-weight:700;color:var(--dim); }
+    .p-num { font-size:44px;font-weight:900;letter-spacing:-2px; }
+    .p-per { font-size:14px;color:var(--dim);margin-bottom:24px; }
+    .p-feats { list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px; }
+    .p-feats li { display:flex;align-items:flex-start;gap:10px;font-size:14px; }
+    .p-feats li .md-icon { font-size:16px;color:var(--electric);flex-shrink:0;margin-top:1px; }
+    .p-btn {
+      width:100%;padding:13px;border-radius:var(--radius-pill);
+      font-size:15px;font-weight:700;text-align:center;display:block;
+      transition:all var(--snappy);
+    }
+    .p-btn.out { border:1px solid var(--border-e);color:var(--white); }
+    .p-btn.out:hover { background:var(--electric-dim);border-color:rgba(163,255,18,0.35); }
+    .p-btn.sol { background:var(--electric);color:#0b0f17; }
+    .p-btn.sol:hover { transform:translateY(-1px);box-shadow:0 8px 24px var(--electric-glow); }
+
+    /* ═══════════════════════════════════════════════════
+       ACCESS WORKSPACE SECTION
+    ═══════════════════════════════════════════════════ */
+    .workspace-access { padding:112px 0; }
+    .wa-inner {
+      border-radius:28px; padding:72px 56px;
+      background:linear-gradient(135deg,rgba(14,19,30,0.95) 0%,rgba(10,14,22,0.98) 100%);
+      border:1px solid var(--border-hi);
+      position:relative; overflow:hidden;
+      box-shadow:0 40px 100px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.02);
+    }
+    .wa-inner::before {
+      content:''; position:absolute; top:-120px; right:-120px;
+      width:380px;height:380px;border-radius:50%;
+      background:radial-gradient(circle,rgba(163,255,18,0.08) 0%,transparent 70%);
+    }
+    .wa-inner::after {
+      content:''; position:absolute; bottom:-80px; left:-80px;
+      width:280px;height:280px;border-radius:50%;
+      background:radial-gradient(circle,rgba(34,211,238,0.07) 0%,transparent 70%);
+    }
+    .wa-grid { display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;position:relative;z-index:1; }
+    @media(max-width:900px){.wa-grid{grid-template-columns:1fr;gap:40px} .wa-inner{padding:48px 28px}}
+
+    .wa-eyebrow {
+      display:inline-flex;align-items:center;gap:8px;
+      padding:5px 14px;border-radius:var(--radius-pill);
+      background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.2);
+      font-size:11.5px;font-weight:700;color:var(--cyan);letter-spacing:0.3px;
+      margin-bottom:20px;width:fit-content;
+    }
+    .wa-h2 { font-size:clamp(30px,3.5vw,44px);font-weight:900;letter-spacing:-1.8px;line-height:1.1;margin-bottom:16px; }
+    .wa-p { font-size:16px;color:var(--dim);line-height:1.7;margin-bottom:32px;max-width:440px; }
+    .wa-actions { display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px; }
+    .wa-user-hint {
+      display:none;align-items:center;gap:8px;
+      padding:10px 16px;border-radius:12px;
+      background:rgba(163,255,18,0.07);border:1px solid var(--border-e);
+      font-size:13px;color:var(--electric);width:fit-content;
+    }
+    .wa-user-hint.show { display:flex; }
+    .wa-user-hint .md-icon { font-size:16px; }
+
+    .wa-cards { display:flex;flex-direction:column;gap:12px; }
+    .wa-card {
+      display:flex;align-items:center;gap:16px;
+      padding:16px 20px;border-radius:16px;
+      background:rgba(255,255,255,0.03);border:1px solid var(--border);
+      transition:all var(--snappy);
+    }
+    .wa-card:hover { background:rgba(255,255,255,0.055);border-color:var(--border-hi); }
+    .wa-card-icon {
+      width:40px;height:40px;border-radius:11px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;font-size:20px;
+    }
+    .wa-card-icon.e{background:var(--electric-dim);color:var(--electric)}
+    .wa-card-icon.c{background:var(--cyan-dim);color:var(--cyan)}
+    .wa-card-icon.v{background:rgba(167,139,250,0.1);color:var(--violet)}
+    .wa-card-h { font-size:14px;font-weight:700;margin-bottom:2px; }
+    .wa-card-p { font-size:12.5px;color:var(--dim); }
+
+    /* ═══════════════════════════════════════════════════
+       DEMO FORM
+    ═══════════════════════════════════════════════════ */
+    .demo { padding:112px 0; }
+    .demo-grid { display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center; }
+    @media(max-width:900px){.demo-grid{grid-template-columns:1fr}}
+    .demo-lbl { font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--electric);margin-bottom:16px; }
+    .demo-h2 { font-size:clamp(28px,3.2vw,42px);font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px; }
+    .demo-p { font-size:16px;color:var(--dim);line-height:1.7;margin-bottom:32px; }
+    .demo-form { display:flex;flex-direction:column;gap:12px; }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    @media(max-width:480px){.form-row{grid-template-columns:1fr}}
+    .inp {
+      width:100%;padding:13px 16px;border-radius:12px;
+      background:rgba(255,255,255,0.04);border:1px solid var(--border);
+      color:var(--white);font-size:14px;font-family:inherit;
+      transition:border-color var(--snappy),background var(--snappy);
+    }
+    .inp::placeholder { color:var(--dim); }
+    .inp:focus { outline:none;border-color:rgba(163,255,18,0.4);background:rgba(163,255,18,0.03); }
+    .inp-sel { appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%237a8fa8' d='M6 8 0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center; }
+    .inp-sel option { background:#101620;color:#f8fafc; }
+    .btn-submit {
+      padding:14px 28px;border-radius:var(--radius-pill);
+      background:var(--electric);color:#0b0f17;
+      font-size:15px;font-weight:800;
+      transition:all 0.25s var(--spring);width:100%;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-submit:hover { transform:translateY(-2px);box-shadow:0 12px 32px var(--electric-glow); }
+    .btn-submit:disabled { opacity:0.6;cursor:not-allowed;transform:none; }
+    .form-note { font-size:12px;color:var(--dim2);text-align:center;margin-top:4px; }
+
+    .demo-aside {
+      padding:36px;border-radius:var(--radius);
+      background:var(--bg-card);border:1px solid rgba(163,255,18,0.15);
+    }
+    .da-list { list-style:none;display:flex;flex-direction:column;gap:18px; }
+    .da-li { display:flex;align-items:flex-start;gap:14px; }
+    .da-icon { width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px; }
+    .da-h { font-size:14px;font-weight:700;margin-bottom:2px; }
+    .da-p { font-size:13px;color:var(--dim); }
+    @media(max-width:900px){.demo-aside{display:none}}
+
+    /* ═══════════════════════════════════════════════════
+       FAQ
+    ═══════════════════════════════════════════════════ */
+    .faq { padding:112px 0; }
+    .faq-wrap { max-width:740px;margin:0 auto;display:flex;flex-direction:column;gap:8px; }
+    .faq-item {
+      border-radius:var(--radius-sm);overflow:hidden;
+      border:1px solid var(--border); background:var(--bg-card);
+      transition:border-color var(--snappy);
+    }
+    .faq-item.open { border-color:rgba(163,255,18,0.2); }
+    .faq-q {
+      width:100%;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+      gap:16px;text-align:left;font-size:15px;font-weight:600;color:var(--white);
+      cursor:pointer;transition:background var(--snappy);
+    }
+    .faq-q:hover { background:var(--surface); }
+    .faq-ic { font-size:18px;color:var(--dim);transition:transform 0.3s ease;flex-shrink:0; }
+    .faq-item.open .faq-ic { transform:rotate(45deg);color:var(--electric); }
+    .faq-a { max-height:0;overflow:hidden;transition:max-height 0.4s var(--fluid); }
+    .faq-item.open .faq-a { max-height:320px; }
+    .faq-a-in { padding:0 24px 20px;font-size:14px;color:var(--dim);line-height:1.78; }
+
+    /* ═══════════════════════════════════════════════════
+       CTA BAND
+    ═══════════════════════════════════════════════════ */
+    .cta-band { padding:112px 0; }
+    .cta-box {
+      border-radius:28px;padding:80px 56px;text-align:center;
+      background:linear-gradient(135deg,rgba(163,255,18,0.09) 0%,rgba(34,211,238,0.05) 50%,rgba(167,139,250,0.05) 100%);
+      border:1px solid var(--border-e); position:relative;overflow:hidden;
+    }
+    .cta-box::before {
+      content:'';position:absolute;top:-100px;right:-100px;
+      width:320px;height:320px;border-radius:50%;
+      background:radial-gradient(circle,rgba(163,255,18,0.1) 0%,transparent 70%);
+    }
+    .cta-box::after {
+      content:'';position:absolute;bottom:-80px;left:-80px;
+      width:260px;height:260px;border-radius:50%;
+      background:radial-gradient(circle,rgba(34,211,238,0.08) 0%,transparent 70%);
+    }
+    .cta-h2 {
+      font-size:clamp(32px,4.5vw,56px);font-weight:900;letter-spacing:-2.5px;line-height:1.05;
+      margin-bottom:18px;position:relative;z-index:1;
+    }
+    .cta-p { font-size:17px;color:var(--dim);max-width:500px;margin:0 auto 40px;position:relative;z-index:1;line-height:1.7; }
+    .cta-acts { display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;position:relative;z-index:1; }
+    .cta-note { font-size:13px;color:var(--dim2);margin-top:18px;position:relative;z-index:1; }
+    @media(max-width:768px){.cta-box{padding:56px 28px}}
+
+    /* ═══════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════ */
+    .footer { padding:64px 0 32px;border-top:1px solid var(--border);position:relative;z-index:1; }
+    .footer-grid { display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px; }
+    @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
+    .f-brand-logo { display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;margin-bottom:14px; }
+    .f-brand-p { font-size:14px;color:var(--dim);line-height:1.65;max-width:280px;margin-bottom:22px; }
+    .f-socials { display:flex;gap:8px; }
+    .f-social {
+      width:36px;height:36px;border-radius:9px;border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--dim);transition:all var(--snappy);font-size:16px;
+    }
+    .f-social:hover { color:var(--white);border-color:var(--border-hi);background:var(--surface-hi); }
+    .f-col-h { font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim2);margin-bottom:16px; }
+    .f-links { list-style:none;display:flex;flex-direction:column;gap:10px; }
+    .f-links a { font-size:14px;color:var(--dim);transition:color var(--snappy); }
+    .f-links a:hover { color:var(--white); }
+    .f-bottom {
+      display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+      padding-top:28px;border-top:1px solid var(--border);
+      font-size:13px;color:var(--dim2);
+    }
+    .f-bottom a { color:var(--dim);transition:color var(--snappy); }
+    .f-bottom a:hover { color:var(--white); }
+    @media(max-width:560px){.f-bottom{flex-direction:column;text-align:center}}
+
+    /* ─── Toast ──────────────────────────────────────── */
+    .toast {
+      position:fixed;bottom:32px;right:32px;z-index:999;
+      padding:14px 20px;border-radius:14px;
+      background:rgba(14,19,30,0.97);border:1px solid rgba(163,255,18,0.3);
+      backdrop-filter:blur(20px);display:flex;align-items:center;gap:10px;
+      font-size:14px;font-weight:500;color:var(--white);
+      transform:translateY(20px);opacity:0;
+      transition:all 0.4s var(--spring);
+      box-shadow:0 12px 36px rgba(0,0,0,0.4);
+    }
+    .toast.show { transform:translateY(0);opacity:1; }
+    .toast .md-icon { color:var(--electric); }
+  </style>
 </head>
+<body>
 
-<body class="theme-dark">
-<div class="ambient-canvas" aria-hidden="true">
+<!-- Ambient -->
+<div class="ambient" aria-hidden="true">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
-  <div class="grid-overlay"></div>
+  <div class="grid-bg"></div>
 </div>
 
-<div id="react-root"></div>
-
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect, createContext, useContext } = React;
-
-/* ═══════════════════════════════════════════════════════════════
-   CONSTANTS
-   ═══════════════════════════════════════════════════════════════ */
-const TAGLINES = [
-  "Debit coffee, credit sanity — the eternal journal entry.",
-  "Your receipts called. They're crinkled and judging you.",
-  "Balancing ledgers so you can balance life.",
-  "GST: Government's Subtle Taxation.",
-  "Assets = Liabilities + Equity + Existential dread.",
-  "Cash flow is just money moving fast enough to ignore.",
-  "Depreciation: the art of aging gracefully on paper.",
-  "Working capital? More like worrying capital.",
-  "The accrual world is a beautiful mess.",
-  "Audit season: when accountants become philosophers.",
-  "Reconciling since before it was cool.",
-  "Form 16 and chill? Only if you file on time.",
-  "Your P&L is talking. Are you listening?",
-  "Provision for doubtful debts? That's trust issues, formally.",
-  "Every rupee has a story. Some are poorly punctuated.",
-  "We speak IFRS. Fluently, reluctantly.",
-  "March 31st approaches. Fear optional. Filing is not.",
-  "Good numbers don't lie. Bad ones get creative.",
-];
-
-const NOTICE_SOURCES = [
-  { id:'gst',  name:'GST Portal',   url:'gst.gov.in',         status:'active' },
-  { id:'it',   name:'Income Tax',   url:'incometax.gov.in',   status:'active' },
-  { id:'mca',  name:'MCA21',        url:'mca.gov.in',         status:'scanning' },
-  { id:'epf',  name:'EPFO',         url:'epfindia.gov.in',    status:'idle' },
-  { id:'tds',  name:'TRACES',       url:'tdscpc.gov.in',      status:'active' },
-  { id:'gstn', name:'E-Invoice',    url:'einvoice1.gst.gov.in', status:'scanning' },
-];
-
-const NOTICE_ALERTS = [
-  { id:1, src:'GST Portal', title:'GSTIN 29AAC registered — no pending notices', type:'clear',    time:'2m ago',  detail:'GSTR-3B status: Filed' },
-  { id:2, src:'Income Tax', title:'ITR-3 AY 2024-25 verified successfully',       type:'success',  time:'7m ago',  detail:'Refund ₹18,400 initiated' },
-  { id:3, src:'TRACES',     title:'26AS Form discrepancy detected — TDS mismatch',type:'warning',  time:'14m ago', detail:'Q4 TDS: ₹2,340 gap' },
-  { id:4, src:'MCA21',      title:'Annual return ROC filing due in 12 days',       type:'warning',  time:'31m ago', detail:'Form MGT-7 pending' },
-  { id:5, src:'GST Portal', title:'GSTR-1 October 2024 auto-populated',           type:'info',     time:'1h ago',  detail:'38 transactions imported' },
-  { id:6, src:'EPFO',       title:'ECR challan for October generated',             type:'success',  time:'2h ago',  detail:'12 employees, ₹84,200' },
-];
-
-const DEMO_TXN = [
-  { id:1, name:'Amazon Web Services', date:'01 Nov 2024', amount:-12400, cat:'Expense',  color:'rgba(244,63,94,0.12)',  tc:'#f43f5e' },
-  { id:2, name:'Client Payment — Mehta & Co', date:'02 Nov 2024', amount:185000, cat:'Income', color:'rgba(74,222,128,0.12)', tc:'#4ade80' },
-  { id:3, name:'GST Challan Q3',     date:'03 Nov 2024', amount:-38500, cat:'Tax',      color:'rgba(251,191,36,0.12)', tc:'#fbbf24' },
-  { id:4, name:'Salary Nov 2024',    date:'05 Nov 2024', amount:-246000, cat:'Salary',  color:'rgba(167,139,250,0.12)',tc:'#a78bfa' },
-  { id:5, name:'Razorpay Settlement', date:'06 Nov 2024', amount:74200, cat:'Income',   color:'rgba(74,222,128,0.12)', tc:'#4ade80' },
-  { id:6, name:'Office Rent Nov',    date:'07 Nov 2024', amount:-55000, cat:'Expense',  color:'rgba(244,63,94,0.12)',  tc:'#f43f5e' },
-  { id:7, name:'TDS Deposit Oct',    date:'08 Nov 2024', amount:-8900,  cat:'Tax',      color:'rgba(251,191,36,0.12)', tc:'#fbbf24' },
-];
-
-const MOCK_AGENTS = [
-  { id:1, name:'Priya Sharma',   role:'ORG_ADMIN',  gender:'female', initials:'PS', calls:142, campaigns:3 },
-  { id:2, name:'Rohit Nair',     role:'ORG_STAFF',  gender:'male',   initials:'RN', calls:87,  campaigns:2 },
-  { id:3, name:'Ananya Desai',   role:'ORG_STAFF',  gender:'female', initials:'AD', calls:113, campaigns:4 },
-  { id:4, name:'Kiran Malhotra', role:'ORG_STAFF',  gender:'male',   initials:'KM', calls:65,  campaigns:1 },
-];
-
-const TAB_DEFS = [
-  { id:'overview',  icon:'grid_view',     label:'Overview'     },
-  { id:'activity',  icon:'monitoring',    label:'Activity Logs' },
-  { id:'agents',    icon:'support_agent', label:'Agents'       },
-  { id:'books',     icon:'account_balance',label:'Bookkeeping' },
-];
-
-const SIDEBAR_NAV = [
-  { id:'dashboard', icon:'grid_view',     label:'Dashboard', href:null },
-  { id:'campaigns', icon:'campaign',      label:'Campaigns', href:'campaigns.html' },
-  { id:'contacts',  icon:'contacts',      label:'Contacts',  href:'contacts.html' },
-  { id:'calls',     icon:'call',          label:'Calls',     href:'call-logs.html' },
-  { id:'sms',       icon:'sms',           label:'SMS',       href:'sms-logs.html' },
-  { id:'dev',       icon:'terminal',      label:'Developer', href:'developer/index.html', devOnly:true },
-];
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-function buildGreeting() {
-  const h = new Date().getHours();
-  if (h >= 5  && h < 12) return 'Good morning';
-  if (h >= 12 && h < 17) return 'Good afternoon';
-  if (h >= 17 && h < 21) return 'Good evening';
-  if (h >= 21 && h < 24) return 'Good night';
-  return 'Working late';
-}
-
-function fmtINR(n) {
-  if (!n && n !== 0) return '0';
-  return Math.abs(n).toLocaleString('en-IN');
-}
-
-function fmtAgo(iso) {
-  const d = Date.now() - new Date(iso);
-  if (d < 60000)    return 'Just now';
-  if (d < 3600000)  return `${Math.floor(d/60000)}m ago`;
-  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
-  return 'Yesterday';
-}
-
-function animateCounterById(id, target, suffix='', dur=950) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (isNaN(parseFloat(target))) { el.textContent = target+suffix; return; }
-  const num = parseFloat(target);
-  const t0 = performance.now();
-  (function tick(now) {
-    const p = Math.min((now-t0)/dur,1);
-    const e = 1-Math.pow(1-p,3);
-    el.textContent = (Number.isInteger(num)?Math.round(num*e):( num*e).toFixed(1))+suffix;
-    if (p<1) requestAnimationFrame(tick);
-    else el.textContent = target+suffix;
-  })(t0);
-}
-
-function avatarUrl(name, gender) {
-  const seed = encodeURIComponent(name || 'user');
-  return `https://api.dicebear.com/8.x/adventurer/svg?seed=${seed}&backgroundColor=transparent`;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   WORKSPACE EXPERIENCE CONTEXT
-   ═══════════════════════════════════════════════════════════════ */
-const WorkspaceExperienceContext = createContext(null);
-function useWorkspace() { return useContext(WorkspaceExperienceContext); }
-
-function WorkspaceExperienceProvider({ children }) {
-  const [user,      setUser]      = useState(null);
-  const [sandbox,   setSandbox]   = useState(false);
-  const [country,   setCountry]   = useState(null);
-  const [theme,     setTheme]     = useState(() => localStorage.getItem('cd-theme') || 'dark');
-  const greeting = useMemo(() => buildGreeting(), []);
-  const tagline  = useMemo(() => TAGLINES[Math.floor(Math.random() * TAGLINES.length)], []);
-
-  useEffect(() => {
-    document.body.className = theme === 'light' ? 'theme-light' : 'theme-dark';
-    localStorage.setItem('cd-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
-
-  useEffect(() => {
-    (async () => {
-      try { await checkMaintenanceMode?.(); } catch {}
-      const raw = await getCurrentUser?.();
-      if (!raw) { location.href = 'login.html'; return; }
-
-      let name = raw.display_name || raw.full_name || '';
-      if (!name || name === raw.email) {
-        try {
-          const { data:{ session } } = await window.supabase.auth.getSession();
-          const m = session?.user?.user_metadata || {};
-          name = m.full_name || m.display_name || m.name || '';
-        } catch {}
-      }
-      if (!name) name = (raw.email || '').split('@')[0];
-      name = name.replace(/\b\w/g, c => c.toUpperCase());
-
-      const initials = name.split(' ').map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '?';
-      const gender   = raw.gender || 'neutral';
-      const av       = raw.avatar_url || avatarUrl(name, gender);
-
-      setUser({ raw, name, initials, gender, avatarUrl: av,
-                role: raw.role, firstName: name.split(' ')[0],
-                org: raw.organization_name || 'Your Org', email: raw.email });
-
-      try {
-        const { data: org } = await window.supabase.from('organizations')
-          .select('country_code, billing_status, credit_balance').single();
-        if (org) {
-          setCountry(org.country_code);
-          if (org.billing_status === 'guest_trial') setSandbox(true);
-        }
-      } catch {}
-    })();
-  }, []);
-
-  return (
-    <WorkspaceExperienceContext.Provider value={{ user, sandbox, country, theme, toggleTheme, greeting, tagline }}>
-      {children}
-    </WorkspaceExperienceContext.Provider>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ODOMETER
-   ═══════════════════════════════════════════════════════════════ */
-function OdometerDigit({ digit }) {
-  return (
-    <span className="odo-digit">
-      <span className="odo-reel" style={{ transform:`translateY(-${digit*10}%)` }}>
-        {[0,1,2,3,4,5,6,7,8,9].map(n => (
-          <span key={n} className="odo-num">{n}</span>
-        ))}
-      </span>
-    </span>
-  );
-}
-function OdometerDisplay({ value=0, prefix='₹', className='' }) {
-  const str = Math.round(value).toLocaleString('en-IN');
-  return (
-    <span className={`odo-display ${className}`}>
-      {prefix && <span className="odo-static">{prefix}</span>}
-      {[...str].map((ch,i) =>
-        /\d/.test(ch)
-          ? <OdometerDigit key={i} digit={parseInt(ch)} />
-          : <span key={i} className="odo-static">{ch}</span>
-      )}
-    </span>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SIDEBAR NAVIGATION
-   ═══════════════════════════════════════════════════════════════ */
-function SidebarNavigation() {
-  const { user, toggleTheme, theme } = useWorkspace();
-
-  return (
-    <nav className="sidebar" aria-label="Primary navigation">
-      <a href="index.html" className="sidebar-logo" title="ClearDesk">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:20,height:20}}>
-          <defs><mask id="sm"><rect width="100" height="100" fill="white"/>
-          <circle cx="50" cy="50" r="20.5" fill="black"/>
-          <polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
-          <path fill="currentColor" mask="url(#sm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 Z"/>
-        </svg>
+<!-- ═══ NAV ═══════════════════════════════════════════ -->
+<nav class="nav" id="main-nav" role="navigation" aria-label="Main navigation">
+  <div class="wrap">
+    <div class="nav-inner">
+      <a href="landing.html" class="nav-logo" aria-label="ClearDesk home">
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:18px;height:18px">
+            <defs><mask id="nm"><rect width="100" height="100" fill="white"/>
+            <circle cx="50" cy="50" r="20.5" fill="black"/>
+            <polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
+            <path fill="#0b0f17" mask="url(#nm)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 Z"/>
+          </svg>
+        </div>
+        ClearDesk
       </a>
-
-      {SIDEBAR_NAV.filter(item => !item.devOnly || user?.role === 'DEVELOPER').map(item => {
-        const isActive = item.id === 'dashboard';
-        const El = item.href ? 'a' : 'button';
-        return (
-          <El key={item.id} href={item.href || undefined}
-              className={`sidebar-item${isActive ? ' sidebar-item--active' : ''}`}
-              title={item.label}>
-            {isActive && <span className="sidebar-dot"/>}
-            <span className="md-icon" style={{fontSize:22}}>{item.icon}</span>
-            <span className="sidebar-label">{item.label}</span>
-          </El>
-        );
-      })}
-
-      <div className="sidebar-spacer"/>
-
-      <button className="sidebar-item" onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'}>
-        <span className="md-icon" style={{fontSize:20}}>{theme==='dark'?'light_mode':'dark_mode'}</span>
-        <span className="sidebar-label">Theme</span>
+      <ul class="nav-links" role="list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#workspace-access">Workspace</a></li>
+        <li><a href="#faq">Support</a></li>
+      </ul>
+      <div class="nav-acts">
+        <a href="login.html" class="btn-nav-login">Log in</a>
+        <a href="#demo" class="btn-nav-cta">Free Demo</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+        <span></span><span></span><span></span>
       </button>
-
-      <a href="settings.html" className="sidebar-item" title="Settings">
-        <span className="md-icon" style={{fontSize:20}}>settings</span>
-        <span className="sidebar-label">Settings</span>
-      </a>
-
-      <div className="sidebar-avatar-wrap" title={user?.name || 'Profile'} id="imgUserAvatar"
-           onClick={() => { if (typeof signOut === 'function') signOut(); }}>
-        {user?.avatarUrl
-          ? <img src={user.avatarUrl} alt={user.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-          : <span style={{fontSize:13,fontWeight:800,color:'#0b0f17'}}>{user?.initials||'?'}</span>
-        }
-      </div>
-    </nav>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   CAPSULE TAB BAR
-   ═══════════════════════════════════════════════════════════════ */
-function CapsuleTabBar({ tabs, active, onChange }) {
-  const containerRef = useRef(null);
-  const tabRefs = useRef({});
-  const [pill, setPill] = useState({ x: 4, w: 100 });
-
-  useEffect(() => {
-    const el = tabRefs.current[active];
-    const con = containerRef.current;
-    if (!el || !con) return;
-    const cr = con.getBoundingClientRect();
-    const er = el.getBoundingClientRect();
-    setPill({ x: er.left - cr.left, w: er.width });
-  }, [active]);
-
-  return (
-    <div ref={containerRef} className="capsule-bar" role="tablist">
-      <div className="capsule-pill"
-           style={{ transform:`translateX(${pill.x}px)`, width:`${pill.w}px` }}
-           aria-hidden="true"/>
-      {tabs.map(t => (
-        <button key={t.id}
-                ref={el => tabRefs.current[t.id] = el}
-                className={`capsule-btn${active===t.id?' capsule-btn--active':''}`}
-                onClick={() => onChange(t.id)}
-                role="tab" aria-selected={active===t.id}>
-          <span className="md-icon" style={{fontSize:14}}>{t.icon}</span>
-          {t.label}
-        </button>
-      ))}
     </div>
-  );
-}
+  </div>
+</nav>
 
-/* ═══════════════════════════════════════════════════════════════
-   INDIA ROUTE BADGE
-   ═══════════════════════════════════════════════════════════════ */
-function IndiaRouteBadge() {
-  const { country } = useWorkspace();
-  if (country !== 'IN') return null;
-  return (
-    <div className="india-badge">
-      🇮🇳 Localized Engine: Sarvam AI Active
-    </div>
-  );
-}
+<div class="nav-drawer" id="nav-drawer" role="dialog" aria-label="Navigation menu">
+  <a href="#features">Features</a>
+  <a href="#how">How it works</a>
+  <a href="#pricing">Pricing</a>
+  <a href="#workspace-access">Workspace</a>
+  <a href="#faq">Support</a>
+  <a href="login.html">Log in</a>
+  <a href="#demo" class="btn-primary dcta">Get Free Demo</a>
+</div>
 
-/* ═══════════════════════════════════════════════════════════════
-   TOP CONTROL HEADER
-   ═══════════════════════════════════════════════════════════════ */
-function TopControlHeader({ activeTab, onTabChange }) {
-  const { user } = useWorkspace();
-  return (
-    <header className="top-ctrl-header">
-      <CapsuleTabBar tabs={TAB_DEFS} active={activeTab} onChange={onTabChange}/>
-      <div className="header-right">
-        <IndiaRouteBadge/>
-        <div className="profile-chip">
-          <div className="pc-avatar-sm">
-            {user?.avatarUrl
-              ? <img src={user.avatarUrl} alt={user?.name}/>
-              : <span id="lblHeaderUserName">{user?.initials||'—'}</span>
-            }
-          </div>
-          <div>
-            <div className="pc-name" id="lblHeaderUserName">{user?.firstName||'—'}</div>
-            <div className="pc-role" id="lblHeaderUserRole">{user?.role||'—'}</div>
-          </div>
-          <button style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--text-dim)',display:'flex',alignItems:'center'}}
-                  className="pc-logout"
-                  onClick={() => { if(typeof signOut==='function') signOut(); }}>
-            <span className="md-icon" style={{fontSize:14}}>logout</span>
-          </button>
+<!-- ═══ HERO ═══════════════════════════════════════════ -->
+<section class="hero section" aria-labelledby="hero-h1">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="hero-eyebrow reveal">
+          <span class="hero-dot" aria-hidden="true"></span>
+          Live across India · US · UAE
         </div>
-      </div>
-    </header>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   GREETING BLOCK
-   ═══════════════════════════════════════════════════════════════ */
-const ROLE_STYLES = {
-  DEVELOPER: { bg:'rgba(163,255,18,0.12)', color:'#a3ff12', border:'rgba(163,255,18,0.25)' },
-  ORG_ADMIN: { bg:'rgba(163,255,18,0.08)', color:'#a3ff12', border:'rgba(163,255,18,0.18)' },
-  ORG_STAFF: { bg:'rgba(74,222,128,0.10)', color:'#4ade80', border:'rgba(74,222,128,0.22)' },
-};
-const ROLE_LBL = { DEVELOPER:'Developer', ORG_ADMIN:'Admin', ORG_STAFF:'Staff' };
-
-function GreetingBlock() {
-  const { user, greeting, tagline, sandbox } = useWorkspace();
-  const rs = ROLE_STYLES[user?.role] || ROLE_STYLES.ORG_STAFF;
-  return (
-    <div className="greeting-block enter enter-1">
-      <div className="greeting-stack">
-        <h1 className="greeting-headline" id="txtDynamicUserGreeting">
-          {greeting}{user?.name ? `, ${user.firstName}` : ''} ✨
+        <h1 class="hero-h1 reveal d1" id="hero-h1">
+          Your Desk,<br/><span class="accent">Cleared.</span><br/><span class="stroke">Automatically.</span>
         </h1>
-        <p className="greeting-tagline">{tagline}</p>
-        <div className="greeting-meta">
-          <span className="role-pill"
-                style={{background:rs.bg, color:rs.color, borderColor:rs.border}}>
-            {ROLE_LBL[user?.role] || user?.role || '—'}
-          </span>
-          <span className="org-pill">
-            <span className="md-icon" style={{fontSize:12}}>business</span>
-            {user?.org || 'Your Org'}
-          </span>
+        <p class="hero-sub reveal d2">
+          ClearDesk automates document chasing, sales outreach, and deadline reminders for accounting and professional service firms — with AI voice, WhatsApp, and SMS.
+        </p>
+        <div class="hero-actions reveal d3">
+          <a href="#demo" class="btn-primary">
+            <span class="md-icon" aria-hidden="true">rocket_launch</span>
+            Get Free Demo
+          </a>
+          <a href="#how" class="btn-ghost">
+            <span class="md-icon" aria-hidden="true">play_circle</span>
+            How it works
+          </a>
         </div>
-        {sandbox && (
-          <div className="sandbox-strip" style={{marginTop:12}}>
-            <span className="md-icon" style={{fontSize:18,color:'#fbbf24'}}>warning</span>
-            <span><strong>Sandbox</strong> — 3 docs · 2 min voice · purge in 2h</span>
-            <a href="settings.html">Upgrade →</a>
+        <div class="hero-trust reveal d4">
+          <div class="trust-faces" aria-hidden="true">
+            <div class="t-face" style="background:linear-gradient(135deg,#a3ff12,#22d3ee)">P</div>
+            <div class="t-face" style="background:linear-gradient(135deg,#a78bfa,#f43f5e)">S</div>
+            <div class="t-face" style="background:linear-gradient(135deg,#fbbf24,#f43f5e)">R</div>
+            <div class="t-face" style="background:linear-gradient(135deg,#22d3ee,#a78bfa)">A</div>
           </div>
-        )}
+          <span class="trust-text"><strong>500+ firms</strong> trust ClearDesk</span>
+        </div>
       </div>
-      <a href="campaigns.html" className="new-campaign-btn">
-        <span className="md-icon" style={{fontSize:17}}>add</span>
-        New Campaign
-      </a>
-    </div>
-  );
-}
 
-/* ═══════════════════════════════════════════════════════════════
-   STATS ROW
-   ═══════════════════════════════════════════════════════════════ */
-function StatsRow() {
-  useEffect(() => {
-    (async () => {
-      const ids = ['lblActiveCampaignsCount','lblTotalCallsCount','lblTotalContactsCount'];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('skeleton');
-      });
-      try {
-        const db = window.supabase;
-        const [{ count: camps }, { count: calls }, { count: contacts }] = await Promise.all([
-          db.from('outbound_campaigns').select('*',{count:'exact',head:true}).in('status',['processing','scheduled']),
-          db.from('call_logs').select('*',{count:'exact',head:true}),
-          db.from('contacts').select('*',{count:'exact',head:true}),
-        ]);
-        ids.forEach(id => {
-          const el = document.getElementById(id);
-          if (el) { el.classList.remove('skeleton'); el.style.color=''; }
-        });
-        animateCounterById('lblActiveCampaignsCount', camps??0);
-        animateCounterById('lblTotalCallsCount', calls??0);
-        animateCounterById('lblTotalContactsCount', contacts??0);
-      } catch(e) {
-        ids.forEach(id => {
-          const el = document.getElementById(id);
-          if (el) { el.classList.remove('skeleton'); el.textContent='—'; }
-        });
-      }
-    })();
-  }, []);
-
-  return (
-    <div className="stats-row">
-      <div className="stat-tile glass-panel enter enter-2">
-        <div className="stat-tile-hd">
-          <div className="stat-ico" style={{background:'rgba(163,255,18,0.10)'}}>
-            <span className="md-icon" style={{color:'#a3ff12',fontSize:18}}>campaign</span>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="dash-card">
+          <div class="dc-topbar">
+            <span class="dc-title">Live Campaign</span>
+            <span class="dc-live"><span class="live-dot"></span> Active</span>
           </div>
-          <span className="stat-badge" style={{background:'rgba(163,255,18,0.10)',color:'#a3ff12'}}>Live</span>
-        </div>
-        <div className="stat-num" id="lblActiveCampaignsCount">—</div>
-        <div className="stat-lbl">Campaigns</div>
-      </div>
-      <div className="stat-tile glass-panel enter enter-2" style={{animationDelay:'0.07s'}}>
-        <div className="stat-tile-hd">
-          <div className="stat-ico" style={{background:'rgba(34,211,238,0.10)'}}>
-            <span className="md-icon" style={{color:'#22d3ee',fontSize:18}}>call</span>
+          <div class="dc-bignum">84<sup>%</sup></div>
+          <div class="dc-sub">Documents collected this week</div>
+          <div class="progress-wrap"><div class="progress-fill" style="width:84%"></div></div>
+          <div class="dc-ratio">42 of 50 clients responded</div>
+          <div class="dc-rows">
+            <div class="dc-row">
+              <div class="dc-dot" style="background:var(--electric)"></div>
+              <span class="dc-row-label">AI Voice Calls</span>
+              <span class="dc-row-val">31 sent</span>
+            </div>
+            <div class="dc-row">
+              <div class="dc-dot" style="background:var(--cyan)"></div>
+              <span class="dc-row-label">WhatsApp Messages</span>
+              <span class="dc-row-val">19 sent</span>
+            </div>
+            <div class="dc-row">
+              <div class="dc-dot" style="background:var(--violet)"></div>
+              <span class="dc-row-label">SMS Fallback</span>
+              <span class="dc-row-val">8 sent</span>
+            </div>
           </div>
-          <span className="stat-badge" style={{background:'rgba(34,211,238,0.10)',color:'#22d3ee'}}>Total</span>
         </div>
-        <div className="stat-num" id="lblTotalCallsCount">—</div>
-        <div className="stat-lbl">Calls Made</div>
-      </div>
-      <div className="stat-tile glass-panel enter enter-3" style={{animationDelay:'0.10s'}}>
-        <div className="stat-tile-hd">
-          <div className="stat-ico" style={{background:'rgba(74,222,128,0.10)'}}>
-            <span className="md-icon" style={{color:'#4ade80',fontSize:18}}>contacts</span>
-          </div>
-          <span className="stat-badge" style={{background:'rgba(74,222,128,0.10)',color:'#4ade80'}}>DB</span>
+        <div class="float-chip fc1">
+          <div class="fc-lbl">Avg. response time</div>
+          <div class="fc-val" style="color:var(--cyan)">4.2 hrs</div>
         </div>
-        <div className="stat-num" id="lblTotalContactsCount">—</div>
-        <div className="stat-lbl">Contacts</div>
-      </div>
-      <div className="stat-tile glass-panel enter enter-4" style={{animationDelay:'0.13s'}}>
-        <div className="stat-tile-hd">
-          <div className="stat-ico" style={{background:'rgba(167,139,250,0.10)'}}>
-            <span className="md-icon" style={{color:'#a78bfa',fontSize:18}}>verified</span>
-          </div>
-          <span className="stat-badge" style={{background:'rgba(167,139,250,0.10)',color:'#a78bfa'}}>24h</span>
+        <div class="float-chip fc2">
+          <div class="fc-lbl">Collected today</div>
+          <div class="fc-val" style="color:var(--electric)">+34 docs</div>
         </div>
-        <div className="stat-num" id="stat-compliance">—</div>
-        <div className="stat-lbl">Compliance</div>
-      </div>
-      <div className="credit-tile enter enter-5" style={{animationDelay:'0.16s'}}>
-        <div className="credit-orb-a"/><div className="credit-orb-b"/>
-        <div className="stat-tile-hd" style={{position:'relative',zIndex:1}}>
-          <div className="stat-ico" style={{background:'rgba(163,255,18,0.14)'}}>
-            <span className="md-icon" style={{color:'#fff',fontSize:18}}>wallet</span>
-          </div>
-          <span className="stat-badge" id="credit-badge" style={{background:'rgba(163,255,18,0.12)',color:'#a3ff12'}}>Balance</span>
-        </div>
-        <div className="stat-num credit-value" id="credit-balance" style={{position:'relative',zIndex:1}}>—</div>
-        <div className="stat-lbl credit-label" style={{position:'relative',zIndex:1}}>Credits</div>
       </div>
     </div>
-  );
-}
+  </div>
+</section>
 
-/* ═══════════════════════════════════════════════════════════════
-   INTELLIGENT DESK WIDGET
-   ═══════════════════════════════════════════════════════════════ */
-function IntelligentDeskWidget() {
-  const [savings, setSavings] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+<!-- Ticker -->
+<div class="ticker-band section" aria-hidden="true">
+  <div class="ticker-track">
+    <div class="ti"><span class="md-icon">check_circle</span> AI Voice Campaigns</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Document Chaser</div>
+    <div class="ti"><span class="md-icon">check_circle</span> WhatsApp Outreach</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Deadline Reminders</div>
+    <div class="ti"><span class="md-icon">check_circle</span> GSTR-1 Automation</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Form 1099-NEC</div>
+    <div class="ti"><span class="md-icon">check_circle</span> SMS Fallback</div>
+    <div class="ti"><span class="md-icon">check_circle</span> CRM Integration</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Multi-jurisdiction</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Real-time Analytics</div>
+    <div class="ti"><span class="md-icon">check_circle</span> AI Voice Campaigns</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Document Chaser</div>
+    <div class="ti"><span class="md-icon">check_circle</span> WhatsApp Outreach</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Deadline Reminders</div>
+    <div class="ti"><span class="md-icon">check_circle</span> GSTR-1 Automation</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Form 1099-NEC</div>
+    <div class="ti"><span class="md-icon">check_circle</span> SMS Fallback</div>
+    <div class="ti"><span class="md-icon">check_circle</span> CRM Integration</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Multi-jurisdiction</div>
+    <div class="ti"><span class="md-icon">check_circle</span> Real-time Analytics</div>
+  </div>
+</div>
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.IntelligentDesk?.load?.();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
+<!-- ═══ FEATURES ══════════════════════════════════════ -->
+<section class="features section" id="features" aria-labelledby="feat-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">What ClearDesk does</div>
+      <h2 class="sh-h2 reveal d1" id="feat-h2">Every tool your desk needs.<br/>Zero manual follow-up.</h2>
+      <p class="sh-p reveal d2">From AI voice calls to WhatsApp automations — ClearDesk handles the repetitive outreach so your team focuses on billable work.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="fc-card hero-feat reveal reveal-left">
+        <div class="fi e"><span class="md-icon">record_voice_over</span></div>
+        <h3 class="fc-h3">AI Voice Campaigns</h3>
+        <p class="fc-p">Natural-sounding AI voice calls chase documents, follow up on leads, and send deadline reminders — personalised per client, 24/7, at scale. Set the script, define the trigger, let the AI handle the rest.</p>
+        <div class="fc-tags">
+          <span class="fc-tag"><span class="md-icon">bolt</span> Instant setup</span>
+          <span class="fc-tag"><span class="md-icon">language</span> IN · US · UAE voices</span>
+          <span class="fc-tag"><span class="md-icon">tune</span> Custom scripts</span>
+        </div>
+      </div>
+      <div class="fc-card reveal reveal-right">
+        <div class="fi c"><span class="md-icon">folder_open</span></div>
+        <h3 class="fc-h3">Document Chaser</h3>
+        <p class="fc-p">Upload a contact list, pick a tone — Professional, Urgent, or Friendly — and ClearDesk automatically chases pending documents via voice, WhatsApp, and SMS until they arrive.</p>
+        <span class="fc-tag"><span class="md-icon">autorenew</span> Multi-channel retry</span>
+      </div>
+      <div class="fc-card reveal d1">
+        <div class="fi v"><span class="md-icon">calendar_clock</span></div>
+        <h3 class="fc-h3">Deadline Reminders</h3>
+        <p class="fc-p">Auto-fires 5 days before regional tax deadlines — GSTR-1, Form 1099-NEC, VAT returns — for every client with pending filing status.</p>
+        <span class="fc-tag"><span class="md-icon">schedule</span> Region-aware cron</span>
+      </div>
+      <div class="fc-card reveal d2">
+        <div class="fi r"><span class="md-icon">trending_up</span></div>
+        <h3 class="fc-h3">Sales Outreach</h3>
+        <p class="fc-p">CRM webhook triggers auto-fire AI calls when leads go warm. Convert enquiries to clients without a single manual dial.</p>
+        <span class="fc-tag"><span class="md-icon">link</span> Zoho · HubSpot</span>
+      </div>
+      <div class="fc-card reveal d3">
+        <div class="fi a"><span class="md-icon">bar_chart</span></div>
+        <h3 class="fc-h3">Real-time Analytics</h3>
+        <p class="fc-p">Track call completion rates, document collection velocity, and campaign ROI in a live dashboard with jurisdiction-level drill-down.</p>
+        <span class="fc-tag"><span class="md-icon">insights</span> Live metrics</span>
+      </div>
+    </div>
+  </div>
+</section>
 
-  const handleRefresh = useCallback(async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    try {
-      const { data:{ session } } = await window.supabase.auth.getSession();
-      if (!session) return;
-      const base = (window.supabase.supabaseUrl||'').replace(/\/$/,'');
-      const res = await fetch(`${base}/functions/v1/generate-insights`, {
-        method:'POST',
-        headers:{ 'Authorization':`Bearer ${session.access_token}`, 'Content-Type':'application/json' }
-      });
-      const d = await res.json();
-      if (res.ok && d.insights_generated > 0) {
-        window.IntelligentDesk?.load?.();
-        setSavings(v => v + Math.floor(Math.random()*5000+1000));
-      }
-    } catch(e) { console.warn('[Insights]',e.message); }
-    finally { setRefreshing(false); }
-  }, [refreshing]);
+<!-- ═══ HOW IT WORKS ══════════════════════════════════ -->
+<section class="how section" id="how" aria-labelledby="how-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">The process</div>
+      <h2 class="sh-h2 reveal d1" id="how-h2">Live in minutes. Not months.</h2>
+      <p class="sh-p reveal d2">Four steps from signup to your first automated campaign running at scale.</p>
+    </div>
+    <div class="how-row">
+      <div class="how-step reveal d1">
+        <div class="step-bubble">01</div>
+        <div class="step-h">Connect contacts</div>
+        <p class="step-p">Upload a spreadsheet or connect your CRM. ClearDesk imports client data and maps it to the right jurisdiction automatically.</p>
+      </div>
+      <div class="how-step reveal d2">
+        <div class="step-bubble">02</div>
+        <div class="step-h">AI writes the script</div>
+        <p class="step-p">Choose a campaign type and tone. AI generates personalised scripts per client — review, tweak, or approve with one click.</p>
+      </div>
+      <div class="how-step reveal d3">
+        <div class="step-bubble">03</div>
+        <div class="step-h">Launch the campaign</div>
+        <p class="step-p">Hit Execute. AI voice calls, WhatsApp, and SMS go out automatically — with smart retry if a client doesn't respond.</p>
+      </div>
+      <div class="how-step reveal d4">
+        <div class="step-bubble">04</div>
+        <div class="step-h">Track everything live</div>
+        <p class="step-p">Watch responses on your real-time dashboard. Documents uploaded, calls answered, filings confirmed — all in one view.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  return (
-    <section id="intelligentDeskWidget" className="glass-panel i-desk-widget enter" style={{animationDelay:'0.18s'}}>
-      <div className="idk-header">
-        <div className="idk-title-grp">
-          <div className="idk-icon">🧠</div>
+<!-- ═══ STATS ══════════════════════════════════════════ -->
+<section class="stats section" aria-label="Key metrics">
+  <div class="wrap">
+    <div class="stats-grid reveal">
+      <div class="stat-cell">
+        <div class="stat-n" data-count="500" data-suf="+"><span class="count-num">0</span><span class="stat-suf">+</span></div>
+        <div class="stat-lbl">Accounting firms<br/>onboarded</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-n" data-count="2.4" data-suf="M"><span class="count-num">0</span><span class="stat-suf">M</span></div>
+        <div class="stat-lbl">Documents<br/>collected</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-n" data-count="84" data-suf="%"><span class="count-num">0</span><span class="stat-suf">%</span></div>
+        <div class="stat-lbl">Average campaign<br/>response rate</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-n" data-count="3" data-suf="x"><span class="count-num">0</span><span class="stat-suf">x</span></div>
+        <div class="stat-lbl">Faster client<br/>document turnaround</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ JURISDICTIONS ════════════════════════════════ -->
+<section class="juris section" aria-labelledby="juris-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">Built for your region</div>
+      <h2 class="sh-h2 reveal d1" id="juris-h2">One platform. Three jurisdictions.</h2>
+      <p class="sh-p reveal d2">ClearDesk speaks your language, understands your deadlines, and routes through your local carriers.</p>
+    </div>
+    <div class="juris-grid">
+      <div class="j-card reveal d1">
+        <div class="j-flag">🇮🇳</div>
+        <div class="j-name">India</div>
+        <p class="j-desc">GSTR-1, TDS, Form 26AS deadline automation. Hindi, Tamil, and English voice. Exotel & Twilio routing.</p>
+        <div class="j-chips">
+          <span class="j-chip">GSTR-1</span>
+          <span class="j-chip">TDS Returns</span>
+          <span class="j-chip">26AS</span>
+        </div>
+      </div>
+      <div class="j-card reveal d2">
+        <div class="j-flag">🇺🇸</div>
+        <div class="j-name">United States</div>
+        <p class="j-desc">Form 1099-NEC, W-9, and quarterly estimate reminders. US carrier routing with 10DLC compliance baked in.</p>
+        <div class="j-chips">
+          <span class="j-chip">1099-NEC</span>
+          <span class="j-chip">W-9 Chase</span>
+          <span class="j-chip">Quarterly Est.</span>
+        </div>
+      </div>
+      <div class="j-card reveal d3">
+        <div class="j-flag">🇦🇪</div>
+        <div class="j-name">UAE</div>
+        <p class="j-desc">VAT return and ESR compliance reminders. Arabic and English voice synthesis. Du & Etisalat routing.</p>
+        <div class="j-chips">
+          <span class="j-chip">VAT Returns</span>
+          <span class="j-chip">ESR Filing</span>
+          <span class="j-chip">Arabic Voice</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SOCIAL PROOF ══════════════════════════════════ -->
+<div class="social-proof section">
+  <div class="wrap">
+    <p class="sp-label">Trusted by firms using</p>
+    <div class="sp-logos">
+      <span class="sp-logo">Zoho CRM</span>
+      <span class="sp-logo">HubSpot</span>
+      <span class="sp-logo">Tally Prime</span>
+      <span class="sp-logo">QuickBooks</span>
+      <span class="sp-logo">Xero</span>
+      <span class="sp-logo">Salesforce</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TESTIMONIALS ══════════════════════════════════ -->
+<section class="testimonials section" aria-labelledby="testi-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">Customer stories</div>
+      <h2 class="sh-h2 reveal d1" id="testi-h2">Firms love ClearDesk.</h2>
+      <p class="sh-p reveal d2">Don't take our word for it — here's what our clients say.</p>
+    </div>
+    <div class="testi-grid">
+      <div class="t-card reveal d1">
+        <div class="t-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="t-q">"We were spending 12+ hours a week chasing clients for documents. ClearDesk cut that to under an hour. The AI voice calls actually get callbacks."</p>
+        <div class="t-person">
+          <div class="t-av" style="background:linear-gradient(135deg,#a3ff12,#22d3ee)">P</div>
+          <div><div class="t-name">Priya Sharma</div><div class="t-role">CA, Sharma & Associates — Mumbai</div></div>
+        </div>
+      </div>
+      <div class="t-card reveal d2">
+        <div class="t-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="t-q">"The 1099-NEC deadline reminders are a lifesaver. ClearDesk fires them automatically and our clients actually submit on time now. Setup took 20 minutes."</p>
+        <div class="t-person">
+          <div class="t-av" style="background:linear-gradient(135deg,#22d3ee,#a78bfa)">M</div>
+          <div><div class="t-name">Marcus Williams</div><div class="t-role">CPA, Williams Tax Group — Austin, TX</div></div>
+        </div>
+      </div>
+      <div class="t-card reveal d3">
+        <div class="t-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
+        <p class="t-q">"VAT filing reminders in Arabic — that alone was worth it. Our UAE clients respond much better to voice calls in their language. Game-changer for our practice."</p>
+        <div class="t-person">
+          <div class="t-av" style="background:linear-gradient(135deg,#f43f5e,#a78bfa)">F</div>
+          <div><div class="t-name">Fatima Al-Rashidi</div><div class="t-role">Director, AlRashidi Advisory — Dubai</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PRICING ════════════════════════════════════════ -->
+<section class="pricing section" id="pricing" aria-labelledby="pricing-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">Transparent pricing</div>
+      <h2 class="sh-h2 reveal d1" id="pricing-h2">Simple plans. No surprises.</h2>
+      <p class="sh-p reveal d2">Start free, pay as you grow. Credits only burn when campaigns run — nothing when they don't.</p>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="p-card">
+        <div class="p-tier">Starter</div>
+        <div class="p-name">Free Trial</div>
+        <div class="p-tag">Try before you commit</div>
+        <div class="p-price"><span class="p-cur">$</span><span class="p-num">0</span></div>
+        <div class="p-per">14 days free</div>
+        <ul class="p-feats">
+          <li><span class="md-icon">check</span>Up to 50 contacts</li>
+          <li><span class="md-icon">check</span>3 campaign runs</li>
+          <li><span class="md-icon">check</span>2 minutes AI voice testing</li>
+          <li><span class="md-icon">check</span>WhatsApp + SMS</li>
+          <li><span class="md-icon">check</span>Basic analytics</li>
+        </ul>
+        <a href="login.html" class="p-btn out">Start free trial</a>
+      </div>
+      <div class="p-card pop">
+        <div class="pop-badge">Most popular</div>
+        <div class="p-tier">Growth</div>
+        <div class="p-name">Professional</div>
+        <div class="p-tag">For growing practices</div>
+        <div class="p-price"><span class="p-cur">$</span><span class="p-num">199</span></div>
+        <div class="p-per">/ month + usage credits</div>
+        <ul class="p-feats">
+          <li><span class="md-icon">check</span>Unlimited contacts</li>
+          <li><span class="md-icon">check</span>Unlimited campaigns</li>
+          <li><span class="md-icon">check</span>AI voice, WhatsApp, SMS</li>
+          <li><span class="md-icon">check</span>CRM integration (Zoho/HubSpot)</li>
+          <li><span class="md-icon">check</span>Automated deadline reminders</li>
+          <li><span class="md-icon">check</span>Full analytics dashboard</li>
+          <li><span class="md-icon">check</span>Priority support</li>
+        </ul>
+        <a href="#demo" class="p-btn sol">Get started</a>
+      </div>
+      <div class="p-card">
+        <div class="p-tier">Enterprise</div>
+        <div class="p-name">Firm Scale</div>
+        <div class="p-tag">For large multi-partner firms</div>
+        <div class="p-price"><span class="p-cur"></span><span class="p-num" style="font-size:32px">Custom</span></div>
+        <div class="p-per">tailored to volume</div>
+        <ul class="p-feats">
+          <li><span class="md-icon">check</span>Everything in Professional</li>
+          <li><span class="md-icon">check</span>Multi-jurisdiction setup</li>
+          <li><span class="md-icon">check</span>Dedicated account manager</li>
+          <li><span class="md-icon">check</span>Custom voice personas</li>
+          <li><span class="md-icon">check</span>SLA & compliance reporting</li>
+          <li><span class="md-icon">check</span>SSO + SCIM provisioning</li>
+        </ul>
+        <a href="#demo" class="p-btn out">Talk to sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ACCESS WORKSPACE ══════════════════════════════ -->
+<section class="workspace-access section" id="workspace-access" aria-labelledby="wa-h2">
+  <div class="wrap">
+    <div class="wa-inner">
+      <div class="wa-grid">
+        <div class="wa-left">
+          <div class="wa-eyebrow reveal">
+            <span class="md-icon" style="font-size:14px">verified_user</span>
+            Existing customers
+          </div>
+          <h2 class="wa-h2 reveal d1" id="wa-h2">Already a member?<br/>Access your workspace.</h2>
+          <p class="wa-p reveal d2">Your campaigns, contacts, and analytics are waiting. Jump straight into your ClearDesk dashboard — no re-login needed if you're already authenticated.</p>
+
+          <div class="wa-user-hint reveal d2" id="wa-hint">
+            <span class="md-icon">check_circle</span>
+            <span>You're signed in — <strong id="wa-hint-name">ready to go</strong></span>
+          </div>
+
+          <div class="wa-actions reveal d3" id="wa-actions">
+            <a href="app.html" class="btn-primary" id="wa-dashboard-btn">
+              <span class="md-icon" aria-hidden="true">dashboard</span>
+              Go to Dashboard
+            </a>
+            <a href="login.html" class="btn-ghost" id="wa-login-btn">
+              <span class="md-icon" aria-hidden="true">login</span>
+              Log in
+            </a>
+          </div>
+          <p class="reveal d4" style="font-size:13px;color:var(--dim2);margin-top:16px">
+            New here? <a href="#demo" style="color:var(--electric);font-weight:600">Book a free demo</a> and we'll set up your workspace.
+          </p>
+        </div>
+
+        <div class="wa-cards reveal d2">
+          <div class="wa-card">
+            <div class="wa-card-icon e"><span class="md-icon">campaign</span></div>
+            <div>
+              <div class="wa-card-h">Campaign Workspace</div>
+              <p class="wa-card-p">Launch, monitor, and manage all your AI outreach campaigns from one screen.</p>
+            </div>
+          </div>
+          <div class="wa-card">
+            <div class="wa-card-icon c"><span class="md-icon">contacts</span></div>
+            <div>
+              <div class="wa-card-h">Contact Management</div>
+              <p class="wa-card-p">Your full client contact list with response history and engagement scores.</p>
+            </div>
+          </div>
+          <div class="wa-card">
+            <div class="wa-card-icon v"><span class="md-icon">insights</span></div>
+            <div>
+              <div class="wa-card-h">Live Analytics</div>
+              <p class="wa-card-p">Real-time call completion rates, document velocity, and campaign ROI.</p>
+            </div>
+          </div>
+          <div class="wa-card">
+            <div class="wa-card-icon e" style="background:rgba(167,139,250,0.1);color:var(--violet)"><span class="md-icon">settings</span></div>
+            <div>
+              <div class="wa-card-h">Settings & Integrations</div>
+              <p class="wa-card-p">Connect your CRM, configure voice personas, and manage team access.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DEMO FORM ══════════════════════════════════════ -->
+<section class="demo section" id="demo" aria-labelledby="demo-h2">
+  <div class="wrap">
+    <div class="demo-grid">
+      <div>
+        <div class="demo-lbl reveal">Book a free demo</div>
+        <h2 class="demo-h2 reveal d1" id="demo-h2">See ClearDesk<br/>live in 30 minutes.</h2>
+        <p class="demo-p reveal d2">We'll walk you through a live campaign run tailored to your firm — document chaser, deadline reminders, or sales outreach, your choice.</p>
+        <form class="demo-form reveal d3" id="demo-form" novalidate>
+          <div class="form-row">
+            <div>
+              <label for="df-fname" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">First name <span style="color:var(--coral)" aria-hidden="true">*</span></label>
+              <input class="inp" type="text" id="df-fname" name="fname" placeholder="Priya" autocomplete="given-name" required/>
+            </div>
+            <div>
+              <label for="df-lname" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">Last name <span style="color:var(--coral)" aria-hidden="true">*</span></label>
+              <input class="inp" type="text" id="df-lname" name="lname" placeholder="Sharma" autocomplete="family-name" required/>
+            </div>
+          </div>
           <div>
-            <div className="idk-title">Intelligent Desk</div>
-            <div className="idk-sub">Autonomous AI Financial Analyst &amp; Advisory Feed</div>
+            <label for="df-email" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">Work email <span style="color:var(--coral)" aria-hidden="true">*</span></label>
+            <input class="inp" type="email" id="df-email" name="email" placeholder="priya@yourfirm.com" autocomplete="email" required/>
           </div>
-        </div>
-        <div className="idk-controls">
-          <div className="metric-badge-neon-cyan">
-            Savings Found:&nbsp;
-            <OdometerDisplay value={savings} className="mono-text" id="txtTotalSavingsOdometer"/>
+          <div class="form-row">
+            <div>
+              <label for="df-firm" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">Firm name <span style="color:var(--coral)" aria-hidden="true">*</span></label>
+              <input class="inp" type="text" id="df-firm" name="firm" placeholder="Sharma & Associates" required/>
+            </div>
+            <div>
+              <label for="df-country" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">Jurisdiction</label>
+              <select class="inp inp-sel" id="df-country" name="country">
+                <option value="">Select region…</option>
+                <option>India</option>
+                <option>United States</option>
+                <option>UAE</option>
+                <option>Other</option>
+              </select>
+            </div>
           </div>
-          <button id="refresh-insights-btn"
-                  className={`refresh-btn${refreshing?' refreshing':''}`}
-                  onClick={handleRefresh} disabled={refreshing}
-                  title="Refresh insights">
-            <span className="md-icon" id="refresh-icon" style={{fontSize:16}}>refresh</span>
+          <div>
+            <label for="df-use" style="font-size:13px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px">Primary use case</label>
+            <select class="inp inp-sel" id="df-use" name="use_case">
+              <option value="">What do you need most?</option>
+              <option>Document chasing</option>
+              <option>Deadline reminders</option>
+              <option>Sales outreach</option>
+              <option>All of the above</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit" id="demo-submit">
+            <span class="md-icon" aria-hidden="true">calendar_month</span>
+            Book My Free Demo
           </button>
-        </div>
+          <p class="form-note">No credit card required. We'll confirm within one business day.</p>
+        </form>
       </div>
-      <div id="intelligentDeskStream" className="idk-stream">
-        <div className="stream-fallback-loading">
-          <div className="spinner-pulse"/>
-          <span>Scanning transaction ledgers…</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ACTIVITY FEED
-   ═══════════════════════════════════════════════════════════════ */
-function ActivityFeedBlock() {
-  const [items, setItems] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data: calls } = await window.supabase
-          .from('call_logs')
-          .select('contact_name,status,created_at')
-          .order('created_at',{ ascending:false }).limit(6);
-        if (calls?.length) {
-          setItems(calls.map(c => {
-            const done   = c.status==='completed';
-            const failed = ['failed','no_answer','no-answer'].includes(c.status);
-            return {
-              icon:  done?'call':failed?'call_missed':'call_made',
-              bg:    done?'rgba(74,222,128,0.10)':failed?'rgba(244,63,94,0.10)':'rgba(163,255,18,0.10)',
-              color: done?'#4ade80':failed?'#f43f5e':'#a3ff12',
-              text:  (done?'Call completed':failed?'Call missed':'In progress')+(c.contact_name?` — ${c.contact_name}`:''),
-              time:  fmtAgo(c.created_at),
-            };
-          }));
-        } else setItems([]);
-      } catch { setItems([]); }
-    })();
-  }, []);
-
-  return (
-    <div className="glass-panel feed-panel enter enter-6">
-      <div className="feed-hd">
-        <span className="feed-title">Recent Activity</span>
-        <div className="live-pip"><span className="live-pip-dot"/>Live</div>
-      </div>
-      <div id="activityLogsStreamTable">
-        {items === null
-          ? [0,1,2,3,4].map(i => (
-              <div key={i} className="skeleton-feed">
-                <div className="skeleton sk-dot"/><div className="sk-text">
-                  <div className="skeleton sk-t1"/><div className="skeleton sk-t2"/>
-                </div>
-              </div>
-            ))
-          : items.length === 0
-            ? <div className="feed-empty">No recent activity.</div>
-            : items.map((it,i) => (
-                <div key={i} className="feed-row" style={{animationDelay:`${i*55}ms`}}>
-                  <div className="feed-ico" style={{background:it.bg}}>
-                    <span className="md-icon" style={{color:it.color,fontSize:15}}>{it.icon}</span>
-                  </div>
-                  <div>
-                    <div className="feed-text">{it.text}</div>
-                    <div className="feed-ago">{it.time}</div>
-                  </div>
-                </div>
-              ))
-        }
+      <div class="demo-aside reveal d2" aria-hidden="true">
+        <ul class="da-list">
+          <li class="da-li">
+            <div class="da-icon" style="background:var(--electric-dim);color:var(--electric)"><span class="md-icon">record_voice_over</span></div>
+            <div><div class="da-h">Live AI voice demo</div><p class="da-p">Hear an actual campaign call played to a sample client scenario.</p></div>
+          </li>
+          <li class="da-li">
+            <div class="da-icon" style="background:var(--cyan-dim);color:var(--cyan)"><span class="md-icon">tune</span></div>
+            <div><div class="da-h">Personalised walkthrough</div><p class="da-p">We'll show the exact features your firm needs — nothing generic.</p></div>
+          </li>
+          <li class="da-li">
+            <div class="da-icon" style="background:rgba(167,139,250,0.1);color:var(--violet)"><span class="md-icon">bolt</span></div>
+            <div><div class="da-h">Same-day sandbox access</div><p class="da-p">Leave the call with a live sandbox account to test with your own contacts.</p></div>
+          </li>
+          <li class="da-li">
+            <div class="da-icon" style="background:rgba(251,191,36,0.1);color:var(--amber)"><span class="md-icon">support_agent</span></div>
+            <div><div class="da-h">Onboarding support</div><p class="da-p">Dedicated onboarding in your timezone — IN, US, or UAE.</p></div>
+          </li>
+        </ul>
       </div>
     </div>
-  );
-}
+  </div>
+</section>
 
-/* ═══════════════════════════════════════════════════════════════
-   OVERVIEW VIEW
-   ═══════════════════════════════════════════════════════════════ */
-function OverviewView() {
-  return (
-    <>
-      <GreetingBlock/>
-      <StatsRow/>
-      <IntelligentDeskWidget/>
-      <div className="btm-grid">
-        <div className="enter enter-5">
-          <span className="section-label">Quick Actions</span>
-          <div className="action-grid-2">
-            {[
-              { href:'team-management.html', icon:'group',         bg:'rgba(163,255,18,0.10)',  ic:'#a3ff12', title:'Team Management',  desc:'Organise teams and assign roles' },
-              { href:'agent-detail.html',    icon:'support_agent', bg:'rgba(74,222,128,0.10)',  ic:'#4ade80', title:'Agent Details',     desc:'Profiles, performance, assignments' },
-              { href:'campaigns.html',       icon:'campaign',      bg:'rgba(167,139,250,0.10)', ic:'#a78bfa', title:'Campaigns',         desc:'Launch outbound call campaigns' },
-              { href:'call-logs.html',       icon:'call_log',      bg:'rgba(34,211,238,0.10)',  ic:'#22d3ee', title:'Call Logs',         desc:'Transcripts, outcomes, durations' },
-            ].map(a => (
-              <a key={a.href} href={a.href} className="action-tile glass-panel">
-                <div className="at-icon-wrap" style={{background:a.bg}}>
-                  <span className="md-icon" style={{color:a.ic,fontSize:20}}>{a.icon}</span>
-                </div>
-                <div className="at-title">{a.title}</div>
-                <div className="at-desc">{a.desc}</div>
-                <span className="at-arrow" style={{color:a.ic}}>
-                  Open <span className="md-icon" style={{fontSize:14}}>arrow_forward</span>
-                </span>
-              </a>
-            ))}
+<!-- ═══ FAQ ════════════════════════════════════════════ -->
+<section class="faq section" id="faq" aria-labelledby="faq-h2">
+  <div class="wrap">
+    <div class="sh">
+      <div class="sh-eye reveal">Support</div>
+      <h2 class="sh-h2 reveal d1" id="faq-h2">Common questions.</h2>
+      <p class="sh-p reveal d2">Everything you need to know before getting started.</p>
+    </div>
+    <div class="faq-wrap reveal d1">
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          How quickly can I launch my first campaign?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">Most firms launch their first live campaign within 20–30 minutes of signing up. Upload your contact list, choose a campaign type, review the AI-generated script, and hit Execute. ClearDesk handles the rest — routing calls through local carriers and retrying non-responders automatically.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Does ClearDesk replace my CRM?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">No — ClearDesk integrates with your existing CRM (Zoho, HubSpot, Salesforce). It reads contact data and lead status from your CRM and writes call outcomes back. Think of it as a specialist outreach layer on top of your existing workflow, not a replacement for it.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          How do AI voice calls sound? Will clients know it's AI?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">ClearDesk uses premium voice synthesis via Vapi and ElevenLabs, producing very natural-sounding calls. We recommend being transparent with clients — stating it's an automated call from your firm at the start. You can customise the intro script and voice persona to match your brand tone and regional language.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          What happens if a client doesn't respond to the first call?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">ClearDesk uses multi-channel smart retry: if a voice call goes unanswered, it automatically escalates to a WhatsApp message, then an SMS. You control the cadence — minimum 4 hours between attempts — and can set a maximum retry count per contact. All attempts are logged in your campaign dashboard.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Is my client data secure?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">Yes. ClearDesk uses Supabase (PostgreSQL with Row-Level Security) ensuring your organisation's data is strictly isolated. All data in transit is encrypted via TLS 1.3. Standard client records are retained for 7 days after campaign completion, then purged. You can request immediate deletion at any time via your settings panel.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false">
+          Which jurisdictions and languages are supported?
+          <span class="faq-ic md-icon" aria-hidden="true">add</span>
+        </button>
+        <div class="faq-a" role="region"><div class="faq-a-in">ClearDesk currently supports India (English, Hindi, Tamil), United States (English), and UAE (English, Arabic). Each jurisdiction uses locally-approved carriers to ensure deliverability — Exotel/Twilio in India, Twilio 10DLC in the US, and Du/Etisalat routing in the UAE. Additional languages can be requested on Enterprise plans.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA BAND ═══════════════════════════════════════ -->
+<section class="cta-band section" aria-labelledby="cta-h2">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2 class="cta-h2 reveal" id="cta-h2">Stop chasing.<br/>Start closing.</h2>
+      <p class="cta-p reveal d1">Join 500+ accounting and professional service firms automating their client outreach with ClearDesk.</p>
+      <div class="cta-acts reveal d2">
+        <a href="#demo" class="btn-primary">
+          <span class="md-icon" aria-hidden="true">rocket_launch</span>
+          Book Free Demo
+        </a>
+        <a href="login.html" class="btn-ghost">
+          <span class="md-icon" aria-hidden="true">login</span>
+          Sign in
+        </a>
+      </div>
+      <p class="cta-note reveal d3">No credit card · 14-day free trial · Cancel any time</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="f-brand-logo">
+          <div class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" style="width:16px;height:16px">
+              <defs><mask id="nm2"><rect width="100" height="100" fill="white"/>
+              <circle cx="50" cy="50" r="20.5" fill="black"/>
+              <polygon points="19.5,73.5 61.5,31.5 74,24 66.5,36.5 24.5,78.5" fill="black"/></mask></defs>
+              <path fill="#0b0f17" mask="url(#nm2)" d="M43.88,6.43 A44,44 0 0,1 56.12,6.43 L55.01,14.35 A36,36 0 0,1 71.66,21.25 L76.48,14.86 A44,44 0 0,1 85.14,23.52 L78.75,28.34 A36,36 0 0,1 85.65,44.99 L93.57,43.88 A44,44 0 0,1 93.57,56.12 L85.65,55.01 A36,36 0 0,1 78.75,71.66 L85.14,76.48 A44,44 0 0,1 76.48,85.14 L71.66,78.75 A36,36 0 0,1 55.01,85.65 L56.12,93.57 A44,44 0 0,1 43.88,93.57 L44.99,85.65 A36,36 0 0,1 28.34,78.75 L23.52,85.14 A44,44 0 0,1 14.86,76.48 L21.25,71.66 A36,36 0 0,1 14.35,55.01 L6.43,56.12 A44,44 0 0,1 6.43,43.88 L14.35,44.99 A36,36 0 0,1 21.25,28.34 L14.86,23.52 A44,44 0 0,1 23.52,14.86 L28.34,21.25 A36,36 0 0,1 44.99,14.35 Z"/>
+            </svg>
           </div>
+          ClearDesk
         </div>
-        <ActivityFeedBlock/>
+        <p class="f-brand-p">AI-powered outreach automation for accounting and professional service firms across India, US, and UAE.</p>
+        <div class="f-socials">
+          <a href="#" class="f-social" aria-label="LinkedIn"><span class="md-icon">business</span></a>
+          <a href="#" class="f-social" aria-label="Twitter / X"><span class="md-icon">alternate_email</span></a>
+          <a href="#" class="f-social" aria-label="Email us"><span class="md-icon">mail</span></a>
+        </div>
       </div>
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ACTIVITY LOGS VIEW — NOTICE ASSESSMENT
-   ═══════════════════════════════════════════════════════════════ */
-const STATUS_BADGE = {
-  active:   { bg:'rgba(74,222,128,0.12)',  color:'#4ade80', label:'Active'   },
-  scanning: { bg:'rgba(251,191,36,0.12)',  color:'#fbbf24', label:'Scanning' },
-  idle:     { bg:'rgba(138,153,173,0.12)', color:'#8a99ad', label:'Idle'     },
-};
-const ALERT_BADGE = {
-  clear:   { bg:'rgba(74,222,128,0.12)',  color:'#4ade80', label:'Clear'   },
-  success: { bg:'rgba(163,255,18,0.12)',  color:'#a3ff12', label:'Filed'   },
-  warning: { bg:'rgba(244,63,94,0.12)',   color:'#f43f5e', label:'Warning' },
-  info:    { bg:'rgba(34,211,238,0.12)',   color:'#22d3ee', label:'Info'    },
-};
-
-function ActivityLogsView() {
-  const [alerts, setAlerts] = useState([]);
-  useEffect(() => {
-    let i = 0;
-    const add = () => {
-      if (i < NOTICE_ALERTS.length) {
-        setAlerts(a => [...a, NOTICE_ALERTS[i++]]);
-        setTimeout(add, 380);
-      }
-    };
-    setTimeout(add, 200);
-  }, []);
-
-  return (
-    <div className="enter enter-1">
-      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
-        Notice Assessment
-      </h2>
-      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
-        Automated government portal monitoring — live compliance status
-      </p>
-      <div className="notice-shell">
-        <div>
-          <span className="ns-title">Monitored Portals</span>
-          <div className="notice-sources glass-panel" style={{padding:'8px 0',overflow:'hidden'}}>
-            {NOTICE_SOURCES.map(src => {
-              const sb = STATUS_BADGE[src.status];
-              return (
-                <div key={src.id} className="ns-item">
-                  <span className={`ns-dot ns-${src.status}`}/>
-                  <div>
-                    <div className="ns-name">{src.name}</div>
-                    <div className="ns-url">{src.url}</div>
-                  </div>
-                  <span className="ns-badge"
-                        style={{background:sb.bg,color:sb.color,marginLeft:'auto'}}>{sb.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div>
-          <span className="ns-title">Live Alert Stream</span>
-          <div className="glass-panel notice-stream" style={{overflow:'hidden'}}>
-            {alerts.length === 0 && (
-              <div style={{padding:'28px',textAlign:'center',fontSize:13,color:'var(--text-dim)'}}>
-                <div className="spinner-pulse" style={{margin:'0 auto 10px'}}/>
-                Initialising portal scrapers…
-              </div>
-            )}
-            {alerts.map((a,i) => {
-              const ab = ALERT_BADGE[a.type];
-              return (
-                <div key={a.id} className="ns-stream-item"
-                     style={{animationDelay:`${i*80}ms`}}>
-                  <span className="ns-si-badge"
-                        style={{background:ab.bg,color:ab.color}}>{ab.label}</span>
-                  <div className="ns-si-body">
-                    <div className="ns-si-title">{a.title}</div>
-                    <div className="ns-si-meta">{a.src} · {a.time} · {a.detail}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div>
+        <div class="f-col-h">Product</div>
+        <ul class="f-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#demo">Free Demo</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-col-h">Platform</div>
+        <ul class="f-links">
+          <li><a href="login.html">Log in</a></li>
+          <li><a href="app.html">Dashboard</a></li>
+          <li><a href="campaigns.html">Campaigns</a></li>
+          <li><a href="settings.html">Settings</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="f-col-h">Company</div>
+        <ul class="f-links">
+          <li><a href="#">About</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="help.html">Help &amp; Support</a></li>
+        </ul>
       </div>
     </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   AGENTS VIEW
-   ═══════════════════════════════════════════════════════════════ */
-function AgentsView() {
-  const { country } = useWorkspace();
-  return (
-    <div className="enter enter-1">
-      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
-        Manage Agents
-      </h2>
-      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
-        Team profiles, performance metrics, and role assignments
-      </p>
-      <div className="agents-grid">
-        {MOCK_AGENTS.map((ag,i) => {
-          const av = avatarUrl(ag.name, ag.gender);
-          const rs = ROLE_STYLES[ag.role] || ROLE_STYLES.ORG_STAFF;
-          return (
-            <div key={ag.id} className="agent-card glass-panel enter"
-                 style={{animationDelay:`${i*60}ms`}}>
-              <div className="agent-av">
-                <img src={av} alt={ag.name} onError={e => { e.target.style.display='none'; }}/>
-              </div>
-              <div className="agent-name">{ag.name}</div>
-              <div className="agent-role">{ROLE_LBL[ag.role]||ag.role}</div>
-              <div className="agent-pills">
-                <span className="agent-pill" style={{background:rs.bg,color:rs.color}}>
-                  {ag.calls} calls
-                </span>
-                <span className="agent-pill" style={{background:'rgba(167,139,250,0.10)',color:'#a78bfa'}}>
-                  {ag.campaigns} campaigns
-                </span>
-              </div>
-            </div>
-          );
-        })}
+    <div class="f-bottom">
+      <span>© 2026 ClearDesk. All rights reserved.</span>
+      <div style="display:flex;gap:20px">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="help.html#status">Security</a>
       </div>
     </div>
-  );
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="md-icon">check_circle</span>
+  <span id="toast-msg">Demo request sent!</span>
+</div>
+
+<!-- Supabase (for workspace auth check only) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/supabase-config.js"></script>
+
+<script>
+/* ─── Scroll: nav blur ───────────────────────────── */
+const mainNav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  mainNav.classList.toggle('scrolled', window.scrollY > 24);
+}, { passive: true });
+
+/* ─── Mobile nav drawer ─────────────────────────── */
+const hbg = document.getElementById('hamburger');
+const drawer = document.getElementById('nav-drawer');
+hbg.addEventListener('click', () => {
+  const open = drawer.classList.toggle('open');
+  hbg.setAttribute('aria-expanded', open);
+});
+drawer.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    drawer.classList.remove('open');
+    hbg.setAttribute('aria-expanded', 'false');
+  });
+});
+
+/* ─── Scroll reveal ─────────────────────────────── */
+const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.12, rootMargin: '0px 0px -48px 0px' });
+revealEls.forEach(el => revealObs.observe(el));
+
+/* ─── Counter animation ─────────────────────────── */
+function animateCount(el, target, isFraction) {
+  const start = performance.now();
+  const dur = 1600;
+  function step(now) {
+    const p = Math.min((now - start) / dur, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = isFraction ? (ease * target).toFixed(1) : Math.round(ease * target);
+    el.textContent = val;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
+const statObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const cell = e.target;
+    const raw = parseFloat(cell.dataset.count);
+    const isFrac = cell.dataset.count.includes('.');
+    animateCount(cell.querySelector('.count-num'), raw, isFrac);
+    statObs.unobserve(cell);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => statObs.observe(el));
 
-/* ═══════════════════════════════════════════════════════════════
-   BOOKKEEPING VIEW — DRAG-DROP + LASER SWEEP
-   ═══════════════════════════════════════════════════════════════ */
-function TransactionRow({ item, onVerify }) {
-  const [collapsing, setCollapsing] = useState(false);
-  const [dragging,   setDragging]   = useState(false);
-
-  const handleVerify = () => {
-    setCollapsing(true);
-    setTimeout(() => onVerify(item.id), 440);
-  };
-
-  return (
-    <div className={`tx-row${collapsing?' tx-row--collapsing':''}`}>
-      <div className={`tx-inner${dragging?' dragging-source':''}`}
-           draggable
-           onDragStart={e => { setDragging(true); e.dataTransfer.setData('text/plain', item.id); }}
-           onDragEnd={() => setDragging(false)}>
-        <div className={`tx-checkbox${collapsing?' tx-checkbox--checked':''}`}
-             onClick={handleVerify} role="checkbox"
-             aria-checked={collapsing} style={{cursor:'pointer'}}>
-          {collapsing && <span className="md-icon" style={{fontSize:13,color:'#0b0f17'}}>check</span>}
-        </div>
-        <span className="md-icon draggable-tag" style={{color:'var(--text-dim)',fontSize:16}}>drag_indicator</span>
-        <div className="tx-desc">
-          <div className="tx-name">{item.name}</div>
-          <div className="tx-date">{item.date}</div>
-        </div>
-        <span className="tx-cat-badge" style={{background:item.color,color:item.tc}}>{item.cat}</span>
-        <span className="tx-amount" style={{color:item.amount>0?'#4ade80':'#f43f5e'}}>
-          {item.amount>0?'+':'−'}₹{fmtINR(Math.abs(item.amount))}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function BookkeepingView() {
-  const [txns, setTxns] = useState(DEMO_TXN);
-  const [dropOver, setDropOver] = useState(false);
-  const [dropped,  setDropped]  = useState([]);
-
-  const handleVerify = useCallback(id => {
-    setTxns(t => t.filter(x => x.id !== id));
-  }, []);
-
-  const handleDrop = e => {
-    e.preventDefault(); setDropOver(false);
-    const id = parseInt(e.dataTransfer.getData('text/plain'));
-    const item = txns.find(t => t.id === id);
-    if (item) {
-      setDropped(d => [...d, item]);
-      setTxns(t => t.filter(x => x.id !== id));
+/* ─── FAQ accordion ─────────────────────────────── */
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
     }
-  };
+  });
+});
 
-  return (
-    <div className="enter enter-1">
-      <h2 style={{fontSize:22,fontWeight:800,letterSpacing:'-0.4px',color:'var(--text-white)',marginBottom:6}}>
-        Bank Statement Bookkeeping
-      </h2>
-      <p style={{fontSize:13,color:'var(--text-dim)',marginBottom:24}}>
-        Drag transactions to categorise · check to mark verified &amp; collapse
-      </p>
-      <div className="bk-shell">
-        <div className="glass-panel" style={{overflow:'hidden'}}>
-          <div style={{padding:'14px 18px',borderBottom:'1px solid var(--glass-border)',display:'flex',alignItems:'center',gap:10}}>
-            <span className="md-icon" style={{color:'#22d3ee',fontSize:18}}>account_balance</span>
-            <span style={{fontSize:13,fontWeight:700,color:'var(--text-white)'}}>November 2024 Statement</span>
-            <span style={{marginLeft:'auto',fontSize:11,color:'var(--text-dim)',fontFamily:'var(--font-mono)'}}>
-              {txns.length} pending
-            </span>
-          </div>
-          <div className="bk-list">
-            {txns.length === 0
-              ? <div style={{padding:'32px',textAlign:'center',fontSize:13,color:'var(--text-dim)'}}>
-                  <span className="md-icon" style={{fontSize:32,display:'block',marginBottom:8}}>check_circle</span>
-                  All transactions reconciled
-                </div>
-              : txns.map(item => (
-                  <TransactionRow key={item.id} item={item} onVerify={handleVerify}/>
-                ))
-            }
-          </div>
-        </div>
+/* ─── Demo form submit ──────────────────────────── */
+const demoForm = document.getElementById('demo-form');
+const demoBtn = document.getElementById('demo-submit');
+const toast = document.getElementById('toast');
+const toastMsg = document.getElementById('toast-msg');
 
-        <div>
-          <div className="drop-zone" style={{position:'relative'}}
-               className={`drop-zone${dropOver?' drop-over':''}`}
-               onDragOver={e => { e.preventDefault(); setDropOver(true); }}
-               onDragLeave={() => setDropOver(false)}
-               onDrop={handleDrop}>
-            <div className="laser-sweep"/>
-            <span className="md-icon" style={{fontSize:36,color:'rgba(163,255,18,0.4)'}}>cloud_upload</span>
-            <div className="drop-zone-label">Drop to Categorise</div>
-            <div className="drop-zone-sub">Drag a transaction here</div>
-            {dropped.length > 0 && (
-              <div style={{marginTop:12,fontSize:11,color:'var(--accent-electric)',fontWeight:600}}>
-                {dropped.length} item{dropped.length>1?'s':''} categorised ✓
-              </div>
-            )}
-          </div>
-
-          {dropped.length > 0 && (
-            <div className="glass-panel" style={{marginTop:14,overflow:'hidden'}}>
-              <div style={{padding:'12px 16px',borderBottom:'1px solid var(--glass-border)',fontSize:11.5,fontWeight:700,color:'var(--text-dim)',textTransform:'uppercase',letterSpacing:'0.1em'}}>
-                Categorised
-              </div>
-              {dropped.map(item => (
-                <div key={item.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:'1px solid var(--glass-border)',fontSize:12.5}}>
-                  <span className="tx-cat-badge" style={{background:item.color,color:item.tc}}>{item.cat}</span>
-                  <span style={{color:'var(--text-white)',fontWeight:500,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.name}</span>
-                  <span style={{color:item.amount>0?'#4ade80':'#f43f5e',fontFamily:'var(--font-mono)',fontWeight:700,fontSize:12}}>
-                    {item.amount>0?'+':'−'}₹{fmtINR(Math.abs(item.amount))}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+function showToast(msg, isErr) {
+  toastMsg.textContent = msg;
+  toast.style.borderColor = isErr ? 'rgba(244,63,94,0.3)' : 'rgba(163,255,18,0.3)';
+  toast.querySelector('.md-icon').textContent = isErr ? 'error' : 'check_circle';
+  toast.querySelector('.md-icon').style.color = isErr ? 'var(--coral)' : 'var(--electric)';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4500);
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MAIN CONTENT AREA
-   ═══════════════════════════════════════════════════════════════ */
-function MainContentArea({ activeTab }) {
-  return (
-    <main className="main-area">
-      {activeTab === 'overview'  && <OverviewView/>}
-      {activeTab === 'activity'  && <ActivityLogsView/>}
-      {activeTab === 'agents'    && <AgentsView/>}
-      {activeTab === 'books'     && <BookkeepingView/>}
-    </main>
-  );
-}
+demoForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fname = document.getElementById('df-fname').value.trim();
+  const email = document.getElementById('df-email').value.trim();
+  const firm  = document.getElementById('df-firm').value.trim();
+  if (!fname || !email || !firm) { showToast('Please fill in all required fields.', true); return; }
+  demoBtn.disabled = true;
+  demoBtn.innerHTML = '<span class="md-icon">hourglass_top</span> Sending…';
+  await new Promise(r => setTimeout(r, 1200)); // simulate async
+  demoBtn.disabled = false;
+  demoBtn.innerHTML = '<span class="md-icon">check_circle</span> Request sent!';
+  demoForm.reset();
+  showToast('Demo booked! We\'ll confirm within one business day. 🎉');
+  setTimeout(() => {
+    demoBtn.innerHTML = '<span class="md-icon">calendar_month</span> Book My Free Demo';
+  }, 4000);
+});
 
-/* ═══════════════════════════════════════════════════════════════
-   WORKSPACE CANVAS
-   ═══════════════════════════════════════════════════════════════ */
-function WorkspaceCanvas() {
-  const [activeTab, setActiveTab] = useState('overview');
-  return (
-    <div className="workspace-canvas">
-      <TopControlHeader activeTab={activeTab} onTabChange={setActiveTab}/>
-      <MainContentArea activeTab={activeTab}/>
-    </div>
-  );
-}
+/* ─── Workspace access: auth check ─────────────── */
+(async () => {
+  try {
+    if (!window.supabase) return;
+    const { data: { session } } = await window.supabase.auth.getSession();
+    const dashBtn  = document.getElementById('wa-dashboard-btn');
+    const loginBtn = document.getElementById('wa-login-btn');
+    const hint     = document.getElementById('wa-hint');
+    const hintName = document.getElementById('wa-hint-name');
 
-/* ═══════════════════════════════════════════════════════════════
-   APP SHELL (ROOT)
-   ═══════════════════════════════════════════════════════════════ */
-function AppShell() {
-  return (
-    <WorkspaceExperienceProvider>
-      <div className="dash-shell">
-        <SidebarNavigation/>
-        <WorkspaceCanvas/>
-      </div>
-    </WorkspaceExperienceProvider>
-  );
-}
-
-/* ── MOUNT ── */
-ReactDOM.createRoot(document.getElementById('react-root')).render(<AppShell/>);
+    if (session) {
+      // User is logged in — surface their name, hide "Log in" button
+      const meta = session.user.user_metadata || {};
+      const name = meta.full_name || meta.display_name || meta.name || session.user.email.split('@')[0];
+      const firstName = name.split(' ')[0];
+      hintName.textContent = firstName;
+      hint.classList.add('show');
+      loginBtn.style.display = 'none';
+      dashBtn.innerHTML = '<span class="md-icon">dashboard</span> Go to Dashboard';
+    } else {
+      // Not logged in — show both buttons, primary CTA is demo
+      dashBtn.style.display = 'none';
+    }
+  } catch (_) {}
+})();
 </script>
-
-<script src="intelligent-desk.js"></script>
 </body>
 </html>

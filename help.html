@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Help &amp; Support — ClearDesk</title>
+<meta name="description" content="Get started with ClearDesk, browse FAQs, and contact support."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="legal.css"/>
+</head>
+<body>
+<header class="lt-top">
+  <div class="in">
+    <a class="lt-logo" href="index.html"><span class="mk"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h10M4 17h13" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></span>ClearDesk</a>
+    <nav class="lt-nav">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a class="cta" href="login.html">Sign in</a>
+    </nav>
+  </div>
+</header>
+
+<div class="lt-wrap">
+  <aside class="lt-toc">
+    <div class="lbl">On this page</div>
+    <a href="#start">Quick start</a>
+    <a href="#guides">Guides</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Contact support</a>
+    <a href="#status">Status &amp; security</a>
+  </aside>
+
+  <main class="doc">
+    <div class="hero">
+      <h1>Help &amp; Support</h1>
+      <p class="sub">Everything you need to get your firm running outreach on ClearDesk — and how to reach a human when you need one.</p>
+    </div>
+
+    <section id="start" class="card">
+      <h2>Quick start</h2>
+      <p>Most firms are sending their first reminders within 15 minutes:</p>
+      <ol>
+        <li><strong>Set up your workspace</strong> — confirm your firm name, jurisdiction (IN / US / AE) and default language in <a href="settings.html">Settings</a>.</li>
+        <li><strong>Connect a channel</strong> — link Twilio for voice &amp; SMS, and WhatsApp Business for messaging, under Settings → Integrations.</li>
+        <li><strong>Import contacts</strong> — upload a CSV or sync your CRM segment from <a href="contacts.html">Contacts</a>.</li>
+        <li><strong>Create a campaign</strong> — pick a purpose (document chaser, deadline reminder, sales outreach), review the AI script, choose a tone and channel, then run it manually or set it to automated.</li>
+        <li><strong>Track results</strong> — watch calls and messages land in <a href="call-logs.html">Calls</a> and <a href="sms-logs.html">SMS</a>, with outcomes on your dashboard.</li>
+      </ol>
+    </section>
+
+    <section id="guides">
+      <h2>Guides</h2>
+      <div class="tiles">
+        <a class="tile" href="campaigns.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 18-5v12L3 14v-3Z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span>
+          <div class="t">Building campaigns</div>
+          <div class="d">Manual batches vs automated triggers, scripts and tone.</div>
+        </a>
+        <a class="tile" href="settings.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></span>
+          <div class="t">Connecting channels</div>
+          <div class="d">Twilio, WhatsApp Business and CRM webhooks.</div>
+        </a>
+        <a class="tile" href="settings.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <div class="t">Credits &amp; budgets</div>
+          <div class="d">Top up, set caps, and how the circuit-breaker works.</div>
+        </a>
+        <a class="tile" href="team-management.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+          <div class="t">Inviting your team</div>
+          <div class="d">Roles, permissions and managing members.</div>
+        </a>
+        <a class="tile" href="agent-detail.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg></span>
+          <div class="t">Configuring AI agents</div>
+          <div class="d">Voice, language, persona and guardrails.</div>
+        </a>
+        <a class="tile" href="privacy.html">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span>
+          <div class="t">Compliance &amp; consent</div>
+          <div class="d">Consent, DND/DNC and quiet-hours basics.</div>
+        </a>
+      </div>
+    </section>
+
+    <section id="faq" class="card">
+      <h2>Frequently asked questions</h2>
+
+      <details class="faq" open>
+        <summary>Why can't I place calls yet?<span class="chev">⌄</span></summary>
+        <div class="ans">Voice and SMS require a connected Twilio account with a purchased number. Go to Settings → Integrations and connect Twilio. On a Twilio trial, recipients must be verified and some destinations (e.g. SMS to India) require an upgraded account with DLT registration.</div>
+      </details>
+
+      <details class="faq">
+        <summary>How does ClearDesk keep each firm's data separate?<span class="chev">⌄</span></summary>
+        <div class="ans">Every record is scoped to your organization and enforced with database row-level security, so one firm can never see another's contacts, calls or messages. Access within your firm is controlled by roles.</div>
+      </details>
+
+      <details class="faq">
+        <summary>How long is my data kept?<span class="chev">⌄</span></summary>
+        <div class="ans">Standard accounts retain outreach records for 7 days, after which they're overwritten with compliance placeholders. Sandbox/trial records are destroyed 2 hours after creation. See the <a href="privacy.html#retention">Privacy Policy</a>.</div>
+      </details>
+
+      <details class="faq">
+        <summary>What happens when my credits run out?<span class="chev">⌄</span></summary>
+        <div class="ans">If overdraft is enabled you get a small buffer; otherwise the automated cost circuit-breaker pauses processing campaigns so you're never billed past your limit. Top up anytime under Settings → Billing.</div>
+      </details>
+
+      <details class="faq">
+        <summary>Can I edit the AI script and voice?<span class="chev">⌄</span></summary>
+        <div class="ans">Yes. Scripts are generated but fully editable per campaign, with variables like {{first_name}} filled at send time. AI agents' voice, language and persona are configured under Agents.</div>
+      </details>
+
+      <details class="faq">
+        <summary>Who is responsible for consent and do-not-call rules?<span class="chev">⌄</span></summary>
+        <div class="ans">Your firm is. You control the contacts you upload and are responsible for lawful basis, consent, opt-outs and permitted contact hours under local rules (TCPA, TRAI/DLT, UAE TDRA, WhatsApp policies, etc.). See the <a href="terms.html#consent">Terms</a>.</div>
+      </details>
+
+      <details class="faq">
+        <summary>Which countries and languages are supported?<span class="chev">⌄</span></summary>
+        <div class="ans">ClearDesk supports firms in India, the United States and the UAE, with localized telephony, AI voices and compliance rules per jurisdiction, and English, Hindi and Arabic interface options.</div>
+      </details>
+    </section>
+
+    <section id="contact" class="card">
+      <h2>Contact support</h2>
+      <p>Can't find what you need? Our team typically replies within one business day.</p>
+      <div class="contact">
+        <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg><div><strong>Email</strong><br/><a href="mailto:support@cleardesk.app">support@cleardesk.app</a></div></div>
+        <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><div><strong>In-app chat</strong><br/>Use the help button inside your workspace.</div></div>
+        <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div><strong>Support hours</strong><br/>Mon–Fri, 9:00–18:00 IST</div></div>
+        <div class="row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1Z"/><path d="M4 22v-7"/></svg><div><strong>Sales &amp; onboarding</strong><br/><a href="mailto:hello@cleardesk.app">hello@cleardesk.app</a></div></div>
+      </div>
+    </section>
+
+    <section id="status">
+      <h2>Status &amp; security</h2>
+      <p>For service status and incident history, see <a href="#">status.cleardesk.app</a>. To report a security concern, email <a href="mailto:security@cleardesk.app">security@cleardesk.app</a>. Learn how we handle data in the <a href="privacy.html">Privacy Policy</a>.</p>
+    </section>
+  </main>
+</div>
+
+<footer class="lt-foot">
+  <div class="in">
+    <span>© 2026 ClearDesk. All rights reserved.</span>
+    <span class="sp"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="help.html">Help</a></span>
+  </div>
+</footer>
+</body>
+</html>
