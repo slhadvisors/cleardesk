@@ -1793,3 +1793,7 @@ body.theme-light .mobile-bottom-nav {
   /* Keep entrance elements visible (no fade-in hang) */
   .enter { opacity: 1 !important; animation: none !important; }
 }
+
+/* topbar help icon button (added with rebuilt shell) */
+.st-icon-btn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--text-dim);transition:background .15s,color .15s;text-decoration:none}
+.st-icon-btn:hover{background:rgba(15,38,71,0.05);color:var(--text-white)}
