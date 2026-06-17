@@ -15,7 +15,8 @@
   var SHELL_PAGES = [
     'app.html', 'campaigns.html', 'contacts.html', 'call-logs.html',
     'sms-logs.html', 'team-management.html', 'agent-detail.html',
-    'agents.html', 'profile.html'
+    'agents.html', 'profile.html', 'billing.html', 'verification.html',
+    'activity.html'
   ];
 
   var file = (window.location.pathname.split('/').pop() || 'app.html');
@@ -42,14 +43,17 @@
       { id: 'contacts',  icon: 'contacts',  label: 'Contacts',  href: 'contacts.html' }
     ]},
     { label: 'Activity', items: [
+      { id: 'activity', icon: 'bolt', label: 'Activity feed', href: 'activity.html' },
       { id: 'calls', icon: 'call', label: 'Calls', href: 'call-logs.html' },
-      { id: 'sms',   icon: 'sms',  label: 'SMS',   href: 'sms-logs.html' }
+      { id: 'sms',   icon: 'sms',  label: 'SMS',   href: 'sms-logs.html' },
+      { id: 'verification', icon: 'fact_check', label: 'Verification', href: 'verification.html' }
     ]},
     { label: 'Workspace', items: [
       { id: 'teams',  icon: 'group',         label: 'Teams',  href: 'team-management.html' },
       { id: 'agents', icon: 'support_agent', label: 'Agents', href: 'agent-detail.html' }
     ]},
     { label: 'Account', items: [
+      { id: 'billing', icon: 'account_balance_wallet', label: 'Billing', href: 'billing.html' },
       { id: 'settings', icon: 'settings', label: 'Settings', href: 'settings.html' }
     ]}
   ];
@@ -197,15 +201,4 @@
       if (meta.avatar_url) {
         var img = '<img src="' + meta.avatar_url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.remove()">';
         var a = document.getElementById('sb-avatar'); if (a) a.innerHTML = img + a.innerHTML;
-        var b = document.getElementById('sb-topbar-avatar'); if (b) b.innerHTML = img;
-      }
-    } catch (e) {}
-  }
-  function set(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', build);
-  } else {
-    build();
-  }
-})();
+        

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Verification</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="maintenance.js"></script>
+<script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
+<link href="theme-hub.css" rel="stylesheet"/>
+<script src="sidebar-shared.js"></script>
+<script>protectPage(); initSandboxGuard();</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Plus Jakarta Sans",sans-serif; background:var(--bg-canvas); min-height:100vh; overflow-x:hidden; }
+  .md-icon { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; user-select:none; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+
+  .bw { max-width:1080px; margin:0 auto; padding:28px 28px 64px; position:relative; z-index:1; }
+  .page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap; }
+  .page-head h1 { font-size:26px; font-weight:800; color:var(--text-primary); letter-spacing:-0.02em; }
+  .page-head p { font-size:14px; color:var(--text-muted); margin-top:4px; }
+
+  .card { background:var(--surface,#fff); border:1px solid var(--border,#E2E8F0); border-radius:16px;
+          box-shadow:0 1px 2px rgba(11,31,58,.04),0 10px 28px -14px rgba(11,31,58,.18); overflow:hidden; }
+
+  .vsum { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:18px; }
+  @media (max-width:760px){ .vsum{ grid-template-columns:1fr; } }
+  .vstat { background:var(--surface,#fff); border:1px solid var(--border,#E2E8F0); border-radius:14px; padding:16px 18px; box-shadow:0 1px 2px rgba(11,31,58,.04); }
+  .vstat .n { font-size:28px; font-weight:800; color:var(--text-primary); letter-spacing:-0.02em; }
+  .vstat .l { font-size:12.5px; color:var(--text-muted); font-weight:600; margin-top:2px; display:flex; align-items:center; gap:6px; }
+  .vstat .l .md-icon { font-size:16px; }
+  .c-amber{ color:#B45309 } .c-green{ color:var(--neon-emerald) } .c-red{ color:var(--warning-crimson) }
+
+  .toolbar { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border,#E2E8F0); flex-wrap:wrap; }
+  .tabs { display:flex; gap:4px; background:var(--surface-2,#F1F5F9); border-radius:10px; padding:3px; }
+  .tab { font-size:13px; font-weight:600; padding:6px 14px; border-radius:8px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; transition:all .18s; }
+  .tab.active { background:var(--surface,#fff); color:var(--text-primary); box-shadow:0 1px 2px rgba(11,31,58,.08); }
+  .search { flex:1; min-width:160px; display:flex; align-items:center; gap:8px; background:var(--surface-2,#F1F5F9); border:1px solid transparent; border-radius:10px; padding:7px 12px; }
+  .search:focus-within { border-color:var(--accent-electric); background:var(--surface,#fff); }
+  .search input { border:none; outline:none; background:transparent; font-size:13.5px; flex:1; color:var(--text-primary); font-family:inherit; }
+  .search .md-icon { font-size:18px; color:var(--text-muted); }
+
+  table { width:100%; border-collapse:collapse; }
+  thead th { text-align:left; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); padding:12px 18px; background:var(--surface-2,#F1F5F9); border-bottom:1px solid var(--border,#E2E8F0); }
+  tbody td { padding:14px 18px; border-bottom:1px solid var(--border,#E2E8F0); font-size:13.5px; color:var(--text-primary); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr { transition:background .15s; }
+  tbody tr:hover { background:rgba(30,111,224,.04); }
+  .doc { display:flex; align-items:center; gap:11px; }
+  .doc-ico { width:34px; height:34px; border-radius:9px; display:grid; place-items:center; background:rgba(30,111,224,.10); color:var(--accent-electric); flex:0 0 auto; }
+  .doc-ico .md-icon { font-size:18px; }
+  .doc .t { font-weight:600; } .doc .s { font-size:12px; color:var(--text-muted); }
+
+  .pill { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px; }
+  .pill .md-icon { font-size:14px; }
+  .p-pending { background:rgba(180,83,9,.12); color:#92400E; }
+  .p-review  { background:rgba(30,111,224,.12); color:#1A5FC4; }
+  .p-verified{ background:rgba(15,157,88,.12); color:#0A6B3A; }
+  .p-rejected{ background:rgba(220,38,38,.10); color:#B91C1C; }
+
+  .row-actions { display:flex; gap:6px; justify-content:flex-end; }
+  .ibtn { width:32px; height:32px; border-radius:9px; border:1px solid var(--border,#E2E8F0); background:var(--surface,#fff); display:grid; place-items:center; cursor:pointer; color:var(--text-muted); transition:all .16s; }
+  .ibtn .md-icon { font-size:17px; }
+  .ibtn:hover { transform:translateY(-1px); }
+  .ibtn.ok:hover    { border-color:var(--neon-emerald); color:var(--neon-emerald); background:rgba(15,157,88,.06); }
+  .ibtn.no:hover    { border-color:var(--warning-crimson); color:var(--warning-crimson); background:rgba(220,38,38,.06); }
+  .ibtn.view:hover  { border-color:var(--accent-electric); color:var(--accent-electric); background:rgba(30,111,224,.06); }
+
+  /* springy slide-out on verify (height -> 0) per CLAUDE.md §5 */
+  .row-verified-exit { animation: rowExit .55s cubic-bezier(.34,1.4,.5,1) forwards; overflow:hidden; }
+  .row-verified-exit td { background:rgba(15,157,88,.10) !important; }
+  @keyframes rowExit {
+    0%   { transform:translateX(0); opacity:1; }
+    22%  { transform:translateX(8px); opacity:1; }
+    55%  { transform:translateX(-110%); opacity:0; }
+    100% { transform:translateX(-110%); opacity:0; line-height:0; font-size:0; }
+  }
+  .row-verified-exit td { transition:padding .35s ease .2s; }
+  .row-verified-exit.collapse td { padding-top:0 !important; padding-bottom:0 !important; border:none !important; }
+
+  .empty { text-align:center; padding:54px 20px; color:var(--text-muted); }
+  .empty .md-icon { font-size:42px; color:var(--neon-emerald); margin-bottom:10px; }
+  .empty .t { font-size:16px; font-weight:700; color:var(--text-primary); }
+  .empty .s { font-size:13px; margin-top:4px; }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:#0B1F3A; color:#fff; font-size:13.5px; font-weight:600; padding:11px 18px; border-radius:12px; box-shadow:0 16px 40px rgba(11,31,58,.3); display:flex; align-items:center; gap:9px; opacity:0; pointer-events:none; transition:all .28s cubic-bezier(.22,1,.36,1); z-index:200; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast .md-icon { font-size:18px; color:var(--neon-emerald); }
+
+  @media (prefers-reduced-motion:reduce){ .row-verified-exit{ animation-duration:.01s } }
+
+  .enter { opacity:0; animation:slideUp .4s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .e1{animation-delay:.04s}.e2{animation-delay:.09s}.e3{animation-delay:.14s}
+</style>
+</head>
+<body data-sidebar-active="verification">
+
+  <div class="bw">
+    <div class="page-head enter e1">
+      <div>
+        <h1>Document verification</h1>
+        <p>Review and confirm client documents before they flow into compliance filings.</p>
+      </div>
+    </div>
+
+    <div class="vsum enter e2">
+      <div class="vstat"><div class="n c-amber mono" id="s-pending">—</div><div class="l"><span class="md-icon">pending_actions</span>Awaiting review</div></div>
+      <div class="vstat"><div class="n c-green mono" id="s-verified">—</div><div class="l"><span class="md-icon">verified</span>Verified today</div></div>
+      <div class="vstat"><div class="n c-red mono" id="s-rejected">—</div><div class="l"><span class="md-icon">block</span>Rejected</div></div>
+    </div>
+
+    <div class="card enter e3">
+      <div class="toolbar">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-f="pending">Pending</button>
+          <button class="tab" data-f="all">All</button>
+          <button class="tab" data-f="verified">Verified</button>
+          <button class="tab" data-f="rejected">Rejected</button>
+        </div>
+        <div class="search"><span class="md-icon">search</span><input id="q" placeholder="Search client or document…" /></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Document</th><th>Client</th><th>Type</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" style="display:none">
+        <div class="md-icon">task_alt</div>
+        <div class="t">All caught up</div>
+        <div class="s">No documents awaiting verification.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="md-icon">check_circle</span><span id="toast-msg">Verified</span></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Sample fallback shown only when verification_queue is empty / unreachable.
+  var SAMPLE = [
+    {id:1, name:'GST_Invoice_Apr.pdf', size:'2.4 MB', client:'Sharma & Co', type:'GST invoice', status:'pending'},
+    {id:2, name:'Bank_Statement_Q1.pdf', size:'880 KB', client:'Priya Mehta', type:'Bank statement', status:'pending'},
+    {id:3, name:'Form16_2025.pdf', size:'1.1 MB', client:'Raghav Industries', type:'Form 16', status:'review'},
+    {id:4, name:'PnL_FY25.xlsx', size:'540 KB', client:'Nova Traders', type:'P&L statement', status:'pending'},
+    {id:5, name:'Aadhaar_KYC.jpg', size:'1.9 MB', client:'Kiran Patel', type:'KYC', status:'pending'},
+    {id:6, name:'Purchase_Reg.csv', size:'120 KB', client:'Sharma & Co', type:'Purchase register', status:'verified'},
+    {id:7, name:'TDS_Cert_Q4.pdf', size:'760 KB', client:'Nova Traders', type:'TDS certificate', status:'rejected'},
+    {id:8, name:'GSTR2B_May.pdf', size:'2.0 MB', client:'Raghav Industries', type:'GSTR-2B', status:'verified'}
+  ];
+
+  var DOCS = SAMPLE.slice();
+  var usingLive = false;
+  var filter='pending', query='';
+  var rows=document.getElementById('rows'), empty=document.getElementById('empty');
+
+  var typeIcon = { 'GST invoice':'receipt_long','Bank statement':'account_balance','Form 16':'description',
+    'P&L statement':'table_chart','KYC':'badge','Purchase register':'inventory_2','TDS certificate':'verified_user','GSTR-2B':'summarize' };
+
+  function statusPill(s){
+    var m = { pending:['p-pending','schedule','Pending'], review:['p-review','visibility','In review'],
+      verified:['p-verified','check_circle','Verified'], rejected:['p-rejected','cancel','Rejected'] }[s];
+    return '<span class="pill '+m[0]+'"><span class="md-icon">'+m[1]+'</span>'+m[2]+'</span>';
+  }
+
+  function counts(){
+    var p=DOCS.filter(d=>d.status==='pending'||d.status==='review').length;
+    var v=DOCS.filter(d=>d.status==='verified').length;
+    var r=DOCS.filter(d=>d.status==='rejected').length;
+    document.getElementById('s-pending').textContent=p;
+    document.getElementById('s-verified').textContent=v;
+    document.getElementById('s-rejected').textContent=r;
+  }
+
+  function visible(){
+    return DOCS.filter(function(d){
+      var fOk = filter==='all' ? true :
+        filter==='pending' ? (d.status==='pending'||d.status==='review') : d.status===filter;
+      var q = query.toLowerCase();
+      var qOk = !q || d.client.toLowerCase().includes(q) || d.name.toLowerCase().includes(q) || d.type.toLowerCase().includes(q);
+      return fOk && qOk;
+    });
+  }
+
+  function actions(d){
+    if (d.status==='verified' || d.status==='rejected')
+      return '<button class="ibtn view" title="View" aria-label="View"><span class="md-icon">visibility</span></button>';
+    return '<button class="ibtn view" title="View" aria-label="View"><span class="md-icon">visibility</span></button>'+
+           '<button class="ibtn ok" data-act="verify" title="Verify" aria-label="Verify"><span class="md-icon">check</span></button>'+
+           '<button class="ibtn no" data-act="reject" title="Reject" aria-label="Reject"><span class="md-icon">close</span></button>';
+  }
+
+  function render(){
+    var list=visible();
+    if (!list.length){ rows.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    rows.innerHTML = list.map(function(d){
+      return '<tr data-id="'+d.id+'">'+
+        '<td><div class="doc"><span class="doc-ico"><span class="md-icon">'+(typeIcon[d.type]||'description')+'</span></span>'+
+          '<div><div class="t">'+d.name+'</div><div class="s mono">'+d.size+'</div></div></div></td>'+
+        '<td>'+d.client+'</td><td>'+d.type+'</td><td>'+statusPill(d.status)+'</td>'+
+        '<td><div class="row-actions">'+actions(d)+'</div></td></tr>';
+    }).join('');
+  }
+
+  function showToast(msg, ok){
+    var t=document.getElementById('toast');
+    document.getElementById('toast-msg').textContent=msg;
+    t.querySelector('.md-icon').textContent = ok ? 'check_circle' : 'cancel';
+    t.querySelector('.md-icon').style.color = ok ? 'var(--neon-emerald)' : 'var(--warning-crimson)';
+    t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+
+  function exitRow(tr, doc, newStatus){
+    tr.classList.add('row-verified-exit');
+    setTimeout(function(){ tr.classList.add('collapse'); }, 260);
+    setTimeout(function(){
+      doc.status=newStatus;
+      counts(); render();
+      showToast(newStatus==='verified' ? 'Document verified' : 'Document rejected', newStatus==='verified');
+    }, 620);
+    persist(doc.id, newStatus);
+  }
+
+  async function persist(id, status){
+    if(!usingLive || !window.supabase) return;   // sample data → nothing to save
+    try {
+      var sess=(await window.supabase.auth.getSession()).data.session;
+      await window.supabase.from('verification_queue')
+        .update({ status: status, reviewed_at: new Date().toISOString(),
+                  reviewed_by: sess && sess.user ? sess.user.id : null })
+        .eq('id', id);
+    } catch(e){ console.warn('verification persist failed', e); }
+  }
+
+  async function load(){
+    if(!window.supabase){ counts(); render(); return; }
+    try {
+      var r = await window.supabase.from('verification_queue')
+        .select('id,doc_name,doc_size,doc_type,client_name,status')
+        .order('created_at',{ascending:false}).limit(200);
+    

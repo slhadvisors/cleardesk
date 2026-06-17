@@ -26,6 +26,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { recordUsage } from '../_shared/metering.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -40,7 +41,7 @@ function fromNumber(countryCode: string): string {
     US: Deno.env.get('TWILIO_FROM_US') ?? '',
     AE: Deno.env.get('TWILIO_FROM_AE') ?? '',
   };
-  return overrides[countryCode] || Deno.env.get('TWILIO_FROM_NUMBER') ?? '';
+  return (overrides[countryCode] || Deno.env.get('TWILIO_FROM_NUMBER')) ?? '';
 }
 
 Deno.serve(async (req: Request) => {
@@ -164,17 +165,9 @@ Deno.serve(async (req: Request) => {
 
   if (logErr) console.error('[send-sms] log error:', logErr.message);
 
-  return json({
-    ok:      true,
-    sid:     twilioData.sid,
-    status:  twilioData.status,
-    log_id:  logRow?.id ?? null,
-  }, 200);
-});
-
-function json(body: object, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
+  // ── §7 usage metering: tag this Twilio send to the org ────────
+  const segments = Math.max(1, Math.ceil((message?.length || 0) / 160));
+  await recordUsage(supabaseAdmin, {
+    organization_id: orgId,
+    provider: 'twilio',
+    unit: 

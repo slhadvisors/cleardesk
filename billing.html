@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Billing &amp; Credits</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="maintenance.js"></script>
+<script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
+<link href="theme-hub.css" rel="stylesheet"/>
+<script src="sidebar-shared.js"></script>
+<script>protectPage(); initSandboxGuard();</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Plus Jakarta Sans",sans-serif; background:var(--bg-canvas); min-height:100vh; overflow-x:hidden; }
+  .md-icon { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; user-select:none; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+
+  .bw { max-width:1080px; margin:0 auto; padding:28px 28px 64px; position:relative; z-index:1; }
+  .page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+  .page-head h1 { font-size:26px; font-weight:800; color:var(--text-primary); letter-spacing:-0.02em; }
+  .page-head p { font-size:14px; color:var(--text-muted); margin-top:4px; }
+
+  .card { background:var(--surface,#fff); border:1px solid var(--border,#E2E8F0); border-radius:16px;
+          box-shadow:0 1px 2px rgba(11,31,58,.04),0 10px 28px -14px rgba(11,31,58,.18); padding:22px; }
+  .card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .card-head h2 { font-size:15px; font-weight:700; color:var(--text-primary); }
+  .card-head .md-icon { color:var(--text-muted); font-size:20px; }
+
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+  .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:16px; }
+  @media (max-width:880px){ .grid3,.grid2{ grid-template-columns:1fr; } }
+
+  .kpi-lbl { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; gap:7px; }
+  .kpi-lbl .md-icon { font-size:17px; }
+  .kpi-val { font-size:32px; font-weight:800; color:var(--text-primary); margin-top:10px; letter-spacing:-0.02em; }
+  .kpi-sub { font-size:12.5px; color:var(--text-muted); margin-top:6px; }
+  .ico-chip { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; }
+  .ico-chip .md-icon { font-size:19px; }
+  .chip-blue { background:rgba(30,111,224,.12); color:var(--accent-electric); }
+  .chip-green{ background:rgba(15,157,88,.12);  color:var(--neon-emerald); }
+  .chip-amber{ background:rgba(180,83,9,.12);   color:#B45309; }
+  .chip-red  { background:rgba(220,38,38,.10);  color:var(--warning-crimson); }
+
+  .balance-card { background:linear-gradient(135deg, #0B1F3A 0%, #14315b 100%); color:#fff; border:none; }
+  .balance-card .lbl { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; opacity:.72; }
+  .balance-card .amt { font-size:42px; font-weight:800; margin-top:8px; letter-spacing:-0.02em; }
+  .balance-card .meta { font-size:13px; opacity:.78; margin-top:10px; display:flex; gap:18px; flex-wrap:wrap; }
+  .balance-card .meta b { font-weight:700; opacity:1; }
+
+  .progress { height:10px; border-radius:999px; background:var(--surface-2,#F1F5F9); overflow:hidden; margin-top:6px; }
+  .progress i { display:block; height:100%; border-radius:999px; background:var(--accent-electric); transition:width .5s cubic-bezier(.22,1,.36,1); }
+  .progress.danger i { background:var(--warning-crimson); }
+  .progress.warn i { background:#B45309; }
+  .bar-row { display:flex; align-items:center; justify-content:space-between; font-size:13px; margin-bottom:4px; }
+  .bar-row .l { color:var(--text-primary); font-weight:600; }
+  .bar-row .r { color:var(--text-muted); }
+  .bar-block { margin-bottom:18px; } .bar-block:last-child{ margin-bottom:0; }
+
+  .pill { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:5px 12px; border-radius:999px; }
+  .pill .md-icon { font-size:15px; }
+  .pill-ok    { background:rgba(15,157,88,.12);  color:#0A6B3A; }
+  .pill-warn  { background:rgba(180,83,9,.12);   color:#92400E; }
+  .pill-danger{ background:rgba(220,38,38,.10);  color:#B91C1C; }
+  .pill-info  { background:rgba(30,111,224,.12); color:#1A5FC4; }
+
+  .alert { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:12px; font-size:13.5px; line-height:1.5; margin-bottom:16px; }
+  .alert .md-icon { flex:0 0 auto; font-size:20px; margin-top:1px; }
+  .alert-danger { background:rgba(220,38,38,.07); border:1px solid rgba(220,38,38,.22); color:#B91C1C; }
+  .alert-warn   { background:rgba(180,83,9,.07);  border:1px solid rgba(180,83,9,.22);  color:#92400E; }
+  .alert b { font-weight:700; }
+
+  .txn { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border,#E2E8F0); }
+  .txn:last-child { border-bottom:none; }
+  .txn-body { flex:1; } .txn-body .t { font-size:13.5px; font-weight:600; color:var(--text-primary); }
+  .txn-body .s { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .txn-amt { font-size:13.5px; font-weight:700; }
+  .txn-amt.debit { color:var(--warning-crimson); } .txn-amt.credit { color:var(--neon-emerald); }
+
+  .btn { display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700; padding:9px 16px; border-radius:12px; border:1px solid var(--border,#E2E8F0); background:var(--surface,#fff); color:var(--text-primary); cursor:pointer; text-decoration:none; transition:all .18s cubic-bezier(.22,1,.36,1); }
+  .btn .md-icon { font-size:18px; }
+  .btn-primary { background:var(--accent-electric); border-color:var(--accent-electric); color:#fff; }
+  .btn-primary:hover { background:#1A5FC4; border-color:#1A5FC4; }
+  .btn:hover { transform:translateY(-1px); }
+
+  .skl { background:linear-gradient(90deg, rgba(148,163,184,.12) 25%, rgba(148,163,184,.22) 37%, rgba(148,163,184,.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; border-radius:8px; color:transparent !important; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+  @media (prefers-reduced-motion:reduce){ .skl{animation:none} .progress i{transition:none} }
+
+  .enter { opacity:0; animation:slideUp .4s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .e1{animation-delay:.04s}.e2{animation-delay:.09s}.e3{animation-delay:.14s}.e4{animation-delay:.19s}
+</style>
+</head>
+<body data-sidebar-active="billing">
+
+  <div class="bw">
+    <div class="page-head enter e1">
+      <div>
+        <h1>Billing &amp; Credits</h1>
+        <p id="firm-line">Wallet balance, usage and spend controls for your firm.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a class="btn" href="settings.html"><span class="md-icon">tune</span>Spend settings</a>
+        <button class="btn btn-primary" id="topup-btn"><span class="md-icon">add</span>Add credits</button>
+      </div>
+    </div>
+
+    <!-- circuit-breaker / lockout alerts -->
+    <div id="alert-zone"></div>
+
+    <!-- balance + status -->
+    <div class="grid2 enter e2">
+      <div class="card balance-card">
+        <div class="lbl">Available balance</div>
+        <div class="amt mono" id="avail-amt">—</div>
+        <div class="meta">
+          <span>Credit <b class="mono" id="credit-amt">—</b></span>
+          <span>Overdraft <b class="mono" id="overdraft-amt">—</b></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Account status</h2><span class="md-icon">verified_user</span></div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="kpi-sub" style="margin:0">Billing plan</span>
+            <span id="status-pill" class="pill pill-info"><span class="md-icon">hourglass_empty</span>Loading</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="kpi-sub" style="margin:0">Circuit breaker</span>
+            <span id="breaker-pill" class="pill pill-ok"><span class="md-icon">bolt</span>Armed</span>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span class="kpi-sub" style="margin:0">Jurisdiction</span>
+            <span id="juris-pill" class="pill pill-info">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- usage KPIs -->
+    <div class="grid3 enter e3">
+      <div class="card">
+        <div class="card-head" style="margin-bottom:8px"><span class="ico-chip chip-blue"><span class="md-icon">payments</span></span></div>
+        <div class="kpi-lbl">Spend this month</div>
+        <div class="kpi-val mono" id="spend-val">—</div>
+        <div class="kpi-sub" id="spend-sub">of monthly budget cap</div>
+      </div>
+      <div class="card">
+        <div class="card-head" style="margin-bottom:8px"><span class="ico-chip chip-green"><span class="md-icon">description</span></span></div>
+        <div class="kpi-lbl">Demo files used</div>
+        <div class="kpi-val mono" id="files-val">—</div>
+        <div class="kpi-sub" id="files-sub">documents processed</div>
+      </div>
+      <div class="card">
+        <div class="card-head" style="margin-bottom:8px"><span class="ico-chip chip-amber"><span class="md-icon">graphic_eq</span></span></div>
+        <div class="kpi-lbl">Voice minutes</div>
+        <div class="kpi-val mono" id="voice-val">—</div>
+        <div class="kpi-sub" id="voice-sub">demo voice testing</div>
+      </div>
+    </div>
+
+    <!-- budget bars + transactions -->
+    <div class="grid2 enter e4">
+      <div class="card">
+        <div class="card-head"><h2>Budget utilisation</h2><span class="md-icon">monitoring</span></div>
+        <div id="bars"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Recent usage</h2><a class="kpi-sub" style="color:var(--accent-electric);font-weight:700;text-decoration:none" href="call-logs.html">View logs</a></div>
+        <div id="txns"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var CUR = { IN:{s:'₹',c:'INR'}, US:{s:'$',c:'USD'}, AE:{s:'AED ',c:'AED'} };
+  var cur = CUR.US;
+
+  function money(n){ if(n==null||isNaN(n)) return '—'; return cur.s + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function pct(a,b){ if(!b) return 0; return Math.min(100, Math.round((a/b)*100)); }
+  function set(id,v){ var e=document.getElementById(id); if(e){ e.textContent=v; e.classList.remove('skl'); } }
+
+  function bar(label, used, total, unit){
+    var p = pct(used,total);
+    var cls = p>=100 ? ' danger' : (p>=80 ? ' warn' : '');
+    var u = unit==='money' ? money(used)+' / '+money(total) : used+' / '+total;
+    return '<div class="bar-block"><div class="bar-row"><span class="l">'+label+'</span><span class="r mono">'+u+'</span></div>'+
+           '<div class="progress'+cls+'"><i style="width:'+p+'%"></i></div></div>';
+  }
+
+  function statusPill(s){
+    var map = {
+      active:    ['pill-ok','task_alt','Active'],
+      trial:     ['pill-info','schedule','Trial'],
+      guest_trial:['pill-info','science','Guest trial'],
+      past_due:  ['pill-danger','error','Past due'],
+      canceled:  ['pill-warn','block','Canceled']
+    };
+    var m = map[s] || ['pill-info','help','—'];
+    return '<span class="pill '+m[0]+'"><span class="md-icon">'+m[1]+'</span>'+m[2]+'</span>';
+  }
+
+  function renderAlerts(org, vault){
+    var z = document.getElementById('alert-zone'); var html='';
+    var avail = Number(org.credit_balance||0) + (org.overdraft_allowed ? Number(org.overdraft_limit||0) : 0);
+    if (org.billing_status === 'past_due') {
+      html += '<div class="alert alert-danger"><span class="md-icon">gpp_bad</span><div><b>Account settlement required.</b> Outbound execution is halted until your balance is brought current.</div></div>';
+    } else if (avail <= 0) {
+      html += '<div class="alert alert-danger"><span class="md-icon">bolt</span><div><b>Circuit breaker tripped.</b> Wallet depleted — processing campaigns have been auto-paused. Add credits to resume.</div></div>';
+    }
+    if (vault && vault.budget_breached_lockout) {
+      html += '<div class="alert alert-warn"><span class="md-icon">warning</span><div><b>Monthly budget cap reached.</b> New AI/parsing jobs are locked out for the rest of the cycle. Raise the cap in spend settings to continue.</div></div>';
+    }
+    z.innerHTML = html;
+  }
+
+  function txnRow(t){
+    var sign = t.credit ? 'credit' : 'debit';
+    var pre = t.credit ? '+' : '−';
+    return '<div class="txn"><span class="ico-chip '+(t.credit?'chip-green':'chip-blue')+'"><span class="md-icon">'+t.icon+'</span></span>'+
+           '<div class="txn-body"><div class="t">'+t.t+'</div><div class="s">'+t.s+'</div></div>'+
+           '<div class="txn-amt '+sign+' mono">'+pre+money(t.a)+'</div></div>';
+  }
+
+  async function load(){
+    if (!window.supabase) return;
+    try {
+      var sess = (await window.supabase.auth.getSession()).data.session;
+      var meta = sess && sess.user ? (sess.user.user_metadata||{}) : {};
+
+      var orgRes = await window.supabase.from('organizations')
+        .select('firm_name,country_code,billing_status,credit_balance,overdraft_allowed,overdraft_limit').limit(1).maybeSingle();
+      var org = orgRes.data || {};
+      var vaultRes = await window.supabase.from('organization_developer_vault')
+        .select('monthly_budget_cap,current_month_accumulated_spend,budget_breached_lockout,max_demo_files_allowed,demo_files_processed_count,demo_voice_minutes_allowed').limit(1).maybeSingle();
+      var vault = vaultRes.data || {};
+
+      cur = CUR[org.country_code] || CUR.US;
+
+      if (org.firm_name) document.getElementById('firm-line').textContent =
+        org.firm_name + ' — wallet balance, usage and spend controls.';
+
+      var credit = Number(org.credit_balance||0);
+      var od = org.overdraft_allowed ? Number(org.overdraft_limit||0) : 0;
+      set('avail-amt', money(credit + od));
+      set('credit-amt', money(credit));
+      set('overdraft-amt', org.overdraft_allowed ? money(od) : 'Off');
+
+      document.getElementById('status-pill').outerHTML = '<span id="status-pill">'+statusPill(org.billing_status)+'</span>';
+      var avail = credit + od;
+      var bp = document.getElementById('breaker-pill');
+      if (org.billing_status==='past_due' || avail<=0){ bp.className='pill pill-danger'; bp.innerHTML='<span class="md-icon">bolt</span>Tripped'; }
+      else { bp.className='pill pill-ok'; bp.innerHTML='<span class="md-icon">bolt</span>Armed'; }
+      var jp = document.getElementById('juris-pill');
+      jp.textContent = ({IN:'India (IN)',US:'United States (US)',AE:'UAE (AE)'})[org.country_code] || (org.country_code||'—');
+
+      var spend = Number(vault.current_month_accumulated_spend||0);
+      var capV  = Number(vault.monthly_budget_cap||0);
+      set('spend-val', money(spend));
+      set('spend-sub', 'of '+money(capV)+' cap ('+pct(spend,capV)+'%)');
+
+      var fUsed=Number(vault.demo_files_processed_count||0), fMax=Number(vault.max_demo_files_allowed||0);
+      set('files-val', fUsed+' / '+fMax);
+      set('files-sub', org.billing_status==='guest_trial' ? 'sandbox cap — 3 max' : 'documents processed');
+
+      set('voice-val', (vault.demo_voice_minutes_allowed||0)+' min');
+      set('voice-sub', org.billing_status==='guest_trial' ? 'sandbox cap — 2 min' : 'demo voice testing');
+
+      document.getElementById('bars').innerHTML =
+        bar('Monthly spend', spend, capV, 'money') +
+        bar('Demo files', fUsed, fMax, 'count') +
+        bar('Overdraft used', Math.max(0, -credit), od, 'money');
+
+      renderAlerts(org, vault);
+
+      // recent usage — real usage_events (metering log), newest first
+      var PROV = {
+        twilio:{icon:'sms', t:'SMS / WhatsApp send'},
+        vapi:{icon:'call', t:'AI voice call'},
+        sarvam:{icon:'graphic_eq', t:'Sarvam voice synthesis'},
+        claude:{icon:'auto_awesome', t:'Claude AI insights'}
+      };
+      var ue = await window.supabase.from('usage_events')
+        .select('provider,unit,quantity,cost_credits,created_at,metadata')
+        .order('created_at',{ascending:false}).limit(8);
+      var rows = (ue.data||[]).map(function(e){
+        var p = PROV[e.provider] || {icon:'bolt', t:e.provider};
+        var when = new Date(e.created_at);
+        return txnRow({ icon:p.icon, t:p.t,
+          s: (Number(e.quantity)||0).toLocaleString()+' '+e.unit.replace(/_/g,' ')+' · '+when.toLocaleDateString(),
+          a: Number(e.cost_credits||0), credit:false });
+      });
+      document.getElementById('txns').innerHTML = rows.length ? rows.join('')
+        : '<div class="kpi-sub" style="padding:14px 0">No usage recorded yet this cycle.</div>';
+    } catch (e) {
+      console.warn('billing load failed', e);
+      document.getElementById('alert-zone').innerHTML =
+        '<div class="alert alert-warn"><span class="md-icon">cloud_off</span><div>Could not load billing data. Pull to refresh or check your connection.</div></div>';
+    }
+  }
+
+  // skeletons before load
+  ['avail-amt','credit-amt','overdraft-amt','spend-val','files-val','voice-val'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.classList.add('skl');
+  });

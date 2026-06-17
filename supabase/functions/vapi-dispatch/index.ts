@@ -24,6 +24,8 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { ROUTING_RULES_PROMPT, routingTools } from '../_shared/routing.ts';
+import { recordUsage } from '../_shared/metering.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -221,6 +223,16 @@ Deno.serve(async (req: Request) => {
           sarvamAudioUrl = ttsResult.audioUrl;
           sarvamUsed = true;
           console.log(`[Sarvam] Bulbul-v2 synthesized greeting for ${contact.name}`);
+          // §7 usage metering: tag Sarvam TTS characters to the org
+          await recordUsage(supabaseAdmin, {
+            organization_id: orgId,
+            provider: 'sarvam',
+            unit:     'tts_char',
+            quantity: firstMessage.length,
+            ref_type: 'campaign',
+            ref_id:   campaign_id,
+            metadata: { engine: 'bulbul_v2', lang: 'hi-IN', contact: contact.phone },
+          });
         } else {
           console.warn(`[Sarvam] TTS failed, falling back to Vapi voice: ${ttsResult.error}`);
         }
@@ -242,6 +254,7 @@ Deno.serve(async (req: Request) => {
           model: {
             provider: 'openai',
             model:    'gpt-4o-mini',
+            tools:    routingTools,            // §4 routing tools (handoff/escalate)
             systemPrompt: [
               script_prompt,
               `Tone: ${toneInstruction}`,
@@ -252,7 +265,15 @@ Deno.serve(async (req: Request) => {
                 ? 'Respond in Arabic or English as the customer prefers. Be respectful of UAE business etiquette.'
                 : '',
               `Contact: ${contact.name} | Metadata: ${JSON.stringify(contact.metadata || {})}`,
+              ROUTING_RULES_PROMPT,            // §4 intent-based routing rules
             ].filter(Boolean).join('\n\n'),
+          },
+          // §4 Vapi delivers tool calls to vapi-webhook (same server URL).
+          server: {
+            url: `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/vapi-webhook`,
+            ...(Deno.env.get('VAPI_WEBHOOK_SECRET')
+              ? { secret: Deno.env.get('VAPI_WEBHOOK_SECRET') }
+              : {}),
           },
         },
         metadata: {
@@ -302,39 +323,4 @@ Deno.serve(async (req: Request) => {
         contact_name:    contact.name,
         status:          'in_progress',
         vapi_call_id:    callId,
-        jurisdiction:    jur,
-        tts_engine:      useSarvam && sarvamAudioUrl ? 'sarvam_bulbul_v2' : 'vapi_default',
-        created_at:      new Date().toISOString(),
-      });
-    }
-
-    /* ── 6. Persist logs + update campaign ── */
-    if (callLogRows.length > 0) {
-      await supabaseAdmin.from('call_logs').insert(callLogRows);
-    }
-    await supabaseAdmin.from('outbound_campaigns')
-      .update({ status: 'processing' })
-      .eq('id', campaign_id)
-      .eq('organization_id', orgId);
-
-    return json({
-      success:      true,
-      queued:       callIds.length,
-      total:        contacts.length,
-      call_ids:     callIds,
-      jurisdiction: jur,
-      tts_engine:   useSarvam && sarvamUsed ? 'sarvam_bulbul_v2' : 'vapi_default',
-    }, 202);
-
-  } catch (err) {
-    console.error('vapi-dispatch error:', err);
-    return json({ error: 'Internal server error' }, 500);
-  }
-});
-
-function json(body: object, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
+        jurisdiction:    j

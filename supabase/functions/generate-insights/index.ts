@@ -15,6 +15,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { recordUsage } from '../_shared/metering.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin':  '*',
@@ -199,6 +200,18 @@ BUDGET:
   const claudeData = await claudeRes.json();
   const rawContent = claudeData.content?.[0]?.text || '[]';
 
+  // ── §7 usage metering: tag Claude tokens to the org ───────────
+  const usage = claudeData.usage || {};
+  const tokens = (usage.input_tokens || 0) + (usage.output_tokens || 0);
+  await recordUsage(db, {
+    organization_id: orgId,
+    provider: 'claude',
+    unit:     'llm_token',
+    quantity: tokens,
+    ref_type: 'insight_run',
+    metadata: { model: 'claude-haiku-4-5-20251001', input_tokens: usage.input_tokens || 0, output_tokens: usage.output_tokens || 0 },
+  });
+
   // ── Parse insights ────────────────────────────────────────────
   let insights: InsightRow[] = [];
   try {
@@ -230,25 +243,3 @@ BUDGET:
       is_published_to_taxpayer: false,
     }));
 
-  if (!rows.length) return 0;
-
-  const { data: inserted, error } = await db
-    .from('tenant_financial_insights')
-    .insert(rows)
-    .select('id');
-
-  if (error) {
-    console.error('[generate-insights] insert error:', error.message);
-    return 0;
-  }
-
-  console.log(`[generate-insights] org ${orgId}: ${inserted?.length || 0} insights written`);
-  return inserted?.length || 0;
-}
-
-function json(body: object, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}

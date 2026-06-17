@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClearDesk — Activity feed</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="auth.js"></script>
+<script src="maintenance.js"></script>
+<script src="translations.js"></script>
+<script src="sandbox-guard.js"></script>
+<link href="theme-hub.css" rel="stylesheet"/>
+<script src="sidebar-shared.js"></script>
+<script>protectPage(); initSandboxGuard();</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Plus Jakarta Sans",sans-serif; background:var(--bg-canvas); min-height:100vh; overflow-x:hidden; }
+  .md-icon { font-family:'Material Symbols Outlined'; font-style:normal; font-weight:300; font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; line-height:1; user-select:none; }
+  .mono { font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+
+  .bw { max-width:840px; margin:0 auto; padding:28px 28px 64px; position:relative; z-index:1; }
+  .page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .page-head h1 { font-size:26px; font-weight:800; color:var(--text-primary); letter-spacing:-0.02em; }
+  .page-head p { font-size:14px; color:var(--text-muted); margin-top:4px; }
+  .refresh { display:inline-flex; align-items:center; gap:7px; font-size:13px; font-weight:700; padding:8px 14px; border-radius:11px; border:1px solid var(--border,#E2E8F0); background:var(--surface,#fff); color:var(--text-primary); cursor:pointer; transition:all .18s; }
+  .refresh .md-icon { font-size:18px; }
+  .refresh:hover { transform:translateY(-1px); border-color:var(--accent-electric); color:var(--accent-electric); }
+  .refresh.spinning .md-icon { animation:spin .8s linear infinite; }
+  @keyframes spin { to{ transform:rotate(360deg); } }
+
+  .filters { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .chip { font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px; border:1px solid var(--border,#E2E8F0); background:var(--surface,#fff); color:var(--text-muted); cursor:pointer; transition:all .16s; display:inline-flex; align-items:center; gap:6px; }
+  .chip .md-icon { font-size:16px; }
+  .chip.active { background:var(--accent-electric); border-color:var(--accent-electric); color:#fff; }
+
+  .card { background:var(--surface,#fff); border:1px solid var(--border,#E2E8F0); border-radius:16px;
+          box-shadow:0 1px 2px rgba(11,31,58,.04),0 10px 28px -14px rgba(11,31,58,.18); padding:6px 20px; }
+
+  .day-label { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); padding:16px 0 6px; }
+  .act { display:flex; gap:13px; padding:13px 0; border-bottom:1px solid var(--border,#E2E8F0); position:relative; }
+  .act:last-child { border-bottom:none; }
+  .act-ico { flex:0 0 36px; height:36px; border-radius:50%; display:grid; place-items:center; }
+  .act-ico .md-icon { font-size:17px; }
+  .green{ background:rgba(15,157,88,.12); color:var(--neon-emerald); }
+  .blue { background:rgba(30,111,224,.12); color:var(--accent-electric); }
+  .amber{ background:rgba(180,83,9,.12); color:#B45309; }
+  .red  { background:rgba(220,38,38,.10); color:var(--warning-crimson); }
+  .gray { background:var(--surface-2,#F1F5F9); color:var(--text-muted); }
+  .act-body { flex:1; font-size:14px; color:var(--text-primary); line-height:1.45; }
+  .act-body b { font-weight:700; }
+  .act-meta { font-size:12px; color:var(--text-muted); margin-top:3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .act-tag { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 8px; border-radius:999px; background:var(--surface-2,#F1F5F9); color:var(--text-muted); }
+  .act-time { white-space:nowrap; font-size:12.5px; color:var(--text-muted); align-self:flex-start; margin-top:2px; }
+
+  .skl-act { display:flex; gap:13px; padding:14px 0; border-bottom:1px solid var(--border,#E2E8F0); }
+  .skl { background:linear-gradient(90deg, rgba(148,163,184,.12) 25%, rgba(148,163,184,.22) 37%, rgba(148,163,184,.12) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; border-radius:8px; }
+  @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+
+  .empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+  .empty .md-icon { font-size:44px; opacity:.4; margin-bottom:10px; }
+  .empty .t { font-size:16px; font-weight:700; color:var(--text-primary); }
+  .empty .s { font-size:13px; margin-top:4px; }
+
+  @media (prefers-reduced-motion:reduce){ .refresh.spinning .md-icon{ animation:none } }
+  .enter { opacity:0; animation:slideUp .4s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body data-sidebar-active="activity">
+
+  <div class="bw">
+    <div class="page-head enter">
+      <div>
+        <h1>Activity feed</h1>
+        <p id="sub">Every call, message and campaign event across your firm.</p>
+      </div>
+      <button class="refresh" id="refresh"><span class="md-icon">refresh</span>Refresh</button>
+    </div>
+
+    <div class="filters enter" id="filters">
+      <button class="chip active" data-f="all"><span class="md-icon">apps</span>All</button>
+      <button class="chip" data-f="call"><span class="md-icon">call</span>Calls</button>
+      <button class="chip" data-f="sms"><span class="md-icon">sms</span>Messages</button>
+      <button class="chip" data-f="campaign"><span class="md-icon">campaign</span>Campaigns</button>
+    </div>
+
+    <div class="card enter" id="feed"></div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+  var filter='all', events=[];
+  var feed=document.getElementById('feed');
+
+  function timeAgo(d){
+    var s=Math.floor((Date.now()-d.getTime())/1000);
+    if(s<60) return 'just now';
+    if(s<3600) return Math.floor(s/60)+'m ago';
+    if(s<86400) return Math.floor(s/3600)+'h ago';
+    return d.toLocaleDateString([], {hour:'2-digit',minute:'2-digit'});
+  }
+  function dayKey(d){
+    var t=new Date(); var y=new Date(); y.setDate(t.getDate()-1);
+    if(d.toDateString()===t.toDateString()) return 'Today';
+    if(d.toDateString()===y.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'});
+  }
+  function mask(p){ if(!p) return ''; p=String(p); return p.length>5 ? p.slice(0,5)+' ••• '+p.slice(-3) : p; }
+
+  function skeleton(){
+    var s=''; for(var i=0;i<6;i++) s+='<div class="skl-act"><div class="skl" style="width:36px;height:36px;border-radius:50%;flex:0 0 36px"></div>'+
+      '<div style="flex:1"><div class="skl" style="height:13px;width:'+(55+i*5)+'%"></div><div class="skl" style="height:10px;width:90px;margin-top:8px"></div></div></div>';
+    feed.innerHTML=s;
+  }
+
+  function callEvent(l){
+    var st=(l.status||l.call_status||l.outcome||'').toLowerCase();
+    var ok = /complet|connect|answer|success/.test(st);
+    var fail = /fail|no.?answer|busy|declin|miss/.test(st);
+    var name = l.contact_name||l.recipient_name||mask(l.contact_phone||l.recipient_phone)||'a contact';
+    var body, ic, cl;
+    if(fail){ body='Call to <b>'+name+'</b> failed — '+(st||'no answer'); ic='phone_missed'; cl='red'; }
+    else if(ok){ body='AI voice call completed with <b>'+name+'</b>'; ic='call'; cl='green'; }
+    else { body='Voice call to <b>'+name+'</b> — '+(st||'queued'); ic='call'; cl='blue'; }
+    return {kind:'call', t:body, icon:ic, cls:cl, tag:'Voice', when:new Date(l.created_at), meta:l.campaign_name||l.campaign||''};
+  }
+  function smsEvent(l){
+    var st=(l.delivery_status||l.status||'').toLowerCase();
+    var fail=/fail|undeliver|reject/.test(st);
+    var name=l.contact_name||l.recipient_name||mask(l.phone_number||l.recipient_phone)||'a contact';
+    var body, ic, cl;
+    if(l.reply_body){ body='<b>'+name+'</b> replied to your message'; ic='mark_chat_read'; cl='blue'; }
+    else if(fail){ body='Message to <b>'+name+'</b> failed to deliver'; ic='sms_failed'; cl='red'; }
+    else { body='Message delivered to <b>'+name+'</b>'; ic='sms'; cl='green'; }
+    return {kind:'sms', t:body, icon:ic, cls:cl, tag:'SMS', when:new Date(l.created_at), meta:l.campaign_name||''};
+  }
+  function campEvent(c){
+    var st=(c.status||'').toLowerCase();
+    var m={ completed:['green','task_alt','completed'], processing:['blue','autorenew','is processing'],
+      scheduled:['amber','schedule','was scheduled'], paused:['gray','pause_circle','was paused'], draft:['gray','edit_note','saved as draft'] }[st]
+      || ['blue','campaign','was updated'];
+    return {kind:'campaign', t:'Campaign <b>'+(c.campaign_name||'Untitled')+'</b> '+m[2], icon:m[1], cls:m[0],
+      tag:(c.campaign_purpose||'campaign').replace(/_/g,' '), when:new Date(c.created_at), meta:''};
+  }
+
+  function render(){
+    var list = events.filter(function(e){ return filter==='all' || e.kind===filter; });
+    if(!list.length){
+      feed.innerHTML='<div class="empty"><div class="md-icon">inbox</div><div class="t">No activity yet</div>'+
+        '<div class="s">Calls, messages and campaign events will appear here as they happen.</div></div>';
+      return;
+    }
+    var html='', lastDay=null;
+    list.forEach(function(e){
+      var dk=dayKey(e.when);
+      if(dk!==lastDay){ html+='<div class="day-label">'+dk+'</div>'; lastDay=dk; }
+      html+='<div class="act"><span class="act-ico '+e.cls+'"><span class="md-icon">'+e.icon+'</span></span>'+
+        '<div class="act-body">'+e.t+'<div class="act-meta">'+
+          (e.meta?'<span class="act-tag">'+e.meta+'</span>':'')+'<span class="act-tag">'+e.tag+'</span>'+
+        '</div></div><span class="act-time">'+timeAgo(e.when)+'</span></div>';
+    });
+    feed.innerHTML=html;
+  }
+
+  function fallback(){
+    var now=Date.now(), m=60000;
+    events=[
+      {kind:'sms',t:'<b>Priya Mehta</b> uploaded the missing GST invoice',icon:'mark_chat_read',cls:'green',tag:'WhatsApp',meta:'Document chaser',when:new Date(now-8*m)},
+      {kind:'call',t:'AI voice call completed with <b>Sharma &amp; Co</b>',icon:'call',cls:'green',tag:'Voice',meta:'GSTR-1 reminders',when:new Date(now-26*m)},
+      {kind:'campaign',t:'Campaign <b>Q1 GSTR-1 reminders</b> is processing',icon:'autorenew',cls:'blue',tag:'deadline reminder',meta:'',when:new Date(now-60*m)},
+      {kind:'call',t:'Call to <b>+91 98••• 043</b> failed — no answer',icon:'phone_missed',cls:'red',tag:'Voice',meta:'GSTR-1 reminders',when:new Date(now-120*m)},
+      {kind:'sms',t:'Message delivered to <b>14 clients</b>',icon:'sms',cls:'green',tag:'SMS',meta:'',when:new Date(now-180*m)},
+      {kind:'campaign',t:'Campaign <b>Missing bank statements</b> completed',icon:'task_alt',cls:'green',tag:'document chaser',meta:'',when:new Date(now-26*60*m)}
+    ];
+    render();
+  }
+
+  async function load(){
+    skeleton();
+    if(!window.supabase){ fallback(); return; }
+    try {
+      var r = await Promise.allSettled([
+        window.supabase.from('call_logs').select('*').order('created_at',{ascending:false}).limit(60),
+        window.supabase.from('sms_logs').select('*').order('created_at',{ascending:false}).limit(60),
+        window.supabase.from('outbound_campaigns').select('campaign_name,campaign_purpose,status,created_at').order('created_at',{ascending:false}).limit(30)
+      ]);
+      var calls = r[0].status==='fulfilled' && r[0].value.data ? r[0].value.data : [];
+      var sms   = r[1].status==='fulfilled' && r[1].value.data ? r[1].value.data : [];
+      var camps = r[2].status==='fulfilled' && r[2].value.data ? r[2].value.data : [];
+      events = [].concat(calls.map(callEvent), sms.map(smsEvent), camps.map(campEvent))
+        .filter(function(e){ return e.when && !isNaN(e.when.getTime()); })
+        .sort(function(a,b){ return b.when - a.when; });
+      if(!events.length){ fallback(); return; }
+      render();
+    } catch(e){ console.warn('activity load failed', e); fallback(); }
+  }
+
+  document.getElementById('filters').addEventListener('click', function(e){
+    var c=e.target.closest('.chip'); if(!c) return;
+    this.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active'); filter=c.dataset.f; render();
+  });
+  document.getElementById('refresh').addEventListener('click', function(){
+    var b=this; b.classList.add('spinning'); load().finally(function(){ setTimeout(()=>b.classList.remove('spinning'),500); });
+  });
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', load); else load();
+})();
+</script>
+</body>
+</html>

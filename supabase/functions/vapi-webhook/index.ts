@@ -20,6 +20,9 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { handleRoutingToolCall } from '../_shared/routing.ts';
+import { handleVerificationToolCall, lookupRisk } from '../_shared/verification.ts';
+import { recordUsage } from '../_shared/metering.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -96,6 +99,19 @@ Deno.serve(async (req: Request) => {
     await supabaseAdmin.from('call_logs')
       .update({ status: 'in_progress', started_at: new Date().toISOString() })
       .eq('id', callLog.id);
+    // §5 Twilio Lookup risk signals at connect (best-effort, graceful no-op).
+    try {
+      const { data: cl } = await supabaseAdmin
+        .from('call_logs').select('from_phone, contact_phone').eq('id', callLog.id).single();
+      const cli = cl?.from_phone ?? cl?.contact_phone ?? null;
+      if (cli) {
+        await lookupRisk(supabaseAdmin, {
+          organization_id: callLog.organization_id,
+          call_log_id: callLog.id,
+          cli_phone: cli,
+        });
+      }
+    } catch (_) {}
     return json({ received: true, event: eventType });
   }
 
@@ -108,6 +124,71 @@ Deno.serve(async (req: Request) => {
         .eq('id', callLog.id);
     }
     return json({ received: true, event: eventType });
+  }
+
+  /* ── Handle: tool-calls (§4 routing — handoff / escalate, mid-call) ── */
+  if (eventType === 'tool-calls' || eventType === 'function-call') {
+    // Normalise Vapi's tool-call shapes into [{ id, name, args }].
+    const rawCalls =
+      (msgData.toolCalls as Array<Record<string, unknown>>) ??
+      (msgData.toolCallList as Array<Record<string, unknown>>) ??
+      (msgData.functionCall ? [{ id: 'fc', function: msgData.functionCall }] : []);
+
+    // Resolve the client + CLI from the call (best-effort).
+    const { data: clRow } = await supabaseAdmin
+      .from('call_logs')
+      .select('contact_phone, from_phone, campaign_id')
+      .eq('id', callLog.id)
+      .single();
+
+    const cliPhone = (clRow?.from_phone ?? clRow?.contact_phone ?? null) as string | null;
+    let clientId: string | null = null;
+    if (clRow?.contact_phone) {
+      const { data: contact } = await supabaseAdmin
+        .from('contacts')
+        .select('id')
+        .eq('organization_id', callLog.organization_id)
+        .eq('phone', clRow.contact_phone)
+        .maybeSingle();
+      clientId = contact?.id ?? null;
+    }
+
+    const ctx = {
+      organization_id: callLog.organization_id as string,
+      client_id: clientId,
+      call_log_id: callLog.id as string,
+      from_agent_type: null,
+    };
+    const verifyCtx = {
+      organization_id: callLog.organization_id as string,
+      call_log_id: callLog.id as string,
+      cli_phone: cliPhone,
+      channel: 'call',
+    };
+
+    const results: Array<{ toolCallId: string; result: string }> = [];
+    for (const c of rawCalls) {
+      const fn = (c.function ?? c) as Record<string, unknown>;
+      const name = String(fn.name ?? '');
+      let args: Record<string, unknown> = {};
+      try {
+        args = typeof fn.arguments === 'string'
+          ? JSON.parse(fn.arguments as string)
+          : ((fn.arguments ?? fn.parameters ?? {}) as Record<string, unknown>);
+      } catch { args = {}; }
+
+      // §4 routing tools, else §5 verification tools.
+      let result = await handleRoutingToolCall(supabaseAdmin, ctx, name, args);
+      if (result === null) {
+        result = await handleVerificationToolCall(supabaseAdmin, verifyCtx, name, args);
+      }
+      results.push({
+        toolCallId: String(c.id ?? c.toolCallId ?? 'fc'),
+        result: result ?? `Unknown tool: ${name}`,
+      });
+    }
+
+    return json({ results });
   }
 
   /* ── Handle: end-of-call-report (primary Vapi event) ── */
@@ -132,91 +213,4 @@ Deno.serve(async (req: Request) => {
       ? parseFloat(Number(costData.totalCost).toFixed(4))
       : computeCost(durationSecs, callLog.jurisdiction ?? 'US');
 
-    /* Update call_log */
-    await supabaseAdmin.from('call_logs').update({
-      status:           finalStatus,
-      duration_seconds: durationSecs,
-      cost_credits:     costCredits,
-      recording_url:    recordingUrl || null,
-      transcript:       transcriptText ? transcriptText.slice(0, 8000) : null,
-      summary:          summary ? summary.slice(0, 1000) : transcriptText.slice(0, 500),
-      ended_at:         new Date().toISOString(),
-    }).eq('id', callLog.id);
-
-    /* Deduct from org wallet */
-    if (costCredits > 0 && callLog.organization_id) {
-      await supabaseAdmin.rpc('deduct_org_credits', {
-        p_org_id: callLog.organization_id,
-        p_amount: costCredits,
-      }).catch(async () => {
-        // Fallback if RPC not available
-        const { data: org } = await supabaseAdmin
-          .from('organizations')
-          .select('credit_balance')
-          .eq('id', callLog.organization_id)
-          .single();
-        if (org) {
-          await supabaseAdmin.from('organizations')
-            .update({ credit_balance: Math.max(0, (org.credit_balance ?? 0) - costCredits) })
-            .eq('id', callLog.organization_id);
-        }
-      });
-    }
-
-    /* Check campaign completion */
-    if (callLog.campaign_id) {
-      const { count: pending } = await supabaseAdmin
-        .from('call_logs')
-        .select('id', { count: 'exact', head: true })
-        .eq('campaign_id', callLog.campaign_id)
-        .eq('status', 'in_progress');
-
-      if (pending === 0) {
-        await supabaseAdmin.from('outbound_campaigns')
-          .update({ status: 'completed' })
-          .eq('id', callLog.campaign_id)
-          .eq('status', 'processing');
-        console.log(`[vapi-webhook] campaign ${callLog.campaign_id} marked completed`);
-      }
-    }
-
-    /* Gross margin check — alert ops if < 35% */
-    try {
-      const { data: org } = await supabaseAdmin
-        .from('organizations')
-        .select('credit_balance')
-        .eq('id', callLog.organization_id)
-        .single();
-
-      const retailBurn   = costCredits;
-      const wholesaleCost = computeCost(durationSecs, callLog.jurisdiction ?? 'US') / 1.4;
-      const margin = retailBurn > 0
-        ? ((retailBurn - wholesaleCost) / retailBurn) * 100
-        : 100;
-
-      if (margin < 35) {
-        console.warn(`[vapi-webhook] MARGIN ALERT: ${margin.toFixed(1)}% for org ${callLog.organization_id}`);
-        // Could insert an ops alert row here in future
-      }
-    } catch(_) {}
-
-    return json({ received: true, event: eventType, status: finalStatus, duration: durationSecs, cost: costCredits });
-  }
-
-  /* ── Handle: hang / error ── */
-  if (eventType === 'hang' || eventType === 'error') {
-    await supabaseAdmin.from('call_logs')
-      .update({ status: 'failed' })
-      .eq('id', callLog.id);
-    return json({ received: true, event: eventType });
-  }
-
-  return json({ received: true, event: eventType ?? 'unknown' });
-});
-
-function json(body: object, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  });
-}
+    /* Upda

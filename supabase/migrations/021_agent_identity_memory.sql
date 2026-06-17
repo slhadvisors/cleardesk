@@ -1,0 +1,4 @@
+-- DEPRECATED / NOT A MIGRATION
+-- The §3 agent-identity migration is canonical in 017_agent_identity_memory.sql
+-- (applied live under that name). This file is an empty pointer; the mount
+-- does not permit deletion. Do not run.
